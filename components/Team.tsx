@@ -15,26 +15,28 @@ export default function Team() {
           </p>
         </div>
 
-        {/* Single founder — centered, half-width on desktop */}
-        <div className="mx-auto max-w-sm">
+        {/* Single founder — photo left, info right */}
+        <div className="flex flex-col gap-10 md:flex-row md:items-start md:gap-16">
           {/* Photo card */}
-          <div
-            className="relative w-full overflow-hidden rounded-2xl"
-            style={{ aspectRatio: "4/4.5", background: "#2a2a2e" }}
-          >
-            <div className="flex h-full w-full items-center justify-center">
-              <span className="text-4xl font-semibold text-muted select-none tracking-tight">
-                RD
-              </span>
+          <div className="w-full md:w-80 shrink-0">
+            <div
+              className="relative w-full overflow-hidden rounded-2xl"
+              style={{ aspectRatio: "4/4.5", background: "#2a2a2e" }}
+            >
+              <div className="flex h-full w-full items-center justify-center">
+                <span className="text-4xl font-semibold text-muted select-none tracking-tight">
+                  RD
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Info below card */}
-          <div className="mt-5">
+          {/* Info right */}
+          <div className="flex flex-col justify-center">
             <h3 className="text-2xl font-semibold text-foreground">Rob Doughty</h3>
             <div className="mt-1 text-base text-muted">Founder</div>
             <p className="mt-4 text-lg text-muted leading-loose">
-              Rob started Lanna Labs in 2026 after spending two years building websites for family and friends. The Lanna name was inspired by his favourite region of Thailand where he spends a lot of his time.
+              Rob started Lanna Labs in 2026 after experiencing the massive impact a high quality website had for a local boutique beauty salon. It is his goal to extend this success to other business owners and helping them to achieve their goals.
             </p>
           </div>
         </div>
