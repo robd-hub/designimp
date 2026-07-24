@@ -11,7 +11,7 @@ export default function Team() {
             The person behind the work.
           </h2>
           <p className="mt-4 mx-auto max-w-2xl text-lg text-muted leading-loose">
-            I believe every business deserves a website it can be proud of — and I built designimp.com to make that happen.
+            I believe every business deserves a website it can be proud of.
           </p>
         </div>
 
