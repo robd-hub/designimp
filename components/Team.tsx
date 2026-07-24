@@ -36,7 +36,13 @@ export default function Team() {
             <h3 className="text-2xl font-semibold text-foreground">Rob Doughty</h3>
             <div className="mt-1 text-base text-muted">Founder</div>
             <p className="mt-4 text-lg text-muted leading-loose">
-              I started designimp.com in 2026 after seeing first-hand the massive impact a quality website had on a local boutique beauty salon. It changed their business — and I want to do the same for other business owners.
+              I started designimp.com in 2026 after working with a local boutique beauty salon and watching their business change completely once they had a website that actually reflected how good they were.
+            </p>
+            <p className="mt-4 text-lg text-muted leading-loose">
+              It made me realise how many great businesses are being held back by websites that don&apos;t do them justice. That&apos;s what designimp.com is here to fix.
+            </p>
+            <p className="mt-4 text-lg text-muted leading-loose">
+              Every client works directly with me from the first call to launch. No account managers, no handoffs, no surprises.
             </p>
           </div>
         </div>
