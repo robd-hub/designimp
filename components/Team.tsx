@@ -11,7 +11,7 @@ export default function Team() {
             The person behind the work.
           </h2>
           <p className="mt-4 mx-auto max-w-2xl text-lg text-muted leading-loose">
-            Design Imp is a small, focused studio built on a simple idea: every business deserves a website it can be proud of.
+            I believe every business deserves a website it can be proud of — and I built designimp.com to make that happen.
           </p>
         </div>
 
@@ -36,7 +36,7 @@ export default function Team() {
             <h3 className="text-2xl font-semibold text-foreground">Rob Doughty</h3>
             <div className="mt-1 text-base text-muted">Founder</div>
             <p className="mt-4 text-lg text-muted leading-loose">
-              Rob started Design Imp in 2026 after experiencing the massive impact a high quality website had for a local boutique beauty salon. It is his goal to extend this success to other business owners and helping them to achieve their goals.
+              I started designimp.com in 2026 after seeing first-hand the massive impact a quality website had on a local boutique beauty salon. It changed their business — and I want to do the same for other business owners.
             </p>
           </div>
         </div>

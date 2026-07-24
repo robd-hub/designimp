@@ -38,7 +38,7 @@ export default function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2.5">
           <Image src="/logo-icon.svg" alt="Design Imp icon" width={32} height={32} />
-          <span className="text-foreground font-semibold text-base tracking-tight">Design Imp</span>
+          <span className="text-foreground font-semibold text-base tracking-tight">designimp.com</span>
         </Link>
 
         {/* Desktop links */}
