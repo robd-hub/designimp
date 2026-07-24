@@ -1,7 +1,7 @@
 const SECTIONS = [
   {
     title: "1. Introduction",
-    content: `Lanna Labs ("we," "our," or "us") respects your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website lannalabs.com or engage our services.`,
+    content: `Design Imp ("we," "our," or "us") respects your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website designimp.com or engage our services.`,
   },
   {
     title: "2. Information We Collect",
@@ -29,7 +29,7 @@ const SECTIONS = [
   },
   {
     title: "8. Your Rights",
-    content: `Depending on your jurisdiction, you may have the right to: access, correct, or delete your personal information; opt out of marketing communications; request data portability. To exercise these rights, contact us at rob@lannalabs.com.`,
+    content: `Depending on your jurisdiction, you may have the right to: access, correct, or delete your personal information; opt out of marketing communications; request data portability. To exercise these rights, contact us at rob@designimp.com.`,
   },
   {
     title: "9. Changes to This Policy",
@@ -37,7 +37,7 @@ const SECTIONS = [
   },
   {
     title: "10. Contact",
-    content: `If you have questions about this Privacy Policy, contact us at:\nrob@lannalabs.com`,
+    content: `If you have questions about this Privacy Policy, contact us at:\nrob@designimp.com`,
   },
 ];
 

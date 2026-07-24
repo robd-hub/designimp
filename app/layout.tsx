@@ -9,18 +9,18 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Lanna Labs",
-    template: "%s — Lanna Labs",
+    default: "Design Imp",
+    template: "%s — Design Imp",
   },
   description: "Custom websites for small and medium businesses. Craft-led studio, fixed price, one point of contact.",
   openGraph: {
     type: "website",
-    siteName: "Lanna Labs",
+    siteName: "Design Imp",
     locale: "en_GB",
   },
   twitter: {
     card: "summary_large_image",
-    site: "@lannalabs",
+    site: "@designimp",
   },
 };
 

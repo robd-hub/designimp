@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Lanna Labs — Custom websites for small and medium businesses";
+export const alt = "Design Imp — Custom websites for small and medium businesses";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -30,7 +30,7 @@ export default function Image() {
             marginBottom: 28,
           }}
         >
-          Lanna Labs
+          Design Imp
         </div>
         <div
           style={{

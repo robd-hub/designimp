@@ -63,7 +63,7 @@ export default function ServicesDetail() {
                     Coming soon
                   </span>
                   <a
-                    href="mailto:rob@lannalabs.com?subject=Interested in upcoming service"
+                    href="mailto:rob@designimp.com?subject=Interested in upcoming service"
                     className="text-sm text-muted hover:text-foreground transition-colors"
                   >
                     Get notified →

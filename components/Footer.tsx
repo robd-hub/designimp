@@ -2,8 +2,8 @@ import Link from "next/link";
 
 const FOUNDER_LINKS = [
   { label: "Instagram", href: "https://www.instagram.com/robdoughts/" },
-  { label: "X / Twitter", href: "https://x.com/lannalabs" },
-  { label: "rob@lannalabs.com", href: "mailto:rob@lannalabs.com" },
+  { label: "X / Twitter", href: "https://x.com/designimp" },
+  { label: "rob@designimp.com", href: "mailto:rob@designimp.com" },
 ];
 
 const COMPANY_LINKS = [
@@ -81,7 +81,7 @@ export default function Footer() {
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
           </div>
-          <p>© {new Date().getFullYear()} Lanna Labs. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Design Imp. All rights reserved.</p>
         </div>
       </div>
     </footer>

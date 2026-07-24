@@ -1,11 +1,11 @@
 const SECTIONS = [
   {
     title: "1. Agreement to Terms",
-    content: `By accessing or using the services provided by Lanna Labs ("Company," "we," "us"), you agree to be bound by these Terms of Service. If you do not agree, do not use our services.`,
+    content: `By accessing or using the services provided by Design Imp ("Company," "we," "us"), you agree to be bound by these Terms of Service. If you do not agree, do not use our services.`,
   },
   {
     title: "2. Services",
-    content: `Lanna Labs provides website design, build, and related digital services for small and medium businesses. The scope of work for each engagement is defined in a separate Statement of Work or service agreement.`,
+    content: `Design Imp provides website design, build, and related digital services for small and medium businesses. The scope of work for each engagement is defined in a separate Statement of Work or service agreement.`,
   },
   {
     title: "3. Client Obligations",
@@ -13,7 +13,7 @@ const SECTIONS = [
   },
   {
     title: "4. Intellectual Property",
-    content: `Unless otherwise stated in a service agreement: custom work product created specifically for you is assigned to you upon full payment; pre-existing tools, frameworks, and methodologies remain the property of Lanna Labs; we retain the right to use general knowledge and techniques gained during engagements.`,
+    content: `Unless otherwise stated in a service agreement: custom work product created specifically for you is assigned to you upon full payment; pre-existing tools, frameworks, and methodologies remain the property of Design Imp; we retain the right to use general knowledge and techniques gained during engagements.`,
   },
   {
     title: "5. Payment Terms",
@@ -25,7 +25,7 @@ const SECTIONS = [
   },
   {
     title: "7. Limitation of Liability",
-    content: `To the maximum extent permitted by law, Lanna Labs' total liability for any claim arising from our services shall not exceed the fees paid by you in the twelve months preceding the claim. We are not liable for indirect, incidental, or consequential damages.`,
+    content: `To the maximum extent permitted by law, Design Imp' total liability for any claim arising from our services shall not exceed the fees paid by you in the twelve months preceding the claim. We are not liable for indirect, incidental, or consequential damages.`,
   },
   {
     title: "8. Termination",
@@ -41,7 +41,7 @@ const SECTIONS = [
   },
   {
     title: "11. Contact",
-    content: `Questions about these Terms? Contact us at:\nLanna Labs\nrob@lannalabs.com`,
+    content: `Questions about these Terms? Contact us at:\nDesign Imp\nrob@designimp.com`,
   },
 ];
 

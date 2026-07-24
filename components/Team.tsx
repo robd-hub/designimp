@@ -11,7 +11,7 @@ export default function Team() {
             The person behind the work.
           </h2>
           <p className="mt-4 mx-auto max-w-2xl text-lg text-muted leading-loose">
-            Lanna Labs is a small, focused studio built on a simple idea: every business deserves a website it can be proud of.
+            Design Imp is a small, focused studio built on a simple idea: every business deserves a website it can be proud of.
           </p>
         </div>
 
@@ -36,7 +36,7 @@ export default function Team() {
             <h3 className="text-2xl font-semibold text-foreground">Rob Doughty</h3>
             <div className="mt-1 text-base text-muted">Founder</div>
             <p className="mt-4 text-lg text-muted leading-loose">
-              Rob started Lanna Labs in 2026 after experiencing the massive impact a high quality website had for a local boutique beauty salon. It is his goal to extend this success to other business owners and helping them to achieve their goals.
+              Rob started Design Imp in 2026 after experiencing the massive impact a high quality website had for a local boutique beauty salon. It is his goal to extend this success to other business owners and helping them to achieve their goals.
             </p>
           </div>
         </div>

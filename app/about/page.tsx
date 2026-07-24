@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "The story behind Lanna Labs — a small, craft-led studio helping small and medium businesses get websites they can be proud of.",
+  description: "The story behind Design Imp — a small, craft-led studio helping small and medium businesses get websites they can be proud of.",
 };
 import AboutHero from "@/components/AboutHero";
 import LogoBar from "@/components/LogoBar";

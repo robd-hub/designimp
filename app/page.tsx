@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Lanna Labs",
+  title: "Design Imp",
   description: "Custom websites for small and medium businesses. Craft-led studio, fixed price, one point of contact.",
 };
 import Hero from "@/components/Hero";

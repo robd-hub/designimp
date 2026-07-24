@@ -11,20 +11,18 @@ export default function About({ full = false }: AboutProps) {
         {/* Text column */}
         <div>
           <h2 className="mb-8 text-3xl font-semibold text-foreground md:text-4xl">
-            Lanna Labs.
+            Design Imp.
           </h2>
 
           <div className="space-y-4 text-lg text-muted leading-loose">
             <p>
-              Rob started Lanna Labs after noticing the same problem everywhere: small businesses doing great work, let down by the website representing them. He built the studio to close that gap.
+              Rob started Design Imp after noticing the same problem everywhere: small businesses doing great work, let down by the website representing them. He built the studio to close that gap.
             </p>
             <p>
-              The name Lanna comes from the ancient kingdom of northern Thailand —
-              a region Rob loves and returns to often. It reflects the studio&apos;s
-              values: craft, calm, and doing things properly.
+              The name is a nod to the Lincoln Imp — a medieval stone carving in Lincoln Cathedral and a symbol of the city Rob is from. Mischievous, distinctive, and built to last.
             </p>
             <p>
-              Today Lanna Labs helps small and medium companies dramatically increase their online presence
+              Today Design Imp helps small and medium companies dramatically increase their online presence
               and credibility by creating high quality, agile websites using the latest design and technology.
             </p>
 
