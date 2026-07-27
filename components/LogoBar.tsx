@@ -1,12 +1,12 @@
 const LOGOS = [
   "Anthropic",
-  "Notion",
-  "HeyGen",
-  "Make",
+  "Lovable",
+  "Figma",
+  "Vercel",
   "n8n",
   "OpenAI",
-  "Zapier",
-  "Durable",
+  "Antigravity",
+  "Cursor",
 ];
 
 export default function LogoBar() {
