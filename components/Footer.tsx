@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const FOUNDER_LINKS = [
   { label: "Instagram", href: "https://www.instagram.com/robdoughts/" },
-  { label: "X / Twitter", href: "https://x.com/designimp" },
+  { label: "X / Twitter", href: "https://x.com/designimp_com" },
   { label: "rob@designimp.com", href: "mailto:rob@designimp.com" },
 ];
 
