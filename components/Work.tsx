@@ -5,8 +5,10 @@ const PROJECTS = [
   {
     name: "Ayuri Beauty",
     outcome: "Custom website for a Manila-based beauty salon",
-    href: "https://www.ayuribeauty.com/",
+    href: "/work/ayuri-beauty",
     image: "/work/ayuri-beauty.jpg",
+    cta: "View project →",
+    external: false,
   },
 ];
 
@@ -29,8 +31,7 @@ export default function Work() {
           <Link
             key={project.name}
             href={project.href}
-            target="_blank"
-            rel="noopener noreferrer"
+            {...(project.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             className="group block overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-foreground/30"
           >
             <div className="relative aspect-[16/10] w-full overflow-hidden">
@@ -47,7 +48,7 @@ export default function Work() {
               <p className="font-semibold text-foreground text-lg">{project.name}</p>
               <p className="mt-1 text-base text-muted leading-loose">{project.outcome}</p>
               <p className="mt-3 text-base text-muted group-hover:text-foreground transition-colors">
-                Visit site →
+                {project.cta ?? "Visit site →"}
               </p>
             </div>
           </Link>
