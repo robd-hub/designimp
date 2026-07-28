@@ -41,7 +41,7 @@ export default function About({ full = false }: AboutProps) {
         {/* Photo column */}
         <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl">
           <Image
-            src="/Lincoln Cathedral cartoon.png"
+            src="/Lincoln Cathedral monochrome.png"
             alt="Lincoln Cathedral"
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
