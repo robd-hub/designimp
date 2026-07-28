@@ -63,9 +63,8 @@ export default function LogoBar() {
             {items.map((logo, i) => (
               <span
                 key={i}
-                className="flex items-center gap-2 whitespace-nowrap text-base font-medium text-muted tracking-wide pr-16"
+                className="whitespace-nowrap text-base font-medium text-muted tracking-wide pr-16"
               >
-                {logo.mark}
                 {logo.name}
               </span>
             ))}
