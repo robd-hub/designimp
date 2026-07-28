@@ -16,10 +16,10 @@ export default function About({ full = false }: AboutProps) {
 
           <div className="space-y-4 text-lg text-muted leading-loose">
             <p>
-              I started designimp.com after noticing the same problem everywhere: small businesses doing brilliant work, held back by a website that didn&apos;t do them justice. I wanted to fix that.
+              I started designimp.com after noticing the same problem everywhere; small businesses doing brilliant work, held back by a website that didn&apos;t do them justice. I wanted to fix that.
             </p>
             <p>
-              The name is a nod to the Lincoln Imp, a medieval stone carving in Lincoln Cathedral and a symbol of the city I&apos;m from. Mischievous, distinctive, and built to last.
+              The name is a nod to the Lincoln Imp, a medieval stone carving in Lincoln Cathedral and a symbol of the city I&apos;m from.
             </p>
             <p>
               I help small and medium businesses dramatically increase their online presence and credibility through high quality, modern websites built with the latest design and technology.
