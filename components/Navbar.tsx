@@ -53,7 +53,7 @@ export default function Navbar() {
 
         {/* Desktop CTA */}
         <Link
-          href="https://cal.com/rob-doughty-ffsaqo"
+          href="https://cal.com/rob-doughty/30min"
           target="_blank"
           rel="noopener noreferrer"
           className="hidden md:flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-base font-medium text-background transition-opacity hover:opacity-80"
@@ -105,7 +105,7 @@ export default function Navbar() {
             About
           </Link>
           <Link
-            href="https://cal.com/rob-doughty-ffsaqo"
+            href="https://cal.com/rob-doughty/30min"
             target="_blank"
             rel="noopener noreferrer"
             className="self-start inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-base font-medium text-background transition-opacity hover:opacity-80"

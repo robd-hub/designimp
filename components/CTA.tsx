@@ -20,7 +20,7 @@ export default function CTA() {
         </p>
 
       <a
-        href="https://cal.com/rob-doughty-ffsaqo"
+        href="https://cal.com/rob-doughty/30min"
         target="_blank"
         rel="noopener noreferrer"
         className="mt-10 inline-flex items-center gap-3 rounded-full bg-foreground px-6 py-3.5 text-base font-medium text-background transition-opacity hover:opacity-80"

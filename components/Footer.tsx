@@ -11,7 +11,7 @@ const COMPANY_LINKS = [
   { label: "Services", href: "/services" },
   { label: "Work", href: "/#work" },
   { label: "Privacy Policy", href: "/privacy" },
-  { label: "Book a Call", href: "https://cal.com/rob-doughty-ffsaqo" },
+  { label: "Book a Call", href: "https://cal.com/rob-doughty/30min" },
 ];
 
 export default function Footer() {
@@ -29,7 +29,7 @@ export default function Footer() {
               Start with a free, thirty minute call.
             </p>
             <a
-              href="https://cal.com/rob-doughty-ffsaqo"
+              href="https://cal.com/rob-doughty/30min"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-6 inline-flex items-center gap-3 rounded-full border border-foreground/20 px-5 py-3 text-base font-medium text-foreground hover:bg-foreground hover:text-background transition-colors"

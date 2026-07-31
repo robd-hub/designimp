@@ -50,7 +50,7 @@ export default function Hero() {
         {/* CTA */}
         <div className="animate-fade-in-up mt-10" style={{ animationDelay: "360ms" }}>
           <Link
-            href="https://cal.com/rob-doughty-ffsaqo"
+            href="https://cal.com/rob-doughty/30min"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-3 rounded-full bg-foreground px-6 py-3 text-base font-medium text-background transition-opacity hover:opacity-80"
