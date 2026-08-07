@@ -35,14 +35,14 @@ export default function Navbar() {
         scrolled || menuOpen ? "border-b border-border bg-background/90 backdrop-blur-md" : ""
       }`}
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <nav className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2.5">
           <Image src="/logo-icon.png" alt="Design Imp icon" width={32} height={32} />
           <span className="text-foreground font-semibold text-lg tracking-tight">designimp.com</span>
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-8 text-base text-muted">
+        <div className="hidden md:flex items-center gap-8 text-base text-muted absolute left-1/2 -translate-x-1/2">
           <Link href={servicesHref} className="hover:text-foreground transition-colors">
             Services
           </Link>
