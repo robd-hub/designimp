@@ -23,11 +23,13 @@ export default function Team() {
               className="relative w-full overflow-hidden rounded-2xl"
               style={{ aspectRatio: "4/4.5", background: "#2a2a2e" }}
             >
-              <div className="flex h-full w-full items-center justify-center">
-                <span className="text-4xl font-semibold text-muted select-none tracking-tight">
-                  RD
-                </span>
-              </div>
+              <Image
+                src="/Rob Bio pic.jpeg"
+                alt="Rob Doughty"
+                fill
+                className="object-cover"
+                sizes="(min-width: 768px) 320px, 100vw"
+              />
             </div>
           </div>
 
