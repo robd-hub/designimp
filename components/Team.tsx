@@ -2,7 +2,13 @@ import Image from "next/image";
 
 export default function Team() {
   return (
-    <section id="team" className="py-28 px-6 bg-card">
+    <section
+      id="team"
+      className="py-28 px-6"
+      style={{
+        background: "radial-gradient(ellipse 80% 60% at 50% 40%, #1a1a2e 0%, #111113 70%)",
+      }}
+    >
       <div className="mx-auto max-w-5xl">
 
         {/* Centered header */}
