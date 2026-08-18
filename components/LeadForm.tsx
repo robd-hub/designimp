@@ -22,6 +22,7 @@ export default function LeadForm() {
       businessName: form.get("businessName"),
       businessType: form.get("businessType"),
       businessUrl: form.get("businessUrl"),
+      notes: form.get("notes"),
       company: form.get("company"),
     };
 
@@ -88,6 +89,17 @@ export default function LeadForm() {
         <div>
           <label htmlFor="businessUrl" className={labelClasses}>Business website (if applicable)</label>
           <input id="businessUrl" name="businessUrl" type="url" placeholder="https://" className={inputClasses} />
+        </div>
+
+        <div>
+          <label htmlFor="notes" className={labelClasses}>Tell us about your business (optional)</label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={4}
+            placeholder="What you do, who your customers are, any colours or styles you like..."
+            className={`${inputClasses} resize-none`}
+          />
         </div>
 
         {status === "error" && (
