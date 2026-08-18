@@ -28,17 +28,15 @@ export default function Footer() {
             <p className="text-2xl font-semibold text-foreground leading-snug max-w-sm">
               Start with a free mockup.
             </p>
-            <a
-              href="https://cal.com/rob-doughty/30min"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/get-started"
               className="mt-6 inline-flex items-center gap-3 rounded-full border border-foreground/20 px-5 py-3 text-base font-medium text-foreground hover:bg-foreground hover:text-background transition-colors"
             >
               Get your free mockup
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-background text-sm">
                 →
               </span>
-            </a>
+            </Link>
           </div>
 
           {/* Link columns — right side */}

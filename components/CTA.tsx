@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function CTA() {
   return (
     <section
@@ -19,17 +21,15 @@ export default function CTA() {
           Tell us a bit about your business and we&apos;ll put together a free mockup, no call required. If you like it, we&apos;ll talk next steps.
         </p>
 
-      <a
-        href="https://cal.com/rob-doughty/30min"
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href="/get-started"
         className="mt-10 inline-flex items-center gap-3 rounded-full bg-foreground px-6 py-3.5 text-base font-medium text-background transition-opacity hover:opacity-80"
       >
         Get your free mockup
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-background text-foreground text-xs">
           →
         </span>
-      </a>
+      </Link>
       </div>
     </section>
   );
