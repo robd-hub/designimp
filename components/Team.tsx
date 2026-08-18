@@ -50,6 +50,9 @@ export default function Team() {
               It made me realise how many great businesses are being held back by websites that don&apos;t do them justice. That&apos;s what designimp.com is here to fix.
             </p>
             <p className="mt-4 text-lg text-muted leading-loose">
+              I work with clients remotely, by video call, email and screen share, so you get the same direct access and speed without needing to be in the same room.
+            </p>
+            <p className="mt-4 text-lg text-muted leading-loose">
               Every client works directly with me from the first call to launch. No account managers, no handoffs, no surprises.
             </p>
           </div>

@@ -58,7 +58,7 @@ export default function Navbar() {
           rel="noopener noreferrer"
           className="hidden md:flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-base font-medium text-background transition-opacity hover:opacity-80"
         >
-          Let&apos;s talk
+          Get a free mockup
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-background/20 text-sm">
             →
           </span>
@@ -111,7 +111,7 @@ export default function Navbar() {
             className="self-start inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-base font-medium text-background transition-opacity hover:opacity-80"
             onClick={() => setMenuOpen(false)}
           >
-            Let&apos;s talk
+            Get a free mockup
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-background/20 text-sm">
               →
             </span>

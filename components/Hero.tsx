@@ -55,7 +55,7 @@ export default function Hero() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-3 rounded-full bg-foreground px-6 py-3 text-base font-medium text-background transition-opacity hover:opacity-80"
           >
-            Let&apos;s talk
+            Get your free mockup
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-background/20 text-sm">
               →
             </span>

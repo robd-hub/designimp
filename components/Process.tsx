@@ -4,23 +4,18 @@ import { motion, useReducedMotion } from "framer-motion";
 const STEPS = [
   {
     num: "01",
-    title: "Discover",
-    body: "A free 30-minute call to understand your business, your goals, and what you need your website to do.",
+    title: "Free mockup",
+    body: "Send over your business and we'll design a free mockup of your new site using your own photos and pricing. No obligation.",
   },
   {
     num: "02",
-    title: "Design",
-    body: "A custom design built around your brand. You see exactly how your site will look before a line of code is written.",
+    title: "Refine together",
+    body: "Like what you see? We'll refine it with you until it's right.",
   },
   {
     num: "03",
-    title: "Build",
-    body: "We build fast, modern, and fully yours — optimised for speed, mobile, and search from day one.",
-  },
-  {
-    num: "04",
-    title: "Handoff",
-    body: "You get full ownership of your site. We walk you through everything and stay on hand if you need us.",
+    title: "Launch",
+    body: "Once you're happy, we build it and get it live. From as little as £250.",
   },
 ];
 
@@ -53,12 +48,12 @@ export default function Process() {
           className="font-semibold text-foreground"
           style={{ fontSize: "clamp(1.875rem, 3vw, 2.25rem)" }}
         >
-          From brief to live in four steps.
+          From free mockup to live site in three steps.
         </h2>
       </motion.div>
 
       <motion.div
-        className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4 rounded-2xl overflow-hidden"
+        className="grid gap-px bg-border sm:grid-cols-3 rounded-2xl overflow-hidden"
         variants={reduced ? undefined : containerVariants}
         initial="hidden"
         whileInView="visible"

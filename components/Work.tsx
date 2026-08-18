@@ -26,7 +26,7 @@ export default function Work() {
         </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1">
         {PROJECTS.map((project) => (
           <Link
             key={project.name}
@@ -53,12 +53,6 @@ export default function Work() {
             </div>
           </Link>
         ))}
-
-        {/* Placeholder card */}
-        <div className="flex aspect-auto min-h-[200px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 px-8 py-12 text-center">
-          <p className="text-base font-medium text-muted">More coming soon</p>
-          <p className="mt-2 text-base text-muted/60">Next project in progress</p>
-        </div>
       </div>
     </section>
   );

@@ -26,7 +26,7 @@ export default function Footer() {
               Work with us
             </p>
             <p className="text-2xl font-semibold text-foreground leading-snug max-w-sm">
-              Start with a free, thirty minute call.
+              Start with a free mockup.
             </p>
             <a
               href="https://cal.com/rob-doughty/30min"
@@ -34,7 +34,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="mt-6 inline-flex items-center gap-3 rounded-full border border-foreground/20 px-5 py-3 text-base font-medium text-foreground hover:bg-foreground hover:text-background transition-colors"
             >
-              Book a free call
+              Get your free mockup
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-background text-sm">
                 →
               </span>
