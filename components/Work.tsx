@@ -13,10 +13,10 @@ const PROJECTS = [
   {
     name: "WellSway Dance Studio",
     outcome: "Website for a ballroom, Latin and salsa dance studio in Lincoln",
-    href: "https://wellswaydance.com",
+    href: "/work/wellsway",
     image: "/work/wellswaydance.jpg",
-    cta: "Visit site →",
-    external: true,
+    cta: "View project →",
+    external: false,
   },
 ];
 
