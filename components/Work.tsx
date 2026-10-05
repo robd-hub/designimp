@@ -10,6 +10,14 @@ const PROJECTS = [
     cta: "View project →",
     external: false,
   },
+  {
+    name: "WellSway Dance Studio",
+    outcome: "Website for a ballroom, Latin and salsa dance studio in Lincoln",
+    href: "https://wellswaydance.com",
+    image: "/work/wellswaydance.jpg",
+    cta: "Visit site →",
+    external: true,
+  },
 ];
 
 export default function Work() {
@@ -26,7 +34,7 @@ export default function Work() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1">
+      <div className="grid gap-6 sm:grid-cols-2">
         {PROJECTS.map((project) => (
           <Link
             key={project.name}
