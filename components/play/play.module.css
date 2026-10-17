@@ -67,7 +67,19 @@
   gap: 6px;
   max-width: 44vw;
 }
-.lbl {
+.places {
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+.shut {
+  padding: 4px;
+}
+.root .lbl {
+  font: 800 11px var(--body);
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -283,7 +295,173 @@
   color: var(--ink);
 }
 
+.status {
+  position: fixed;
+  top: calc(96px + env(safe-area-inset-top, 0px));
+  left: calc(14px + env(safe-area-inset-left, 0px));
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.status > * {
+  font: 800 13px var(--body);
+  padding: 5px 10px;
+  color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.status button {
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 9px;
+  cursor: pointer;
+}
+.spotter {
+  background: var(--sun) !important;
+}
+
+.minimap {
+  position: fixed;
+  right: calc(14px + env(safe-area-inset-right, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  width: 150px;
+  height: 150px;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.minimap rect[fill]:not(:first-child) {
+  cursor: pointer;
+}
+
+.joy {
+  position: fixed;
+  left: calc(22px + env(safe-area-inset-left, 0px));
+  bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  background: rgba(255, 248, 231, 0.55);
+  touch-action: none;
+  display: grid;
+  place-items: center;
+}
+.joy i {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  background: var(--gold);
+  box-shadow: 2px 2px 0 var(--ink);
+  pointer-events: none;
+}
+
+.badge {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(360px, calc(100% - 40px));
+  padding: 22px 22px 20px;
+  text-align: center;
+  box-sizing: border-box;
+}
+.badge h2 {
+  font: 400 34px var(--display);
+  margin: 6px 0;
+  color: var(--gold);
+  -webkit-text-stroke: 1.5px var(--ink);
+}
+.badge p {
+  margin: 0 0 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.badge .close {
+  top: 10px;
+  right: 10px;
+}
+.medal {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  background: var(--sun);
+  box-shadow: 3px 3px 0 var(--ink);
+  display: grid;
+  place-items: center;
+  font-size: 40px;
+  color: var(--tomato);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0 22px;
+}
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.form input,
+.form select,
+.form textarea {
+  font: 600 15px var(--body);
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 9px;
+  padding: 8px 10px;
+}
+.form input:focus,
+.form select:focus,
+.form textarea:focus {
+  outline: 3px solid var(--teal);
+  outline-offset: 1px;
+}
+.form .cta {
+  align-self: flex-start;
+  cursor: pointer;
+}
+.form .cta:disabled {
+  opacity: 0.6;
+}
+.hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+}
+.sent {
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: #e3f7f3;
+  padding: 12px;
+}
+
 @media (max-width: 600px) {
+  .status {
+    top: calc(84px + env(safe-area-inset-top, 0px));
+  }
+  .minimap {
+    top: calc(84px + env(safe-area-inset-top, 0px));
+    bottom: auto;
+    width: 96px;
+    height: 96px;
+  }
+  .places {
+    max-height: 40vh;
+  }
+  .root .lbl {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
   .places {
     top: auto;
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
@@ -294,7 +472,6 @@
     justify-content: center;
     padding: 8px;
   }
-  .lbl,
   .hint {
     display: none;
   }

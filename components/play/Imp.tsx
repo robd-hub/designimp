@@ -35,6 +35,7 @@ export default function Imp({ reduce }: { reduce: boolean }) {
       if (k.s || k.arrowdown) vz += 1;
       if (k.a || k.arrowleft) vx -= 1;
       if (k.d || k.arrowright) vx += 1;
+      if (!vx && !vz && Math.hypot(game.joy.x, game.joy.z) > 0.2) [vx, vz] = [game.joy.x, game.joy.z];
     }
     const pos = game.pos;
     if (game.pendingNpc) {

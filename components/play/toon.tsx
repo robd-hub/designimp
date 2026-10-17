@@ -18,6 +18,26 @@ export function toon(color: number) {
   return m;
 }
 
+export const WINDOW = 0xbff0ff;
+export const LAMP = 0xfff1a8;
+export const STONE = 0xd9cbb0;
+export const STONE_DARK = 0xc4b393;
+
+// At night windows and lamps glow and the cathedral is floodlit gold.
+const GLOW: [number, number, number][] = [
+  [WINDOW, 0xffc96b, 0.85],
+  [LAMP, 0xffe08a, 1],
+  [STONE, 0xffb347, 0.75],
+  [STONE_DARK, 0xffa52e, 0.7],
+];
+export function setNightGlow(on: boolean) {
+  for (const [c, e, i] of GLOW) {
+    const m = toon(c);
+    m.emissive.setHex(e);
+    m.emissiveIntensity = on ? i : 0;
+  }
+}
+
 export const outlineMat = new THREE.MeshBasicMaterial({ color: INK, side: THREE.BackSide });
 
 const geos = new Map<string, THREE.BufferGeometry>();
@@ -69,4 +89,34 @@ export function Part({ geometry, color, outline = 0.07, shadow = true, children,
       {children}
     </group>
   );
+}
+
+// Each line of text (split on \n) gets its own row on the sign.
+export function signTexture(text: string, fg: string, font: string) {
+  const lines = text.split("\n");
+  const c = document.createElement("canvas");
+  c.width = 512;
+  c.height = 32 + 96 * lines.length;
+  const x = c.getContext("2d")!;
+  x.fillStyle = "#fff8e7";
+  x.fillRect(0, 0, c.width, c.height);
+  x.lineWidth = 10;
+  x.strokeStyle = "#1a1320";
+  x.strokeRect(5, 5, c.width - 10, c.height - 10);
+  let px = 64;
+  do x.font = `${px}px ${font}`;
+  while (Math.max(...lines.map((l) => x.measureText(l).width)) > 420 && --px > 30);
+  x.textAlign = "center";
+  x.textBaseline = "middle";
+  x.lineWidth = 8;
+  x.fillStyle = fg;
+  lines.forEach((l, i) => {
+    const y = 68 + i * 96;
+    x.strokeText(l, 256, y);
+    x.fillText(l, 256, y);
+  });
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
 }

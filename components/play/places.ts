@@ -4,7 +4,8 @@ export type PlaceItem = { title: string; detail: string };
 
 export type Place = {
   id: string;
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank"; // tank is drawn by the fountain // defaults to shop
+  // defaults to shop; tank is drawn by the fountain; lots open the mockup form
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -184,6 +185,46 @@ export const PLACES: Place[] = [
     link: { href: "/get-started", label: "Claim this plot" },
   },
   {
+    id: "tolet-east",
+    kind: "lot",
+    name: "To Let",
+    kicker: "Shop to let",
+    nav: "To let (east)",
+    x: 36,
+    z: 11,
+    w: 10,
+    d: 8,
+    h: 0,
+    wall: 0x1fb5a8,
+    roof: 0xffd23f,
+    roofType: "flat",
+    rot: Math.PI,
+    intro: [
+      "Picture your business here. Tell me a little about it and I'll design a free mockup of your new website before you spend a penny.",
+    ],
+    link: { href: "/get-started", label: "Open the full form" },
+  },
+  {
+    id: "tolet-west",
+    kind: "lot",
+    name: "To Let",
+    kicker: "Shop to let",
+    nav: "To let (west)",
+    x: -36,
+    z: 11,
+    w: 10,
+    d: 8,
+    h: 0,
+    wall: 0x3d8bff,
+    roof: 0xffd23f,
+    roofType: "flat",
+    rot: Math.PI,
+    intro: [
+      "Picture your business here. Tell me a little about it and I'll design a free mockup of your new website before you spend a penny.",
+    ],
+    link: { href: "/get-started", label: "Open the full form" },
+  },
+  {
     id: "cathedral",
     kind: "cathedral",
     name: "Lincoln Cathedral",
@@ -224,6 +265,7 @@ export const PLACES: Place[] = [
     intro: [
       "Lincoln City have played at Sincil Bank since 1895, and their nickname is the Imps, after the same little carving in the cathedral.",
       "It's the other place in Lincoln where you'll find a lot of imps in one spot, and they're League 1 Champions for 2025/26.",
+      "Come by on a Saturday and it's matchday, with a full crowd.",
     ],
     link: { href: "https://www.weareimps.com/", label: "Visit weareimps.com", external: true },
   },
@@ -251,6 +293,72 @@ export const PLACES: Place[] = [
       label: "See it on Visit Lincoln",
       external: true,
     },
+  },
+  {
+    id: "castle",
+    kind: "castle",
+    name: "Lincoln Castle",
+    kicker: "Next door to the cathedral",
+    nav: "Castle",
+    x: -24,
+    z: -62,
+    w: 22,
+    d: 18,
+    h: 7,
+    wall: 0xb8a98a,
+    roof: 0x8a7b5e,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "William the Conqueror started building Lincoln Castle in 1068, right next to where the cathedral now stands.",
+      "Today it's home to an original 1215 Magna Carta, and you can walk right round the medieval walls.",
+    ],
+    link: { href: "https://www.lincolncastle.com/", label: "Visit lincolncastle.com", external: true },
+  },
+  {
+    id: "steep-hill",
+    kind: "street",
+    name: "Steep Hill",
+    kicker: "Lincoln's famous street",
+    nav: "Steep Hill",
+    x: 28,
+    z: -50,
+    w: 12,
+    d: 40,
+    h: 0,
+    wall: 0xe8a33d,
+    roof: 0x8a3b2e,
+    roofType: "pitch",
+    rot: 0,
+    intro: [
+      "Steep Hill climbs from the city centre up to the cathedral and castle, lined with independent shops, cafés and some of the oldest houses in England.",
+      "It's often called one of Britain's best streets, and it's every bit as steep as it sounds.",
+    ],
+    items: [
+      { title: "Small businesses, big character", detail: "Exactly the kind of shops that deserve a website as good as their shopfront." },
+    ],
+    link: { href: "/get-started", label: "Get your free mockup" },
+  },
+  {
+    id: "brayford",
+    kind: "water",
+    name: "Brayford Waterfront",
+    kicker: "Down by the water",
+    nav: "Brayford",
+    x: -40,
+    z: 42,
+    w: 32,
+    d: 22,
+    h: 0,
+    wall: 0x4fc3ff,
+    roof: 0xffffff,
+    roofType: "flat",
+    rot: Math.PI,
+    intro: [
+      "Brayford Pool is where the River Witham meets the Fossdyke, a canal thought to date back to the Romans and still in use today.",
+      "These days it's lined with restaurants, the university and plenty of swans.",
+    ],
+    link: { href: "/about", label: "More about Lincoln and me" },
   },
 ];
 

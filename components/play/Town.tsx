@@ -4,11 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-three/fiber";
 import { PLACES, hex, type Place } from "./places";
-import { Part, geo, toon, INK } from "./toon";
+import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
+import { Castle, SteepHill, Brayford } from "./Landmarks";
 import { TREES, BOUND, seeded } from "./colliders";
 import Townsfolk from "./Townsfolk";
-import { game, usePlay, walkTo } from "./store";
+import { game, usePlay, placeClick } from "./store";
 import Imp from "./Imp";
+import Hunt from "./Hunt";
+import { Crowd, Chant } from "./Matchday";
 
 function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; color: number; x?: number; z?: number; y?: number }) {
   return <mesh geometry={geo.box(w, 0.04, d)} material={toon(color)} position={[x, y, z]} receiveShadow />;
@@ -90,42 +93,7 @@ function Fountain({ reduce }: { reduce: boolean }) {
   );
 }
 
-// Each line of text (split on \n) gets its own row on the sign.
-function signTexture(text: string, fg: string, font: string) {
-  const lines = text.split("\n");
-  const c = document.createElement("canvas");
-  c.width = 512;
-  c.height = 32 + 96 * lines.length;
-  const x = c.getContext("2d")!;
-  x.fillStyle = "#fff8e7";
-  x.fillRect(0, 0, c.width, c.height);
-  x.lineWidth = 10;
-  x.strokeStyle = "#1a1320";
-  x.strokeRect(5, 5, c.width - 10, c.height - 10);
-  let px = 64;
-  do x.font = `${px}px ${font}`;
-  while (Math.max(...lines.map((l) => x.measureText(l).width)) > 420 && --px > 30);
-  x.textAlign = "center";
-  x.textBaseline = "middle";
-  x.lineWidth = 8;
-  x.fillStyle = fg;
-  lines.forEach((l, i) => {
-    const y = 68 + i * 96;
-    x.strokeText(l, 256, y);
-    x.fillText(l, 256, y);
-  });
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 4;
-  return t;
-}
 
-function placeClick(p: Place) {
-  return (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation();
-    if (e.delta <= 8) walkTo(p);
-  };
-}
 
 function Building({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, hex(p.wall), font), [p, font]);
@@ -158,7 +126,7 @@ function Building({ p, font }: { p: Place; font: string }) {
         rotation-x={0.25}
       />
       {windows.map(([wx, wy]) => (
-        <Part key={`${wx},${wy}`} geometry={geo.box(1, 1.1, 0.2)} color={0xbff0ff} outline={0.05} position={[wx, wy, p.d / 2 + 0.05]} />
+        <Part key={`${wx},${wy}`} geometry={geo.box(1, 1.1, 0.2)} color={WINDOW} outline={0.05} position={[wx, wy, p.d / 2 + 0.05]} />
       ))}
       <mesh position={[0, Math.min(p.h - 0.9, 4.1), p.d / 2 + 0.08]}>
         <planeGeometry args={[4.4, 1.1]} />
@@ -168,8 +136,6 @@ function Building({ p, font }: { p: Place; font: string }) {
   );
 }
 
-const STONE = 0xd9cbb0;
-const STONE_DARK = 0xc4b393;
 const LEAD = 0x5b6b7a;
 
 // Prism roof running along local z; r is the triangle's circumradius.
@@ -265,7 +231,13 @@ function Lot({ p, font }: { p: Place; font: string }) {
 }
 
 // Sincil Bank, simplified: a pitch ringed by four red-and-white stands with floodlights.
-function Stadium({ p, font }: { p: Place; font: string }) {
+// Saturdays are matchdays; ?matchday=1 previews one any day.
+function isMatchday() {
+  return new Date().getDay() === 6 || new URLSearchParams(window.location.search).get("matchday") === "1";
+}
+
+function Stadium({ p, font, reduce }: { p: Place; font: string; reduce: boolean }) {
+  const matchday = useMemo(() => isMatchday(), []);
   const sign = useMemo(() => signTexture(p.name, hex(p.wall), font), [p, font]);
   const champs = useMemo(() => signTexture("League 1 Champions\n2025/26", hex(p.wall), font), [p, font]);
   const pw = p.w - 9,
@@ -310,7 +282,7 @@ function Stadium({ p, font }: { p: Place; font: string }) {
         [-1, 1].map((sz) => (
           <group key={`${sx}${sz}`} position={[(sx * (pw + 7)) / 2, 0, (sz * (pd + 7)) / 2]}>
             <Part geometry={geo.cyl(0.2, 0.3, 11, 8)} color={0x2b2633} outline={0.04} position-y={5.5} />
-            <Part geometry={geo.box(2, 1.2, 0.4)} color={0xfff1a8} outline={0.05} position-y={11.2} rotation-y={Math.atan2(-sx, -sz)} />
+            <Part geometry={geo.box(2, 1.2, 0.4)} color={LAMP} outline={0.05} position-y={11.2} rotation-y={Math.atan2(-sx, -sz)} />
           </group>
         )),
       )}
@@ -318,6 +290,12 @@ function Stadium({ p, font }: { p: Place; font: string }) {
         <planeGeometry args={[6, 1.5]} />
         <meshBasicMaterial map={sign} toneMapped={false} />
       </mesh>
+      {matchday && (
+        <>
+          <Crowd stands={stands} reduce={reduce} />
+          <Chant font={font} reduce={reduce} />
+        </>
+      )}
       {/* champions board beside the main entrance */}
       <group position={[7.5, 0, p.d / 2 + 3]} rotation-y={-0.15}>
         {[-2.6, 2.6].map((x) => (
@@ -333,7 +311,7 @@ function Stadium({ p, font }: { p: Place; font: string }) {
   );
 }
 
-function Sun() {
+function Sun({ night }: { night: boolean }) {
   const light = useRef<THREE.DirectionalLight>(null!);
   // keep the shadow box centred on the imp so shadows work across the whole town
   useFrame(() => {
@@ -345,8 +323,8 @@ function Sun() {
   return (
     <directionalLight
       ref={light}
-      color={0xfff3d6}
-      intensity={2.4}
+      color={night ? 0x8fa3ff : 0xfff3d6}
+      intensity={night ? 0.7 : 2.4}
       castShadow
       shadow-mapSize={[2048, 2048]}
       shadow-camera-left={-40}
@@ -382,7 +360,7 @@ function Lamps() {
       {LAMPS.map(([x, z]) => (
         <group key={`${x},${z}`}>
           <Part geometry={geo.cyl(0.1, 0.12, 3.2, 8)} color={0x2b2633} outline={0.04} position={[x, 1.6, z]} />
-          <Part geometry={geo.sphere(0.3)} color={0xfff1a8} outline={0.05} position={[x, 3.3, z]} />
+          <Part geometry={geo.sphere(0.3)} color={LAMP} outline={0.05} position={[x, 3.3, z]} />
         </group>
       ))}
     </>
@@ -421,6 +399,8 @@ function Clouds({ reduce }: { reduce: boolean }) {
 export default function Town({ font }: { font: string }) {
   const reduce = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
   const [signsReady, setSignsReady] = useState(false);
+  const night = usePlay((s) => s.night);
+  useEffect(() => setNightGlow(night), [night]);
 
   useEffect(() => {
     // Signs are drawn to a canvas, so the display font has to be loaded first.
@@ -465,9 +445,9 @@ export default function Town({ font }: { font: string }) {
       onWheel={(e) => (game.zoom = Math.min(2.4, Math.max(0.55, game.zoom + e.deltaY * 0.001)))}
       style={{ position: "fixed", inset: 0, touchAction: "none" }}
     >
-      <color attach="background" args={["#7ccaff"]} />
-      <hemisphereLight args={[0xffffff, 0x88aa66, 2]} />
-      <Sun />
+      <color attach="background" args={[night ? "#1d2547" : "#7ccaff"]} />
+      <hemisphereLight args={night ? [0x6a7bd6, 0x2a3350, 1.1] : [0xffffff, 0x88aa66, 2]} />
+      <Sun night={night} />
       <mesh rotation-x={-Math.PI / 2} material={toon(0x6fd36b)} receiveShadow onClick={onGround}>
         <planeGeometry args={[SIZE, SIZE]} />
       </mesh>
@@ -476,8 +456,8 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building }[p.kind ?? "shop"];
-          return <C key={p.id} p={p} font={font} />;
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford }[p.kind ?? "shop"];
+          return <C key={p.id} p={p} font={font} reduce={reduce} />;
         })}
       {TREES.map(([x, z, sc], i) => (
         <Tree key={i} x={x} z={z} s={sc} />
@@ -485,6 +465,7 @@ export default function Town({ font }: { font: string }) {
       <Townsfolk reduce={reduce} />
       <Lamps />
       <Clouds reduce={reduce} />
+      <Hunt reduce={reduce} />
       <Imp reduce={reduce} />
     </Canvas>
   );

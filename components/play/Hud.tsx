@@ -1,16 +1,40 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PLACES, hex } from "./places";
 import { usePlay, walkTo } from "./store";
+import { HIDDEN } from "./hidden";
+import PlayLeadForm from "./PlayLeadForm";
+import Minimap from "./Minimap";
+import Joystick from "./Joystick";
 import s from "./play.module.css";
 
+function useMedia(q: string) {
+  return useSyncExternalStore(
+    (cb) => {
+      const m = window.matchMedia(q);
+      m.addEventListener("change", cb);
+      return () => m.removeEventListener("change", cb);
+    },
+    () => window.matchMedia(q).matches,
+    () => false,
+  );
+}
+
 export default function Hud() {
-  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine } = usePlay();
+  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, found, badge, setBadge } = usePlay();
+  const total = HIDDEN.length;
+  const spotter = found.length >= total;
+  const touch = useMedia("(pointer: coarse)");
+  const narrow = useMedia("(max-width: 600px)");
+  const [navPick, setNavOpen] = useState<boolean | null>(null);
+  const navOpen = navPick ?? !narrow; // the list starts folded away on phones
+
 
   useEffect(() => {
+    usePlay.getState().hydrate();
     const id = new URLSearchParams(window.location.search).get("place");
     const p = PLACES.find((x) => x.id === id);
     if (p) usePlay.getState().openPlace(p);
@@ -20,6 +44,7 @@ export default function Hud() {
     const onKey = (e: KeyboardEvent) => {
       const st = usePlay.getState();
       if (e.key === "Escape") {
+        st.setBadge(false);
         st.close();
         st.endTalk();
       }
@@ -41,15 +66,46 @@ export default function Hud() {
           Walk around the work of <Link href="/">Design Imp</Link>
         </p>
       </div>
-      <nav className={`${s.card} ${s.places}`} aria-label="Places">
-        <span className={s.lbl}>Go to</span>
-        {PLACES.map((p) => (
+      <div className={s.status}>
+        <button className={s.card} onClick={toggleNight} aria-label={night ? "Switch to day" : "Switch to night"} title={night ? "Day" : "Night"}>
+          {night ? "☾" : "☀"}
+        </button>
+        <span className={`${s.card} ${spotter ? s.spotter : ""}`} aria-live="polite">
+          {spotter ? "Imp Spotter ★" : `Imps found ${found.length}/${total}`}
+        </span>
+      </div>
+      <nav className={`${s.card} ${s.places} ${navOpen ? "" : s.shut}`} aria-label="Places">
+        <button className={s.lbl} onClick={() => setNavOpen(!navOpen)} aria-expanded={navOpen}>
+          Go to {navOpen ? "▴" : "▾"}
+        </button>
+        {navOpen && PLACES.map((p) => (
           <button key={p.id} onClick={() => walkTo(p)}>
             <i style={{ background: hex(p.wall) }} />
             {p.nav ?? (p.kicker.startsWith("Case study") ? p.name : p.kicker)}
           </button>
         ))}
       </nav>
+      <Minimap />
+      {touch && <Joystick />}
+      {badge && (
+        <div className={`${s.card} ${s.badge}`} role="dialog" aria-label="Imp Spotter badge">
+          <div className={s.medal}>★</div>
+          <h2>Imp Spotter!</h2>
+          <p>You found all {total} hidden imps and earned the Imp Spotter badge. Fancy a free mockup of your own website next?</p>
+          <button
+            className={s.cta}
+            onClick={() => {
+              setBadge(false);
+              openPlace(PLACES.find((p) => p.id === "tolet-east")!);
+            }}
+          >
+            Get my free mockup →
+          </button>
+          <button className={s.close} onClick={() => setBadge(false)}>
+            ✕
+          </button>
+        </div>
+      )}
       <div className={`${s.card} ${s.hint}`}>
         <kbd>WASD</kbd> walk · click to go · <kbd>E</kbd> enter or chat
       </div>
@@ -106,6 +162,7 @@ export default function Hud() {
                 ))}
               </ul>
             )}
+            {open.kind === "lot" && <PlayLeadForm />}
             {open.link.external ? (
               <a className={s.cta} href={open.link.href} target="_blank" rel="noopener noreferrer">
                 {open.link.label} ↗
