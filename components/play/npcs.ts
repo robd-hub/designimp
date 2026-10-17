@@ -42,6 +42,7 @@ export const NPCS: Npc[] = [
     lines: [
       "Hello! I teach ballroom, Latin and Salsa Fit classes here in Lincoln, for adults and children.",
       "I didn't have a website before. Now new students can find my classes, prices and how to join.",
+      "I'm really happy with what Rob made for me. The colour scheme and the layout of the website were just what I needed.",
     ],
   },
   {
