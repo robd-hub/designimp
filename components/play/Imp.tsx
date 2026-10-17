@@ -119,39 +119,48 @@ export default function Imp({ reduce }: { reduce: boolean }) {
     <>
       <group ref={body}>
         {[-0.22, 0.22].map((x, i) => (
-          <group key={x} ref={i ? legR : legL} position={[x, 0.9, 0]}>
-            <Part geometry={geo.box(0.32, 0.9, 0.32)} color={SKIN} outline={0.05} position={[0, -0.45, 0]} />
+          <group key={x} ref={i ? legR : legL} position={[x, 0.62, 0]}>
+            <Part geometry={geo.cyl(0.14, 0.16, 0.5, 10)} color={SKIN} outline={0.05} position={[0, -0.25, 0]} />
+            <Part geometry={geo.sphere(0.18)} color={HORN} outline={0.04} position={[0, -0.5, 0.07]} scale={[1, 0.6, 1.4]} />
           </group>
         ))}
-        <Part geometry={geo.cyl(0.48, 0.55, 1.1)} color={SKIN} outline={0.06} position={[0, 1.45, 0]} />
-        <Part geometry={geo.sphere(0.36)} color={BELLY} outline={0.03} position={[0, 1.4, 0.28]} scale={[1, 1.1, 0.5]} />
-        {[-0.68, 0.68].map((x, i) => (
-          <group key={x} ref={i ? armR : armL} position={[x, 1.9, 0]}>
-            <Part geometry={geo.box(0.24, 0.85, 0.24)} color={SKIN} outline={0.05} position={[0, -0.4, 0]} />
+        <Part geometry={geo.cyl(0.42, 0.52, 0.8)} color={SKIN} outline={0.06} position={[0, 1.02, 0]} />
+        <Part geometry={geo.sphere(0.52)} color={SKIN} outline={0.06} position={[0, 0.64, 0]} scale={[1, 0.42, 1]} />
+        <Part geometry={geo.sphere(0.32)} color={BELLY} outline={0.03} position={[0, 0.95, 0.33]} scale={[1, 1.1, 0.45]} />
+        {[-0.52, 0.52].map((x, i) => (
+          <group key={x} ref={i ? armR : armL} position={[x, 1.32, 0]}>
+            <Part geometry={geo.cyl(0.1, 0.11, 0.5, 8)} color={SKIN} outline={0.04} position={[0, -0.25, 0]} />
+            <Part geometry={geo.sphere(0.14)} color={SKIN} outline={0.04} position={[0, -0.55, 0]} />
           </group>
         ))}
-        <Part geometry={geo.sphere(0.6)} color={SKIN} outline={0.06} position={[0, 2.55, 0]} />
+        <Part geometry={geo.sphere(0.78)} color={SKIN} outline={0.06} position={[0, 2.15, 0]} />
         {[-1, 1].map((s) => (
           <group key={s}>
             {/* horns */}
-            <Part geometry={geo.cone(0.13, 0.55)} color={HORN} outline={0.04} position={[s * 0.3, 3.15, -0.05]} rotation={[0, 0, -s * 0.35]} />
+            <Part geometry={geo.cone(0.15, 0.6)} color={HORN} outline={0.04} position={[s * 0.38, 2.92, -0.05]} rotation={[0, 0, -s * 0.4]} />
             {/* pointy ears */}
-            <Part geometry={geo.cone(0.14, 0.5)} color={SKIN} outline={0.04} position={[s * 0.68, 2.65, 0]} rotation={[0, 0, -s * 1.25]} />
-            {/* eyes */}
-            <Part geometry={geo.sphere(0.16)} color={0xffffff} outline={0.035} position={[s * 0.21, 2.6, 0.5]}>
-              <mesh geometry={geo.sphere(0.07)} position={[0, 0, 0.13]}>
+            <Part geometry={geo.cone(0.16, 0.55)} color={SKIN} outline={0.04} position={[s * 0.88, 2.25, 0]} rotation={[0, 0, -s * 1.25]} />
+            {/* big eyes with a shine */}
+            <Part geometry={geo.sphere(0.2)} color={0xffffff} outline={0.035} position={[s * 0.27, 2.24, 0.64]} scale={[1, 1.15, 0.8]}>
+              <mesh geometry={geo.sphere(0.1)} position={[0, -0.02, 0.15]}>
                 <meshBasicMaterial color={INK} />
               </mesh>
+              <mesh geometry={geo.sphere(0.035)} position={[0.04, 0.03, 0.24]}>
+                <meshBasicMaterial color={0xffffff} />
+              </mesh>
             </Part>
+            {/* rosy cheeks */}
+            <mesh geometry={geo.sphere(0.11)} position={[s * 0.47, 2.0, 0.6]} scale={[1.3, 0.7, 0.3]}>
+              <meshBasicMaterial color={0xff8f6b} />
+            </mesh>
           </group>
         ))}
         {/* cheeky grin */}
-        <Part geometry={geo.box(0.42, 0.07, 0.05)} color={INK} outline={0} position={[0, 2.3, 0.56]} rotation={[0, 0, 0]} />
-        {[-1, 1].map((s) => (
-          <Part key={s} geometry={geo.box(0.12, 0.07, 0.05)} color={INK} outline={0} position={[s * 0.24, 2.34, 0.55]} rotation={[0, 0, s * 0.6]} />
-        ))}
+        <mesh geometry={geo.smile(0.2, 0.035)} position={[0, 1.98, 0.72]}>
+          <meshBasicMaterial color={INK} />
+        </mesh>
         {/* tail */}
-        <group ref={tail} position={[0, 1.05, -0.5]}>
+        <group ref={tail} position={[0, 0.75, -0.48]}>
           <Part geometry={geo.cyl(0.06, 0.08, 0.9, 8)} color={SKIN} outline={0.04} position={[0, 0, -0.35]} rotation={[-1.1, 0, 0]} />
           <Part geometry={geo.cone(0.18, 0.3, 4)} color={HORN} outline={0.04} position={[0, 0.25, -0.75]} rotation={[-0.4, 0, 0]} />
         </group>

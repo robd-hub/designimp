@@ -57,6 +57,8 @@ export const geo = {
   dome: (r: number) => cached(`d${r}`, () => new THREE.SphereGeometry(r, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2)),
   cyl: (rt: number, rb: number, h: number, s = 16) =>
     cached(`c${rt},${rb},${h},${s}`, () => new THREE.CylinderGeometry(rt, rb, h, s)),
+  // the lower half of a ring, for smiles
+  smile: (r: number, t: number) => cached(`m${r},${t}`, () => new THREE.TorusGeometry(r, t, 6, 16, Math.PI).rotateZ(Math.PI)),
   cone: (r: number, h: number, s = 12) => cached(`k${r},${h},${s}`, () => new THREE.ConeGeometry(r, h, s)),
   // side profile of a WW1 rhomboid tank's track frame, extruded to track width
   tankSide: () =>
