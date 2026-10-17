@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PLACES, hex } from "./places";
@@ -31,7 +31,16 @@ export default function Hud() {
   const narrow = useMedia("(max-width: 600px)");
   const [navPick, setNavOpen] = useState<boolean | null>(null);
   const navOpen = navPick ?? !narrow; // the list starts folded away on phones
+  const navRef = useRef<HTMLElement>(null);
 
+  // Keep the joystick sitting just above the Go to box, however tall it gets.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty("--nav-h", `${nav.offsetHeight}px`));
+    ro.observe(nav);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     usePlay.getState().hydrate();
@@ -74,7 +83,7 @@ export default function Hud() {
           {spotter ? "Imp Spotter ★" : `Imps found ${found.length}/${total}`}
         </span>
       </div>
-      <nav className={`${s.card} ${s.places} ${navOpen ? "" : s.shut}`} aria-label="Places">
+      <nav ref={navRef} className={`${s.card} ${s.places} ${navOpen ? "" : s.shut}`} aria-label="Places">
         <button className={s.lbl} onClick={() => setNavOpen(!navOpen)} aria-expanded={navOpen}>
           Go to {navOpen ? "▴" : "▾"}
         </button>
