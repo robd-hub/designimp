@@ -90,25 +90,30 @@ function Fountain({ reduce }: { reduce: boolean }) {
   );
 }
 
+// Each line of text (split on \n) gets its own row on the sign.
 function signTexture(text: string, fg: string, font: string) {
+  const lines = text.split("\n");
   const c = document.createElement("canvas");
   c.width = 512;
-  c.height = 128;
+  c.height = 32 + 96 * lines.length;
   const x = c.getContext("2d")!;
   x.fillStyle = "#fff8e7";
-  x.fillRect(0, 0, 512, 128);
+  x.fillRect(0, 0, c.width, c.height);
   x.lineWidth = 10;
   x.strokeStyle = "#1a1320";
-  x.strokeRect(5, 5, 502, 118);
+  x.strokeRect(5, 5, c.width - 10, c.height - 10);
   let px = 64;
   do x.font = `${px}px ${font}`;
-  while (x.measureText(text).width > 450 && --px > 30);
+  while (Math.max(...lines.map((l) => x.measureText(l).width)) > 420 && --px > 30);
   x.textAlign = "center";
   x.textBaseline = "middle";
   x.lineWidth = 8;
-  x.strokeText(text, 256, 68);
   x.fillStyle = fg;
-  x.fillText(text, 256, 68);
+  lines.forEach((l, i) => {
+    const y = 68 + i * 96;
+    x.strokeText(l, 256, y);
+    x.fillText(l, 256, y);
+  });
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;
@@ -262,6 +267,7 @@ function Lot({ p, font }: { p: Place; font: string }) {
 // Sincil Bank, simplified: a pitch ringed by four red-and-white stands with floodlights.
 function Stadium({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, hex(p.wall), font), [p, font]);
+  const champs = useMemo(() => signTexture("League 1 Champions\n2025/26", hex(p.wall), font), [p, font]);
   const pw = p.w - 9,
     pd = p.d - 9;
   const stands: { x: number; z: number; w: number; d: number; ry: number }[] = [
@@ -312,6 +318,17 @@ function Stadium({ p, font }: { p: Place; font: string }) {
         <planeGeometry args={[6, 1.5]} />
         <meshBasicMaterial map={sign} toneMapped={false} />
       </mesh>
+      {/* champions board beside the main entrance */}
+      <group position={[7.5, 0, p.d / 2 + 3]} rotation-y={-0.15}>
+        {[-2.6, 2.6].map((x) => (
+          <Part key={x} geometry={geo.box(0.3, 4.6, 0.3)} color={0x2b2633} outline={0.04} position={[x, 2.3, 0]} />
+        ))}
+        <Part geometry={geo.box(6.6, 2.9, 0.25)} color={0xe03a3e} outline={0.07} position={[0, 4, 0]} />
+        <mesh position={[0, 4, 0.13]}>
+          <planeGeometry args={[6.2, 2.5]} />
+          <meshBasicMaterial map={champs} toneMapped={false} />
+        </mesh>
+      </group>
     </group>
   );
 }

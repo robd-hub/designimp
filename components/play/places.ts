@@ -223,9 +223,9 @@ export const PLACES: Place[] = [
     rot: 0,
     intro: [
       "Lincoln City have played at Sincil Bank since 1895, and their nickname is the Imps, after the same little carving in the cathedral.",
-      "It's the other place in Lincoln where you'll find a lot of imps in one spot.",
+      "It's the other place in Lincoln where you'll find a lot of imps in one spot, and they're League 1 Champions for 2025/26.",
     ],
-    link: { href: "/about", label: "More about Lincoln and me" },
+    link: { href: "https://www.weareimps.com/", label: "Visit weareimps.com", external: true },
   },
   {
     id: "tank",
