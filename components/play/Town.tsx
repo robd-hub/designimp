@@ -8,7 +8,7 @@ import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, set
 import { Castle, SteepHill, Brayford } from "./Landmarks";
 import { TREES, BOUND, seeded } from "./colliders";
 import Townsfolk from "./Townsfolk";
-import { game, usePlay, placeClick } from "./store";
+import { game, usePlay, placeClick, zoomBy } from "./store";
 import Imp from "./Imp";
 import Hunt from "./Hunt";
 import { Crowd, Chant } from "./Matchday";
@@ -396,6 +396,29 @@ function Clouds({ reduce }: { reduce: boolean }) {
   );
 }
 
+// Two-finger pinch on touch screens zooms the camera in and out.
+function pinchZoom(el: HTMLElement) {
+  let last = 0;
+  const gap = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  el.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 2) last = gap(e.touches);
+  });
+  el.addEventListener(
+    "touchmove",
+    (e) => {
+      if (e.touches.length !== 2 || !last) return;
+      e.preventDefault();
+      const g = gap(e.touches);
+      zoomBy((last - g) * 0.006);
+      last = g;
+    },
+    { passive: false },
+  );
+  el.addEventListener("touchend", (e) => {
+    if (e.touches.length < 2) last = 0;
+  });
+}
+
 export default function Town({ font }: { font: string }) {
   const reduce = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
   const [signsReady, setSignsReady] = useState(false);
@@ -441,8 +464,11 @@ export default function Town({ font }: { font: string }) {
       flat
       dpr={[1, 2]}
       camera={{ fov: 45, near: 0.1, far: 300, position: [0, 15, 23] }}
-      onCreated={() => usePlay.getState().setReady()}
-      onWheel={(e) => (game.zoom = Math.min(2.4, Math.max(0.55, game.zoom + e.deltaY * 0.001)))}
+      onCreated={({ gl }) => {
+        pinchZoom(gl.domElement);
+        usePlay.getState().setReady();
+      }}
+      onWheel={(e) => zoomBy(e.deltaY * 0.001)}
       style={{ position: "fixed", inset: 0, touchAction: "none" }}
     >
       <color attach="background" args={[night ? "#1d2547" : "#7ccaff"]} />

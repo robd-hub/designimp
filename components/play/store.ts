@@ -52,6 +52,11 @@ export const game = {
   joy: { x: 0, z: 0 }, // touch joystick, -1..1
 };
 
+// Camera distance multiplier: smaller is closer.
+export function zoomBy(d: number) {
+  game.zoom = Math.min(2.4, Math.max(0.55, game.zoom + d));
+}
+
 function syncUrl(p: Place | null) {
   const url = new URL(window.location.href);
   if (p) url.searchParams.set("place", p.id);
