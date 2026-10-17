@@ -333,6 +333,23 @@
   cursor: pointer;
 }
 
+.zoom {
+  position: fixed;
+  right: calc(176px + env(safe-area-inset-right, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.zoom button {
+  width: 40px;
+  height: 40px;
+  font: 800 22px/1 var(--body);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
 .joy {
   position: fixed;
   left: calc(22px + env(safe-area-inset-left, 0px));
@@ -456,6 +473,12 @@
   }
   .places {
     max-height: 40vh;
+  }
+  .zoom {
+    top: calc(190px + env(safe-area-inset-top, 0px));
+    bottom: auto;
+    right: calc(14px + env(safe-area-inset-right, 0px));
+    flex-direction: row;
   }
   .root .lbl {
     display: block;

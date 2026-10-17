@@ -4,7 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PLACES, hex } from "./places";
-import { usePlay, walkTo } from "./store";
+import { usePlay, walkTo, zoomBy } from "./store";
 import { HIDDEN } from "./hidden";
 import PlayLeadForm from "./PlayLeadForm";
 import Minimap from "./Minimap";
@@ -86,6 +86,14 @@ export default function Hud() {
         ))}
       </nav>
       <Minimap />
+      <div className={s.zoom}>
+        <button className={s.card} onClick={() => zoomBy(-0.3)} aria-label="Zoom in">
+          +
+        </button>
+        <button className={s.card} onClick={() => zoomBy(0.3)} aria-label="Zoom out">
+          −
+        </button>
+      </div>
       {touch && <Joystick />}
       {badge && (
         <div className={`${s.card} ${s.badge}`} role="dialog" aria-label="Imp Spotter badge">
