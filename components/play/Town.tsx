@@ -19,8 +19,9 @@ function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; c
 
 const SIZE = BOUND * 2 + 10;
 const NORTH_END = -44; // the north road stops at the cathedral close
-const NS_LEN = BOUND + 5 - NORTH_END;
-const NS_MID = (BOUND + 5 + NORTH_END) / 2;
+const NS_START = -5; // north of the crossroads the road becomes Steep Hill
+const NS_LEN = BOUND + 5 - NS_START;
+const NS_MID = (BOUND + 5 + NS_START) / 2;
 
 function Roads() {
   const dashes: number[] = [];
@@ -35,7 +36,7 @@ function Roads() {
       <Flat w={26} d={8} color={0xe8dcc2} z={NORTH_END + 1} y={0.015} />
       {dashes.map((i) => (
         <group key={i}>
-          {i > NORTH_END + 2 && <Flat w={0.25} d={1.8} color={0xffd23f} z={i} y={0.05} />}
+          {i > NS_START && <Flat w={0.25} d={1.8} color={0xffd23f} z={i} y={0.05} />}
           <Flat w={1.8} d={0.25} color={0xffd23f} x={i} y={0.05} />
         </group>
       ))}
@@ -297,7 +298,7 @@ function Stadium({ p, font, reduce }: { p: Place; font: string; reduce: boolean 
         </>
       )}
       {/* champions board beside the main entrance */}
-      <group position={[7.5, 0, p.d / 2 + 3]} rotation-y={-0.15}>
+      <group position={[7.5, 0, p.d / 2 + 3]} rotation-y={-p.rot - 0.15}>
         {[-2.6, 2.6].map((x) => (
           <Part key={x} geometry={geo.box(0.3, 4.6, 0.3)} color={0x2b2633} outline={0.04} position={[x, 2.3, 0]} />
         ))}
@@ -351,7 +352,6 @@ function Tree({ x, z, s }: { x: number; z: number; s: number }) {
 const LAMPS: [number, number][] = [[-5.5, -5.5], [5.5, -5.5], [-5.5, 5.5], [5.5, 5.5]];
 for (let i = 20; i < BOUND; i += 18) {
   LAMPS.push([5.5, i], [-5.5, i], [i, -5.5], [i, 5.5], [-i, -5.5], [-i, 5.5]);
-  if (-i > NORTH_END) LAMPS.push([5.5, -i], [-5.5, -i]);
 }
 
 function Lamps() {
