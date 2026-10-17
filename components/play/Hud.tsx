@@ -4,11 +4,11 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PLACES, hex } from "./places";
-import { usePlay, walkTo, nearestPlace } from "./store";
+import { usePlay, walkTo } from "./store";
 import s from "./play.module.css";
 
 export default function Hud() {
-  const { open, near, ready, openPlace, close } = usePlay();
+  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine } = usePlay();
 
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("place");
@@ -18,11 +18,15 @@ export default function Hud() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") usePlay.getState().close();
-      if (e.key.toLowerCase() === "e" && !usePlay.getState().open) {
-        const n = nearestPlace();
-        if (n) usePlay.getState().openPlace(n);
+      const st = usePlay.getState();
+      if (e.key === "Escape") {
+        st.close();
+        st.endTalk();
       }
+      if (e.key.toLowerCase() !== "e" || st.open || e.repeat) return;
+      if (st.talk) st.nextLine();
+      else if (st.nearNpc) st.startTalk(st.nearNpc);
+      else if (st.near) st.openPlace(st.near);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -42,18 +46,34 @@ export default function Hud() {
         {PLACES.map((p) => (
           <button key={p.id} onClick={() => walkTo(p)}>
             <i style={{ background: hex(p.wall) }} />
-            {p.kicker.split(" · ")[0] === "Case study" ? p.name : p.kicker}
+            {p.nav ?? (p.kicker.startsWith("Case study") ? p.name : p.kicker)}
           </button>
         ))}
       </nav>
       <div className={`${s.card} ${s.hint}`}>
-        <kbd>WASD</kbd> walk · click to go · <kbd>E</kbd> enter
+        <kbd>WASD</kbd> walk · click to go · <kbd>E</kbd> enter or chat
       </div>
-      {near && !open && (
-        <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
-          <kbd>E</kbd>
-          <span>Enter {near.name}</span>
+      {talk ? (
+        <button className={`${s.card} ${s.speech}`} onClick={nextLine} aria-live="polite">
+          <b>{talk.npc.name}</b>
+          <span>{talk.npc.lines[talk.line]}</span>
+          <small>
+            <kbd>E</kbd> {talk.line + 1 < talk.npc.lines.length ? "more" : "bye"}
+          </small>
         </button>
+      ) : nearNpc && !open ? (
+        <button className={`${s.card} ${s.prompt}`} onClick={() => startTalk(nearNpc)}>
+          <kbd>E</kbd>
+          <span>Talk to {nearNpc.name}</span>
+        </button>
+      ) : (
+        near &&
+        !open && (
+          <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
+            <kbd>E</kbd>
+            <span>{near.kind === "lot" ? "Look at" : "Enter"} {near.name}</span>
+          </button>
+        )
       )}
       <aside
         className={`${s.panel} ${open ? s.open : ""}`}

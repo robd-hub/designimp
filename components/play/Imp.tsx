@@ -2,7 +2,8 @@ import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Part, geo, INK } from "./toon";
-import { game, usePlay, nearestPlace } from "./store";
+import { game, usePlay, nearestPlace, nearestNpc } from "./store";
+import { npcPos } from "./npcs";
 import { blocked } from "./colliders";
 
 const SKIN = 0xc8973a; // Design Imp gold
@@ -26,7 +27,7 @@ export default function Imp({ reduce }: { reduce: boolean }) {
   useFrame(({ camera, size, clock }, delta) => {
     const dt = Math.min(delta, 0.05);
     const k = game.keys;
-    const { open, near, setNear, openPlace } = usePlay.getState();
+    const { open, near, nearNpc, talk, setNear, openPlace, startTalk, endTalk } = usePlay.getState();
     let vx = 0,
       vz = 0;
     if (!open) {
@@ -36,9 +37,15 @@ export default function Imp({ reduce }: { reduce: boolean }) {
       if (k.d || k.arrowright) vx += 1;
     }
     const pos = game.pos;
+    if (game.pendingNpc) {
+      // townsfolk keep walking, so keep chasing them until we're close
+      game.target = npcPos.get(game.pendingNpc.id)!.clone();
+      if (game.target.distanceTo(pos) < 1.8) startTalk(game.pendingNpc);
+    }
     if (vx || vz) {
       game.target = null;
       game.pending = null;
+      game.pendingNpc = null;
     } else if (game.target) {
       const dx = game.target.x - pos.x,
         dz = game.target.z - pos.z,
@@ -97,8 +104,10 @@ export default function Imp({ reduce }: { reduce: boolean }) {
     body.current.rotation.y = game.face;
     blob.current.position.set(pos.x, 0.06, pos.z);
 
-    const n = open ? null : nearestPlace();
-    if (n !== near) setNear(n);
+    if (talk && npcPos.get(talk.npc.id)!.distanceTo(pos) > 4) endTalk();
+    const nn = open ? null : nearestNpc();
+    const n = open || nn ? null : nearestPlace();
+    if (n !== near || nn !== nearNpc) setNear(n, nn);
 
     want.set(0, 15, 15).multiplyScalar(game.zoom * (size.width < 600 ? 1.25 : 1)).add(pos);
     camera.position.lerp(want, reduce ? 1 : Math.min(1, dt * 5));

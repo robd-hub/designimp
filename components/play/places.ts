@@ -4,8 +4,10 @@ export type PlaceItem = { title: string; detail: string };
 
 export type Place = {
   id: string;
+  kind?: "shop" | "cathedral" | "lot" | "stadium"; // defaults to shop
   name: string; // shown on the building sign
   kicker: string;
+  nav?: string; // label in the "Go to" list, when the kicker is too long
   x: number;
   z: number;
   w: number;
@@ -14,7 +16,7 @@ export type Place = {
   wall: number;
   roof: number;
   roofType: "pitch" | "flat";
-  rot: number;
+  rot: number; // 0, PI or ±PI/2 so footprints stay axis-aligned
   image?: { src: string; alt: string };
   intro: string[];
   items?: PlaceItem[];
@@ -117,15 +119,15 @@ export const PLACES: Place[] = [
     id: "post",
     name: "Mockup Post",
     kicker: "Free mockup",
-    x: 0,
-    z: -23,
+    x: -14,
+    z: -30,
     w: 9,
     d: 6,
     h: 5,
     wall: 0xffb627,
     roof: 0x2b59c3,
     roofType: "pitch",
-    rot: 0,
+    rot: Math.PI / 2,
     intro: [
       "Send over your business and I'll design a free mockup of your new site using your own photos and pricing. No obligation.",
     ],
@@ -136,6 +138,103 @@ export const PLACES: Place[] = [
     ],
     link: { href: "/get-started", label: "Get your free mockup" },
   },
+  {
+    id: "townhall",
+    name: "Town Hall",
+    kicker: "Questions",
+    x: 14,
+    z: -30,
+    w: 10,
+    d: 7,
+    h: 7,
+    wall: 0xe8e1d0,
+    roof: 0x2f8f5b,
+    roofType: "pitch",
+    rot: -Math.PI / 2,
+    intro: ["The answers to everything people usually ask before we start."],
+    items: [
+      { title: "How long does a project take?", detail: "Most sites are delivered within 4 weeks. Larger builds may take 6–8 weeks, and you'll always have a clear timeline first." },
+      { title: "Who owns the website when it's done?", detail: "You do, completely. Code, design files and assets are yours, with no platform fees or lock-in." },
+      { title: "How many revisions do I get?", detail: "We work in rounds of feedback and most projects are finalised within two." },
+      { title: "Do you handle hosting?", detail: "Yes. We set up fast, reliable hosting and hand you full control of the account at launch." },
+      { title: "How does payment work?", detail: "Fixed price: 50% to start, 50% on launch. No hourly billing." },
+      { title: "What if I need changes after launch?", detail: "Small tweaks in the first 30 days are included. After that, a small retainer or a quote per update." },
+    ],
+    link: { href: "/get-started", label: "Ask me anything else" },
+  },
+  {
+    id: "lot",
+    kind: "lot",
+    name: "Your Shop Here",
+    kicker: "Vacant plot",
+    nav: "Your shop here",
+    x: 36,
+    z: -11,
+    w: 10,
+    d: 8,
+    h: 0,
+    wall: 0xff5a3c,
+    roof: 0xffd23f,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "This plot is waiting for its first shop. Every Design Imp client gets a building on the high street, and this one could be yours.",
+      "Send me your business and I'll design a free mockup of your new site before you spend a penny.",
+    ],
+    link: { href: "/get-started", label: "Claim this plot" },
+  },
+  {
+    id: "cathedral",
+    kind: "cathedral",
+    name: "Lincoln Cathedral",
+    kicker: "Where the name comes from",
+    nav: "Cathedral",
+    x: 0,
+    z: -62,
+    w: 14,
+    d: 30,
+    h: 10,
+    wall: 0xd9cbb0,
+    roof: 0x5b6b7a,
+    roofType: "pitch",
+    rot: 0,
+    image: { src: "/Lincoln Cathedral monochrome.png", alt: "Lincoln Cathedral" },
+    intro: [
+      "Design Imp is named after the Lincoln Imp, a little stone carving high up inside Lincoln Cathedral, in the city I'm from.",
+      "Legend says a pair of imps were blown into the cathedral and started causing mischief, until an angel turned one of them to stone. He's been sitting there for over 700 years.",
+      "Look closely above the door. He's up there.",
+    ],
+    link: { href: "/about", label: "Read the Design Imp story" },
+  },
+  {
+    id: "sincil-bank",
+    kind: "stadium",
+    name: "Sincil Bank",
+    kicker: "Home of the Imps",
+    nav: "Sincil Bank",
+    x: -46,
+    z: -30,
+    w: 34,
+    d: 24,
+    h: 5,
+    wall: 0xe03a3e,
+    roof: 0xffffff,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "Lincoln City have played at Sincil Bank since 1895, and their nickname is the Imps, after the same little carving in the cathedral.",
+      "It's the other place in Lincoln where you'll find a lot of imps in one spot.",
+    ],
+    link: { href: "/about", label: "More about Lincoln and me" },
+  },
 ];
+
+// Axis-aligned footprint, accounting for buildings turned to face a side road.
+export function footprint(p: Place) {
+  const side = Math.abs(Math.sin(p.rot)) > 0.5;
+  const hw = (side ? p.d : p.w) / 2,
+    hd = (side ? p.w : p.d) / 2;
+  return { x0: p.x - hw, x1: p.x + hw, z0: p.z - hd, z1: p.z + hd };
+}
 
 export const hex = (c: number) => "#" + c.toString(16).padStart(6, "0");

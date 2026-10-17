@@ -38,6 +38,13 @@ export const geo = {
   cyl: (rt: number, rb: number, h: number, s = 16) =>
     cached(`c${rt},${rb},${h},${s}`, () => new THREE.CylinderGeometry(rt, rb, h, s)),
   cone: (r: number, h: number, s = 12) => cached(`k${r},${h},${s}`, () => new THREE.ConeGeometry(r, h, s)),
+  // side profile of a WW1 rhomboid tank's track frame, extruded to track width
+  tankSide: () =>
+    cached("tank", () => {
+      const pts = [[-2.6, 0.7], [-2, 0], [1.6, 0], [2.6, 1.1], [2.5, 1.9], [2, 2], [-2.1, 2], [-2.6, 1.4]];
+      const shape = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y)));
+      return new THREE.ExtrudeGeometry(shape, { depth: 0.6, bevelEnabled: false }).center();
+    }),
 };
 
 const size = new THREE.Vector3();

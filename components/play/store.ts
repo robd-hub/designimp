@@ -1,13 +1,19 @@
 import { create } from "zustand";
 import * as THREE from "three";
 import { PLACES, type Place } from "./places";
+import { NPCS, npcPos, type Npc } from "./npcs";
 
 type PlayState = {
   ready: boolean;
   open: Place | null;
   near: Place | null;
+  nearNpc: Npc | null;
+  talk: { npc: Npc; line: number } | null;
   setReady: () => void;
-  setNear: (p: Place | null) => void;
+  setNear: (p: Place | null, n: Npc | null) => void;
+  startTalk: (n: Npc) => void;
+  nextLine: () => void;
+  endTalk: () => void;
   openPlace: (p: Place) => void;
   close: () => void;
 };
@@ -18,6 +24,7 @@ export const game = {
   face: 0,
   target: null as THREE.Vector3 | null,
   pending: null as Place | null,
+  pendingNpc: null as Npc | null,
   zoom: 1,
   keys: {} as Record<string, boolean>,
 };
@@ -33,14 +40,25 @@ export const usePlay = create<PlayState>((set) => ({
   ready: false,
   open: null,
   near: null,
+  nearNpc: null,
+  talk: null,
   setReady: () => set({ ready: true }),
-  setNear: (near) => set({ near }),
+  setNear: (near, nearNpc) => set({ near, nearNpc }),
   openPlace: (open) => {
     game.target = null;
     game.pending = null;
+    game.pendingNpc = null;
     syncUrl(open);
-    set({ open });
+    set({ open, talk: null });
   },
+  startTalk: (npc) => {
+    game.target = null;
+    game.pendingNpc = null;
+    set({ talk: { npc, line: 0 } });
+  },
+  nextLine: () =>
+    set(({ talk }) => ({ talk: talk && talk.line + 1 < talk.npc.lines.length ? { ...talk, line: talk.line + 1 } : null })),
+  endTalk: () => set({ talk: null }),
   close: () => {
     syncUrl(null);
     set({ open: null });
@@ -58,8 +76,29 @@ export function walkTo(p: Place) {
   const s = usePlay.getState();
   if (!s.ready) return s.openPlace(p); // no 3D scene: just open the panel
   s.close();
+  s.endTalk();
   game.target = DOORS.get(p.id)!.clone();
   game.pending = p;
+  game.pendingNpc = null;
+}
+
+export function walkToNpc(n: Npc) {
+  const s = usePlay.getState();
+  s.close();
+  s.endTalk();
+  game.pending = null;
+  game.pendingNpc = n;
+  game.target = npcPos.get(n.id)!.clone();
+}
+
+export function nearestNpc(): Npc | null {
+  let best: Npc | null = null,
+    bestD = 2.6;
+  for (const n of NPCS) {
+    const d = npcPos.get(n.id)!.distanceTo(game.pos);
+    if (d < bestD) [best, bestD] = [n, d];
+  }
+  return best;
 }
 
 export function nearestPlace(): Place | null {
