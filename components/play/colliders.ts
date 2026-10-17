@@ -7,7 +7,7 @@ export function seeded(seed: number) {
   return () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
 }
 
-const boxes = PLACES.map((p) => {
+const boxes = PLACES.filter((p) => p.kind !== "tank").map((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
     // only the signboard at the back of the plot is solid

@@ -4,7 +4,7 @@ export type PlaceItem = { title: string; detail: string };
 
 export type Place = {
   id: string;
-  kind?: "shop" | "cathedral" | "lot" | "stadium"; // defaults to shop
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank"; // tank is drawn by the fountain // defaults to shop
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -226,6 +226,31 @@ export const PLACES: Place[] = [
       "It's the other place in Lincoln where you'll find a lot of imps in one spot.",
     ],
     link: { href: "/about", label: "More about Lincoln and me" },
+  },
+  {
+    id: "tank",
+    kind: "tank",
+    name: "Lincoln Tank Memorial",
+    kicker: "Birthplace of the tank",
+    nav: "Tank",
+    x: 0,
+    z: 0,
+    w: 6.4,
+    d: 6.4,
+    h: 0,
+    wall: 0x7a6a45,
+    roof: 0x564a32,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "The tank was invented here in Lincoln in 1915, by engineers at William Foster & Co. working with William Tritton.",
+      "The real memorial stands on the roundabout at the start of Tritton Road, named after him, and shows the shape of those first tanks.",
+    ],
+    link: {
+      href: "https://www.visitlincoln.com/listing/lincoln-tank-memorial/96660101/",
+      label: "See it on Visit Lincoln",
+      external: true,
+    },
   },
 ];
 

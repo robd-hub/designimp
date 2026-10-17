@@ -62,6 +62,8 @@ function Tank(props: Omit<ThreeElements["group"], "children">) {
   );
 }
 
+const TANK_PLACE = PLACES.find((p) => p.kind === "tank")!;
+
 function Fountain({ reduce }: { reduce: boolean }) {
   const jets = useRef<THREE.Group>(null!);
   useFrame(({ clock }) => {
@@ -78,7 +80,7 @@ function Fountain({ reduce }: { reduce: boolean }) {
       <Part geometry={geo.cyl(3.6, 3.8, 0.8, 32)} color={0xd6cfe0} position-y={0.4} />
       <mesh geometry={geo.cyl(3.3, 3.3, 0.1, 32)} material={toon(0x4fc3ff)} position-y={0.78} />
       <Part geometry={geo.box(4.4, 0.5, 2.6)} color={0xd6cfe0} outline={0.06} position-y={0.95} />
-      <Tank position-y={1.2} rotation-y={-0.5} />
+      <Tank position-y={1.2} rotation-y={-0.5} onClick={placeClick(TANK_PLACE)} />
       <group ref={jets}>
         {[0.6, 2.2, 3.8, 5.4].map((a) => (
           <Part key={a} geometry={geo.sphere(0.32)} color={0x9fe3ff} outline={0.04} shadow={false} position={[Math.cos(a) * 2.9, 1.15, Math.sin(a) * 2.9]} />
@@ -456,6 +458,7 @@ export default function Town({ font }: { font: string }) {
       <Fountain reduce={reduce} />
       {signsReady &&
         PLACES.map((p) => {
+          if (p.kind === "tank") return null;
           const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building }[p.kind ?? "shop"];
           return <C key={p.id} p={p} font={font} />;
         })}

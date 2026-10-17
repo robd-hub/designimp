@@ -20,7 +20,7 @@ type PlayState = {
 
 // Per-frame values live outside React state so movement never re-renders.
 export const game = {
-  pos: new THREE.Vector3(0, 0, 8),
+  pos: new THREE.Vector3(0, 0, 9),
   face: 0,
   target: null as THREE.Vector3 | null,
   pending: null as Place | null,

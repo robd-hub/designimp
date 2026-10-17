@@ -71,7 +71,7 @@ export default function Hud() {
         !open && (
           <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
             <kbd>E</kbd>
-            <span>{near.kind === "lot" ? "Look at" : "Enter"} {near.name}</span>
+            <span>{near.kind === "lot" || near.kind === "tank" ? "Look at" : "Enter"} {near.name}</span>
           </button>
         )
       )}
@@ -106,9 +106,15 @@ export default function Hud() {
                 ))}
               </ul>
             )}
-            <Link className={s.cta} href={open.link.href}>
-              {open.link.label} →
-            </Link>
+            {open.link.external ? (
+              <a className={s.cta} href={open.link.href} target="_blank" rel="noopener noreferrer">
+                {open.link.label} ↗
+              </a>
+            ) : (
+              <Link className={s.cta} href={open.link.href}>
+                {open.link.label} →
+              </Link>
+            )}
           </div>
         )}
       </aside>
