@@ -16,6 +16,35 @@ export type Npc = {
 
 export const NPCS: Npc[] = [
   {
+    id: "christine",
+    name: "Christine",
+    shirt: 0xff6fa8,
+    legs: 0x1a1320,
+    skin: 0xd9a37a,
+    hair: 0x1a1320,
+    path: [[-19, -6], [-16.8, -6]],
+    speed: 0.9,
+    lines: [
+      "Welcome to Ayuri Beauty! Customers can book their appointments online now, no phone call needed.",
+      "Working with Rob was really easy. He listened to all my suggestions and put together a really pretty website.",
+      "Three months after the new website went live, we were full most days. I'm even planning a second salon.",
+    ],
+  },
+  {
+    id: "justyna",
+    name: "Justyna",
+    shirt: 0x9b6bff,
+    legs: 0x1a1320,
+    skin: 0xf2d0b5,
+    hair: 0x8a5a33,
+    path: [[16.8, -6], [19, -6]],
+    speed: 0.9,
+    lines: [
+      "Hello! I teach ballroom, Latin and Salsa Fit classes here in Lincoln, for adults and children.",
+      "I didn't have a website before. Now new students can find my classes, prices and how to join.",
+    ],
+  },
+  {
     id: "priya",
     name: "Priya",
     shirt: 0xff5a3c,
@@ -46,7 +75,7 @@ export const NPCS: Npc[] = [
   {
     id: "elsie",
     name: "Elsie",
-    shirt: 0x9b6bff,
+    shirt: 0x3fae9f,
     legs: 0x1a1320,
     skin: 0xf2d0b5,
     hair: 0xd6cfe0,
