@@ -49,6 +49,9 @@ export default function Navbar() {
           <Link href="/about" className="hover:text-foreground transition-colors">
             About
           </Link>
+          <Link href="/play" className="hover:text-foreground transition-colors">
+            Play
+          </Link>
         </div>
 
         {/* Desktop CTA */}
@@ -101,6 +104,13 @@ export default function Navbar() {
             onClick={() => setMenuOpen(false)}
           >
             About
+          </Link>
+          <Link
+            href="/play"
+            className="text-base text-muted hover:text-foreground transition-colors"
+            onClick={() => setMenuOpen(false)}
+          >
+            Play
           </Link>
           <Link
             href="/get-started"
