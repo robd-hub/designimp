@@ -253,7 +253,7 @@ export const PLACES: Place[] = [
     name: "Sincil Bank",
     kicker: "Home of the Imps",
     nav: "Sincil Bank",
-    x: -44,
+    x: 44,
     z: 42,
     w: 34,
     d: 24,
@@ -261,7 +261,7 @@ export const PLACES: Place[] = [
     wall: 0xe03a3e,
     roof: 0xffffff,
     roofType: "flat",
-    rot: Math.PI / 2,
+    rot: -Math.PI / 2,
     intro: [
       "Lincoln City have played at Sincil Bank since 1895, and their nickname is the Imps, after the same little carving in the cathedral.",
       "It's the other place in Lincoln where you'll find a lot of imps in one spot, and they're League 1 Champions for 2025/26.",
