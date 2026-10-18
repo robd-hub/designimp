@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-three/fiber";
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
-import { Castle, SteepHill, Brayford } from "./Landmarks";
+import { Castle, SteepHill, Brayford, Campus } from "./Landmarks";
 import { TREES, BOUND, STADIUM_ROAD, seeded } from "./colliders";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy } from "./store";
@@ -535,7 +535,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus }[p.kind ?? "shop"];
           return <C key={p.id} p={p} font={font} reduce={reduce} />;
         })}
       {TREES.map(([x, z, sc], i) => (

@@ -189,15 +189,15 @@ function TourBoat({ reduce }: { reduce: boolean }) {
 }
 
 const FRONT = [
-  { w: 6.5, h: 6, color: 0x9fd8e8, glass: true }, // glassy university block
+  { w: 6.5, h: 6, color: 0x9fd8e8, glass: true },
   { w: 6, h: 4.5, color: 0xf2e2c4, awning: 0xe03a3e },
   { w: 6.5, h: 5, color: 0xd77a61, awning: 0x1fb5a8 },
   { w: 6, h: 4.2, color: 0xf2d06b, awning: 0x2b59c3 },
   { w: 6, h: 7, color: 0x9fc0d8, glass: true },
 ].map((b, i, all) => ({ ...b, x: BRAYFORD.front.x0 + all.slice(0, i).reduce((a, o) => a + o.w + 0.1, 0) + b.w / 2 }));
 
-// Brayford Pool: a marina basin with stone quays, moored boats, waterside bars,
-// the university on the far side and the Fossdyke heading off west.
+// Brayford Pool: a marina basin with stone quays, moored boats, waterside bars
+// on the far side and the Fossdyke heading off west. The university is just south, see Campus.
 export function Brayford({ p, font, reduce }: { p: Place; font: string; reduce: boolean }) {
   const sign = useMemo(() => signTexture(p.name, "#2b59c3", font), [p, font]);
   const C = BRAYFORD.canal,
@@ -282,6 +282,67 @@ export function Brayford({ p, font, reduce }: { p: Place; font: string; reduce: 
           <planeGeometry args={[4, 0.9]} />
           <meshBasicMaterial map={sign} toneMapped={false} />
         </mesh>
+      </group>
+    </group>
+  );
+}
+
+const BRICK = 0xb5543a;
+const BRICK_DARK = 0x8f3f2c;
+
+// University of Lincoln's Brayford Pool campus, on the south side of the water: an old
+// red-brick railway warehouse (now the library), a big modern main building on a lawn,
+// and a glassy teaching block, all facing the main road.
+export function Campus({ p, font }: { p: Place; font: string }) {
+  const sign = useMemo(() => signTexture("University\nof Lincoln", "#7a1f3d", font), [font]);
+  const hw = p.w / 2,
+    hd = p.d / 2,
+    front = hd - 1.2;
+  return (
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      <mesh geometry={geo.box(p.w, 0.06, p.d)} material={toon(0x5fbf5b)} position-y={0.04} receiveShadow />
+      {/* paths across the lawn to each door */}
+      {[-hw + 4.5, 0, hw - 4].map((x) => (
+        <mesh key={x} geometry={geo.box(1.6, 0.07, 2.4)} material={toon(0xe8dcc2)} position={[x, 0.05, hd - 1.2]} />
+      ))}
+      {/* the warehouse library: long brick shed with arched windows and a pitched roof */}
+      <group position={[-hw + 4.5, 0, -0.6]}>
+        <Part geometry={geo.box(8, 4.4, 5.6)} color={BRICK} outline={0.08} position-y={2.2} />
+        <group position-y={4.4} rotation-y={Math.PI / 2}>
+          <Part geometry={geo.cyl(3.4, 3.4, 8.2, 3)} color={0x4a4f5c} outline={0.06} rotation-x={-Math.PI / 2} scale={[1, 1, 0.38]} position-y={0.6} />
+        </group>
+        {[-2.7, -0.9, 0.9, 2.7].map((x) => (
+          <group key={x} position={[x, 0, 2.85]}>
+            <Part geometry={geo.box(1, 1.6, 0.1)} color={WINDOW} outline={0.03} position-y={2.3} />
+            <Part geometry={geo.cyl(0.5, 0.5, 0.1, 12)} color={WINDOW} outline={0.03} position-y={3.1} rotation-x={Math.PI / 2} />
+          </group>
+        ))}
+        <Part geometry={geo.box(8.3, 0.3, 5.9)} color={BRICK_DARK} outline={0.04} position-y={1.1} />
+      </group>
+      {/* main building: brick base, tall glass atrium, flat roof */}
+      <group position={[0.5, 0, -1]}>
+        <Part geometry={geo.box(7.5, 7, 5)} color={0xd9cbb0} outline={0.08} position-y={3.5} />
+        <Part geometry={geo.box(3.2, 7.4, 5.4)} color={0x9fd8e8} outline={0.07} position-y={3.7} />
+        {[1.6, 3.6, 5.6].map((y) =>
+          [-2.8, 2.8].map((x) => <Part key={`${x}${y}`} geometry={geo.box(1.2, 1, 0.1)} color={WINDOW} outline={0.03} position={[x, y, 2.55]} />),
+        )}
+        <Part geometry={geo.box(1.6, 2.2, 0.1)} color={0x2b2633} outline={0.03} position={[0, 1.1, 2.75]} />
+        <mesh position={[0, 5.4, 2.76]}>
+          <planeGeometry args={[3.6, 1.6]} />
+          <meshBasicMaterial map={sign} toneMapped={false} />
+        </mesh>
+      </group>
+      {/* glassy teaching block */}
+      <group position={[hw - 4, 0, -0.8]}>
+        <Part geometry={geo.box(6.4, 5.5, 5.2)} color={0x9fc0d8} outline={0.08} position-y={2.75} />
+        {[1.2, 2.7, 4.2].map((y) => (
+          <Part key={y} geometry={geo.box(5.8, 0.8, 0.1)} color={WINDOW} outline={0.03} position={[0, y, 2.65]} />
+        ))}
+      </group>
+      {/* flagpole in front of the main building */}
+      <group position={[-3.6, 0, front]}>
+        <Part geometry={geo.cyl(0.06, 0.06, 5, 6)} color={0x8a8a8a} outline={0.02} position-y={2.5} />
+        <Part geometry={geo.box(1.4, 0.8, 0.05)} color={0x7a1f3d} outline={0.03} position={[0.75, 4.5, 0]} />
       </group>
     </group>
   );
