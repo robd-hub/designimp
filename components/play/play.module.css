@@ -352,8 +352,8 @@
 
 .joy {
   position: fixed;
-  left: calc(22px + env(safe-area-inset-left, 0px));
-  bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  right: calc(232px + env(safe-area-inset-right, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   width: 112px;
   height: 112px;
   border-radius: 50%;
@@ -497,6 +497,10 @@
   }
   .hint {
     display: none;
+  }
+  .joy {
+    right: calc(22px + env(safe-area-inset-right, 0px));
+    bottom: calc(var(--nav-h, 48px) + 30px + env(safe-area-inset-bottom, 0px));
   }
   .places button {
     font-size: 12px;
