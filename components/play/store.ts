@@ -212,11 +212,14 @@ export function placeClick(p: Place) {
 }
 
 // Mouse hover over a building shows a little card about it. Pointer-out waits a
-// moment so the mouse can travel onto the card's Learn more button.
+// brief moment so the mouse can travel onto the card's Learn more button.
 let hideTimer: ReturnType<typeof setTimeout> | undefined;
 let onCard = false;
 export function keepHover() {
   onCard = true;
+  clearTimeout(hideTimer);
+}
+function cancelHide() {
   clearTimeout(hideTimer);
 }
 export function leaveCard() {
@@ -229,7 +232,7 @@ export function dropHover() {
   hideTimer = setTimeout(() => {
     document.body.style.cursor = "";
     usePlay.getState().setHover(null);
-  }, 350);
+  }, 150);
 }
 export function placeEvents(p: Place) {
   return {
@@ -237,7 +240,7 @@ export function placeEvents(p: Place) {
     onPointerOver: (e: ThreeEvent<PointerEvent>) => {
       e.stopPropagation();
       if (e.pointerType !== "mouse") return;
-      keepHover();
+      cancelHide();
       document.body.style.cursor = "pointer";
       const h = usePlay.getState().hover;
       if (h?.place.id !== p.id) usePlay.getState().setHover({ place: p, x: e.nativeEvent.clientX, y: e.nativeEvent.clientY });
