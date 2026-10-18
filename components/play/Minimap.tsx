@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex } from "./places";
-import { BOUND, BRAYFORD, STREET_ROW, streetHouses } from "./colliders";
+import { BOUND, BRAYFORD, STADIUM_ROAD, STREET_ROW, streetHouses } from "./colliders";
 import { game, walkTo } from "./store";
 import s from "./play.module.css";
 
@@ -26,6 +26,7 @@ export default function Minimap() {
       <rect x={-V} y={-V} width={V * 2} height={V * 2} fill="#6fd36b" />
       <rect x={-3} y={-5} width={6} height={BOUND + 10} fill="#6b6573" />
       <rect x={-V} y={-3} width={V * 2} height={6} fill="#6b6573" />
+      <rect x={STADIUM_ROAD.x0} y={STADIUM_ROAD.z - 3} width={STADIUM_ROAD.x1 - STADIUM_ROAD.x0} height={6} fill="#6b6573" />
       {water &&
         Object.entries(BRAYFORD).map(([k, b]) => (
           <rect key={k} x={water.x + b.x0} y={water.z + b.z0} width={b.x1 - b.x0} height={b.z1 - b.z0} fill={k === "front" ? "#f2e2c4" : "#3aa6e8"} />
