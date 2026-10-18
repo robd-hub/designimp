@@ -24,6 +24,8 @@ type PlayState = {
   hydrate: () => void;
   badge: boolean;
   setBadge: (b: boolean) => void;
+  hover: { place: Place; x: number; y: number } | null;
+  setHover: (h: { place: Place; x: number; y: number } | null) => void;
 };
 
 const FOUND_KEY = "imp-hunt";
@@ -65,6 +67,8 @@ function syncUrl(p: Place | null) {
 }
 
 export const usePlay = create<PlayState>((set) => ({
+  hover: null,
+  setHover: (hover) => set({ hover }),
   ready: false,
   open: null,
   near: null,
@@ -155,5 +159,43 @@ export function placeClick(p: Place) {
   return (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     if (e.delta <= 8) walkTo(p);
+  };
+}
+
+// Mouse hover over a building shows a little card about it. Pointer-out waits a
+// moment so the mouse can travel onto the card's Learn more button.
+let hideTimer: ReturnType<typeof setTimeout> | undefined;
+let onCard = false;
+export function keepHover() {
+  onCard = true;
+  clearTimeout(hideTimer);
+}
+export function leaveCard() {
+  onCard = false;
+  dropHover();
+}
+export function dropHover() {
+  clearTimeout(hideTimer);
+  if (onCard) return;
+  hideTimer = setTimeout(() => {
+    document.body.style.cursor = "";
+    usePlay.getState().setHover(null);
+  }, 350);
+}
+export function placeEvents(p: Place) {
+  return {
+    onClick: placeClick(p),
+    onPointerOver: (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      if (e.pointerType !== "mouse") return;
+      keepHover();
+      document.body.style.cursor = "pointer";
+      const h = usePlay.getState().hover;
+      if (h?.place.id !== p.id) usePlay.getState().setHover({ place: p, x: e.nativeEvent.clientX, y: e.nativeEvent.clientY });
+    },
+    onPointerOut: (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      dropHover();
+    },
   };
 }

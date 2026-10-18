@@ -3,13 +3,20 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { PLACES, hex } from "./places";
-import { usePlay, walkTo, zoomBy } from "./store";
+import { PLACES, hex, type Place } from "./places";
+import { usePlay, walkTo, zoomBy, keepHover, leaveCard } from "./store";
 import { HIDDEN } from "./hidden";
 import PlayLeadForm from "./PlayLeadForm";
 import Minimap from "./Minimap";
 import Joystick from "./Joystick";
 import s from "./play.module.css";
+
+// First sentence of a place's intro, for the hover card.
+function blurb(p: Place) {
+  const t = p.intro[0] ?? "";
+  const m = t.match(/^.*?[.!?](\s|$)/);
+  return (m ? m[0] : t).trim();
+}
 
 function useMedia(q: string) {
   return useSyncExternalStore(
@@ -24,7 +31,7 @@ function useMedia(q: string) {
 }
 
 export default function Hud() {
-  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, found, badge, setBadge } = usePlay();
+  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, found, badge, setBadge, hover, setHover } = usePlay();
   const total = HIDDEN.length;
   const spotter = found.length >= total;
   const touch = useMedia("(pointer: coarse)");
@@ -126,6 +133,27 @@ export default function Hud() {
       <div className={`${s.card} ${s.hint}`}>
         <kbd>WASD</kbd> walk · click to go · <kbd>E</kbd> enter or chat
       </div>
+      {hover && !open && (
+        <div
+          className={`${s.card} ${s.peek}`}
+          style={{ left: Math.min(hover.x + 16, window.innerWidth - 276), top: Math.min(hover.y + 16, window.innerHeight - 190), "--c": hex(hover.place.wall) } as React.CSSProperties}
+          onPointerEnter={keepHover}
+          onPointerLeave={leaveCard}
+        >
+          <div className={s.kicker}>{hover.place.kicker}</div>
+          <b>{hover.place.name}</b>
+          <p>{blurb(hover.place)}</p>
+          <button
+            onClick={() => {
+              leaveCard();
+              setHover(null);
+              openPlace(hover.place);
+            }}
+          >
+            Learn more →
+          </button>
+        </div>
+      )}
       {talk ? (
         <button className={`${s.card} ${s.speech}`} onClick={nextLine} aria-live="polite">
           <b>{talk.npc.name}</b>

@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import type { Place } from "./places";
 import { Part, geo, toon, signTexture, WINDOW, LAMP } from "./toon";
-import { placeClick } from "./store";
+import { placeEvents } from "./store";
 import { BRAYFORD, STREET_ROW, seeded, streetHouses } from "./colliders";
 
 const CASTLE_STONE = 0xb8a98a;
@@ -27,7 +27,7 @@ export function Castle({ p, font }: { p: Place; font: string }) {
     hd = p.d / 2,
     wh = 5;
   return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} onClick={placeClick(p)}>
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <mesh geometry={geo.box(p.w - 1, 0.06, p.d - 1)} material={toon(0x5fbf5b)} position-y={0.04} receiveShadow />
       {/* curtain walls */}
       {[
@@ -89,7 +89,7 @@ export function SteepHill({ p, font }: { p: Place; font: string }) {
     return Array.from({ length: 70 }, () => [(r() - 0.5) * (p.w - 2 * STREET_ROW - 0.6), (r() - 0.5) * (p.d - 1)] as const);
   }, [p]);
   return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} onClick={placeClick(p)}>
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <mesh geometry={geo.box(p.w - 2 * STREET_ROW, 0.06, p.d)} material={toon(0xb9ad9a)} position-y={0.03} receiveShadow />
       {cobbles.map(([x, z], i) => (
         <mesh key={i} geometry={geo.box(0.5, 0.07, 0.4)} material={toon(0xa0947f)} position={[x, 0.04, z]} />
@@ -203,7 +203,7 @@ export function Brayford({ p, font, reduce }: { p: Place; font: string; reduce: 
   const C = BRAYFORD.canal,
     F = BRAYFORD.front;
   return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} onClick={placeClick(p)}>
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       {/* promenade and quay edge */}
       <mesh geometry={geo.box(p.w, 0.06, p.d)} material={toon(0xe8dcc2)} position-y={0.03} receiveShadow />
       <Part geometry={geo.box(W.x1 - W.x0 + 0.8, 0.3, W.z1 - W.z0 + 0.8)} color={0x9c8d6e} outline={0.05} position={[WX, 0.08, WZ]} />
