@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-three/fiber";
-import { PLACES, hex, type Place } from "./places";
+import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford } from "./Landmarks";
 import { TREES, BOUND, seeded } from "./colliders";
@@ -206,7 +206,9 @@ function Cathedral({ p, font }: { p: Place; font: string }) {
 
 // An empty plot with a signboard, waiting for the next client.
 function Lot({ p, font }: { p: Place; font: string }) {
-  const sign = useMemo(() => signTexture(p.name, hex(p.wall), font), [p, font]);
+  const shop = usePlay((st) => (st.shop?.lot === p.id ? st.shop.name : ""));
+  const sign = useMemo(() => signTexture(shop ? shopSign(shop) : p.name, hex(p.wall), font), [p, font, shop]);
+  useEffect(() => () => sign.dispose(), [sign]);
   const back = -p.d / 2 + 1;
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
