@@ -396,6 +396,43 @@ function Clouds({ reduce }: { reduce: boolean }) {
   );
 }
 
+// Rolling hills past the edge of town, so street view has a horizon.
+const hillRand = seeded(4242);
+const HILLS = Array.from({ length: 28 }, (_, i) => {
+  const a = (i / 28) * Math.PI * 2 + hillRand() * 0.2,
+    r = 100 + hillRand() * 40;
+  return [Math.cos(a) * r, Math.sin(a) * r, 18 + hillRand() * 22] as const;
+});
+function Hills() {
+  return (
+    <group>
+      <mesh rotation-x={-Math.PI / 2} position-y={-0.05} material={toon(0x5fc25c)}>
+        <circleGeometry args={[260, 48]} />
+      </mesh>
+      {HILLS.map(([x, z, r], i) => (
+        <mesh key={i} geometry={geo.dome(1)} material={toon(i % 2 ? 0x56b553 : 0x4ea84b)} position={[x, -2, z]} scale={[r, r * 0.45, r]} />
+      ))}
+    </group>
+  );
+}
+
+// Street view: drag with one finger or the mouse to look around.
+function dragLook(el: HTMLElement) {
+  const down = new Map<number, { x: number; y: number }>();
+  el.addEventListener("pointerdown", (e) => down.set(e.pointerId, { x: e.clientX, y: e.clientY }));
+  el.addEventListener("pointermove", (e) => {
+    const last = down.get(e.pointerId);
+    if (!last || down.size !== 1 || !usePlay.getState().street) return;
+    game.face -= (e.clientX - last.x) * 0.006;
+    game.pitch = Math.min(0.6, Math.max(-0.5, game.pitch - (e.clientY - last.y) * 0.004));
+    down.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  });
+  const up = (e: PointerEvent) => down.delete(e.pointerId);
+  el.addEventListener("pointerup", up);
+  el.addEventListener("pointercancel", up);
+  el.addEventListener("pointerleave", up);
+}
+
 // Two-finger pinch on touch screens zooms the camera in and out.
 function pinchZoom(el: HTMLElement) {
   let last = 0;
@@ -423,6 +460,7 @@ export default function Town({ font }: { font: string }) {
   const reduce = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
   const [signsReady, setSignsReady] = useState(false);
   const night = usePlay((s) => s.night);
+  const street = usePlay((s) => s.street);
   useEffect(() => setNightGlow(night), [night]);
 
   useEffect(() => {
@@ -466,12 +504,15 @@ export default function Town({ font }: { font: string }) {
       camera={{ fov: 45, near: 0.1, far: 300, position: [0, 15, 23] }}
       onCreated={({ gl }) => {
         pinchZoom(gl.domElement);
+        dragLook(gl.domElement);
         usePlay.getState().setReady();
       }}
       onWheel={(e) => zoomBy(e.deltaY * 0.001)}
       style={{ position: "fixed", inset: 0, touchAction: "none" }}
     >
       <color attach="background" args={[night ? "#1d2547" : "#7ccaff"]} />
+      {street && <fog attach="fog" args={[night ? "#1d2547" : "#7ccaff", 30, 150]} />}
+      {street && <Hills />}
       <hemisphereLight args={night ? [0x6a7bd6, 0x2a3350, 1.1] : [0xffffff, 0x88aa66, 2]} />
       <Sun night={night} />
       <mesh rotation-x={-Math.PI / 2} material={toon(0x6fd36b)} receiveShadow onClick={onGround}>

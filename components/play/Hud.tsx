@@ -31,7 +31,7 @@ function useMedia(q: string) {
 }
 
 export default function Hud() {
-  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, found, badge, setBadge, hover, setHover } = usePlay();
+  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, street, toggleStreet, found, badge, setBadge, hover, setHover } = usePlay();
   const total = HIDDEN.length;
   const spotter = found.length >= total;
   const touch = useMedia("(pointer: coarse)");
@@ -86,6 +86,9 @@ export default function Hud() {
         <button className={s.card} onClick={toggleNight} aria-label={night ? "Switch to day" : "Switch to night"} title={night ? "Day" : "Night"}>
           {night ? "☾" : "☀"}
         </button>
+        <button className={s.card} onClick={toggleStreet} aria-pressed={street} title={street ? "Back to map view" : "Street view"}>
+          {narrow ? (street ? "Map" : "Street") : street ? "Map view" : "Street view"}
+        </button>
         <span className={`${s.card} ${spotter ? s.spotter : ""}`} aria-live="polite">
           {spotter ? "Imp Spotter ★" : `Imps found ${found.length}/${total}`}
         </span>
@@ -131,7 +134,17 @@ export default function Hud() {
         </div>
       )}
       <div className={`${s.card} ${s.hint}`}>
-        <kbd>WASD</kbd> walk · click to go · <kbd>E</kbd> enter or chat
+        {street ? (
+          <>
+            <kbd>W</kbd>
+            <kbd>S</kbd> walk · <kbd>A</kbd>
+            <kbd>D</kbd> turn · drag to look · <kbd>E</kbd> enter or chat
+          </>
+        ) : (
+          <>
+            <kbd>WASD</kbd> walk · click to go · <kbd>E</kbd> enter or chat
+          </>
+        )}
       </div>
       {hover && !open && (
         <div
