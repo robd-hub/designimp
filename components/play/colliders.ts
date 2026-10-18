@@ -34,6 +34,21 @@ export const BRAYFORD = {
 const stadium = footprint(PLACES.find((p) => p.kind === "stadium")!);
 export const STADIUM_ROAD = { z: (stadium.z0 + stadium.z1) / 2, x0: 0, x1: stadium.x0 };
 
+// Footpaths in world coordinates: one runs north from the main road past the university and
+// the Brayford's east quay, then turns east to the castle gate.
+const castle = footprint(PLACES.find((p) => p.kind === "castle")!);
+const PATH_X = -29;
+export const FOOTPATHS = [
+  { x0: PATH_X - 1, x1: PATH_X + 1, z0: castle.z1 + 2, z1: -4.3 },
+  { x0: PATH_X - 1, x1: (castle.x0 + castle.x1) / 2 + 3, z0: castle.z1 + 2, z1: castle.z1 + 4 },
+];
+// The walk along them, from the main road to the castle gate.
+export const FOOTPATH_ROUTE: [number, number][] = [
+  [PATH_X, -5],
+  [PATH_X, castle.z1 + 3],
+  [(castle.x0 + castle.x1) / 2, castle.z1 + 3],
+];
+
 const boxes = PLACES.filter((p) => p.kind !== "tank").flatMap((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
@@ -57,7 +72,10 @@ const boxes = PLACES.filter((p) => p.kind !== "tank").flatMap((p) => {
 });
 
 const onRoad = (x: number, z: number) =>
-  Math.abs(x) < 7 || (Math.abs(z) < 7 && Math.abs(x) < BOUND) || (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1);
+  Math.abs(x) < 7 ||
+  (Math.abs(z) < 7 && Math.abs(x) < BOUND) ||
+  (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
+  FOOTPATHS.some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   PLACES.some((p) => {
     const f = footprint(p);

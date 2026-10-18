@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { FOOTPATH_ROUTE } from "./colliders";
 
 // Townsfolk who stroll the streets. Walk up to one and press E to chat.
 export type Npc = {
@@ -131,6 +132,35 @@ export const NPCS: Npc[] = [
     lines: [
       "Lovely, isn't she? Building started on this cathedral over 900 years ago.",
       "Good-looking websites stop people leaving. 38% of people stop engaging with an unattractive layout.",
+    ],
+  },
+  {
+    id: "maya",
+    name: "Maya",
+    shirt: 0x7a1f3d,
+    legs: 0x2b3a8c,
+    skin: 0xc68a5e,
+    hair: 0x1a1320,
+    // there and back along the footpath, from the main road up to the castle gate
+    path: [...FOOTPATH_ROUTE, ...FOOTPATH_ROUTE.slice(1, -1).reverse()],
+    speed: 1.8,
+    lines: [
+      "Lectures are done for the day, so I'm off for a wander. This path goes past the Brayford all the way up to the castle.",
+      "You can walk right round the castle walls up there. Best view in Lincoln.",
+    ],
+  },
+  {
+    id: "frank",
+    name: "Frank",
+    shirt: 0x5b6b7a,
+    legs: 0x1a1320,
+    skin: 0xffc39e,
+    hat: 0x8a5a33,
+    path: [...FOOTPATH_ROUTE.slice().reverse(), ...FOOTPATH_ROUTE.slice(1, -1)],
+    speed: 1.3,
+    lines: [
+      "Just been up to the castle. My knees prefer the walk back down.",
+      "I like to stop by the Brayford on the way and say hello to the swans.",
     ],
   },
 ];

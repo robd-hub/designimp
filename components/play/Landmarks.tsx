@@ -1,7 +1,7 @@
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import { PLACES, type Place } from "./places";
+import type { Place } from "./places";
 import { Part, geo, toon, signTexture, WINDOW, LAMP } from "./toon";
 import { placeEvents } from "./store";
 import { BRAYFORD, STREET_ROW, seeded, streetHouses } from "./colliders";
@@ -287,9 +287,6 @@ export function Brayford({ p, font, reduce }: { p: Place; font: string; reduce: 
   );
 }
 
-const brayford = PLACES.find((p) => p.kind === "water")!;
-const BRAYFORD_SOUTH = brayford.z + brayford.d / 2;
-
 const BRICK = 0xb5543a;
 const BRICK_DARK = 0x8f3f2c;
 
@@ -301,9 +298,6 @@ export function Campus({ p, font }: { p: Place; font: string }) {
   const hw = p.w / 2,
     hd = p.d / 2,
     front = hd - 1.2;
-  // footpath from the main road's pavement to the Brayford promenade, in campus coordinates
-  const pathZ0 = -4.3 - p.z,
-    pathZ1 = BRAYFORD_SOUTH - 0.5 - p.z;
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <mesh geometry={geo.box(p.w, 0.06, p.d)} material={toon(0x5fbf5b)} position-y={0.04} receiveShadow />
@@ -345,15 +339,6 @@ export function Campus({ p, font }: { p: Place; font: string }) {
           <Part key={y} geometry={geo.box(5.8, 0.8, 0.1)} color={WINDOW} outline={0.03} position={[0, y, 2.65]} />
         ))}
       </group>
-      {/* footpath up the east side of the campus from the main road to the Brayford promenade;
-          ignores the pointer so clicks on it still walk the Imp there */}
-      <mesh geometry={geo.box(2, 0.05, pathZ0 - pathZ1)} material={toon(0xe8dcc2)} position={[hw + 1.6, 0.035, (pathZ0 + pathZ1) / 2]} receiveShadow raycast={() => null} />
-      {[hd + 1, -hd + 1].map((z) => (
-        <group key={z} position={[hw + 3, 0, z]}>
-          <Part geometry={geo.cyl(0.08, 0.1, 2.6, 8)} color={0x2b2633} outline={0.03} position-y={1.3} />
-          <Part geometry={geo.sphere(0.24)} color={LAMP} outline={0.04} position-y={2.7} />
-        </group>
-      ))}
       {/* flagpole in front of the main building */}
       <group position={[-3.6, 0, front]}>
         <Part geometry={geo.cyl(0.06, 0.06, 5, 6)} color={0x8a8a8a} outline={0.02} position-y={2.5} />

@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus } from "./Landmarks";
-import { TREES, BOUND, STADIUM_ROAD, seeded } from "./colliders";
+import { TREES, BOUND, STADIUM_ROAD, FOOTPATHS, seeded } from "./colliders";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy } from "./store";
 import Imp from "./Imp";
@@ -366,6 +366,31 @@ for (let i = 20; i < BOUND; i += 18) {
   LAMPS.push([5.5, i], [-5.5, i], [i, -5.5], [i, 5.5], [-i, -5.5], [-i, 5.5]);
 }
 
+// Footpaths ignore the pointer so clicking one still walks the Imp to that spot.
+function Footpaths() {
+  const run = FOOTPATHS[0];
+  return (
+    <>
+      {FOOTPATHS.map((f, i) => (
+        <mesh
+          key={i}
+          geometry={geo.box(f.x1 - f.x0, 0.05, f.z1 - f.z0)}
+          material={toon(0xe8dcc2)}
+          position={[(f.x0 + f.x1) / 2, 0.035 + i * 0.002, (f.z0 + f.z1) / 2]}
+          receiveShadow
+          raycast={() => null}
+        />
+      ))}
+      {[-12, -28, -44].map((z) => (
+        <group key={z} position={[run.x1 + 0.8, 0, z]}>
+          <Part geometry={geo.cyl(0.08, 0.1, 2.6, 8)} color={0x2b2633} outline={0.03} position-y={1.3} />
+          <Part geometry={geo.sphere(0.24)} color={LAMP} outline={0.04} position-y={2.7} />
+        </group>
+      ))}
+    </>
+  );
+}
+
 function Lamps() {
   return (
     <>
@@ -543,6 +568,7 @@ export default function Town({ font }: { font: string }) {
       ))}
       <Townsfolk reduce={reduce} />
       <Lamps />
+      <Footpaths />
       <Clouds reduce={reduce} />
       <Hunt reduce={reduce} />
       <Imp reduce={reduce} />
