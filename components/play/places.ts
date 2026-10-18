@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string };
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn by the fountain; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -374,6 +374,27 @@ export const PLACES: Place[] = [
       label: "See it on Visit Lincoln",
       external: true,
     },
+  },
+  {
+    id: "university",
+    kind: "campus",
+    name: "University of Lincoln",
+    kicker: "Just south of the Brayford",
+    nav: "University",
+    x: -46,
+    z: -12.5,
+    w: 24,
+    d: 8,
+    h: 7,
+    wall: 0x7a1f3d,
+    roof: 0xd9cbb0,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "The University of Lincoln's main campus sits on the south side of Brayford Pool, right in the middle of the city.",
+      "It opened in 1996, and its library is in a restored Victorian railway warehouse, one of several old railway buildings on the campus.",
+    ],
+    link: { href: "https://www.lincoln.ac.uk/", label: "Visit lincoln.ac.uk", external: true },
   },
 ];
 
