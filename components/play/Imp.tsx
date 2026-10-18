@@ -11,6 +11,8 @@ const BELLY = 0xf2c879;
 const HORN = 0x4a2f22;
 
 const want = new THREE.Vector3();
+const look = new THREE.Vector3();
+const TURN = 2.4; // street view turn speed, radians a second
 const STEER = [0.5, -0.5, 1, -1, 1.5, -1.5];
 
 // The town guide: an original little imp, loosely nodding to the Lincoln Imp carving.
@@ -27,10 +29,26 @@ export default function Imp({ reduce }: { reduce: boolean }) {
   useFrame(({ camera, size, clock }, delta) => {
     const dt = Math.min(delta, 0.05);
     const k = game.keys;
-    const { open, near, nearNpc, talk, setNear, openPlace, startTalk, endTalk } = usePlay.getState();
+    const { open, near, nearNpc, talk, setNear, openPlace, startTalk, endTalk, street } = usePlay.getState();
     let vx = 0,
-      vz = 0;
-    if (!open) {
+      vz = 0,
+      steered = false; // street view: keys drive along the facing, so don't re-face to the motion
+    if (!open && street) {
+      let fwd = 0,
+        turn = 0;
+      if (k.w || k.arrowup) fwd += 1;
+      if (k.s || k.arrowdown) fwd -= 1;
+      if (k.a || k.arrowleft) turn += 1;
+      if (k.d || k.arrowright) turn -= 1;
+      if (!fwd && !turn && Math.hypot(game.joy.x, game.joy.z) > 0.2) [fwd, turn] = [-game.joy.z, -game.joy.x];
+      if (turn) {
+        game.face += turn * TURN * dt;
+        game.target = null;
+        game.pending = null;
+        game.pendingNpc = null;
+      }
+      if (Math.abs(fwd) > 0.05) [vx, vz, steered] = [Math.sin(game.face) * fwd, Math.cos(game.face) * fwd, true];
+    } else if (!open) {
       if (k.w || k.arrowup) vz -= 1;
       if (k.s || k.arrowdown) vz += 1;
       if (k.a || k.arrowleft) vx -= 1;
@@ -88,9 +106,11 @@ export default function Imp({ reduce }: { reduce: boolean }) {
           pos.z += vz * sp;
         }
       }
-      let d = Math.atan2(vx, vz) - game.face;
-      d = Math.atan2(Math.sin(d), Math.cos(d));
-      game.face += d * Math.min(1, dt * 12);
+      if (!steered) {
+        let d = Math.atan2(vx, vz) - game.face;
+        d = Math.atan2(Math.sin(d), Math.cos(d));
+        game.face += d * Math.min(1, dt * 12);
+      }
       walkT.current += dt * 11;
     } else walkT.current *= 0.85;
 
@@ -110,6 +130,24 @@ export default function Imp({ reduce }: { reduce: boolean }) {
     const n = open || nn ? null : nearestPlace();
     if (n !== near || nn !== nearNpc) setNear(n, nn);
 
+    body.current.visible = blob.current.visible = !street;
+    // Street view sees wider (and zoom widens or narrows it); the map view keeps a tight lens.
+    const cam = camera as THREE.PerspectiveCamera;
+    const fov = street ? Math.min(100, Math.max(40, 62 * game.zoom * (size.width < size.height ? 1.35 : 1))) : 45;
+    if (Math.abs(cam.fov - fov) > 0.01) {
+      cam.fov = fov;
+      cam.updateProjectionMatrix();
+    }
+    if (street) {
+      // Eyes just in front of the imp's face, looking where it faces.
+      const fx = Math.sin(game.face),
+        fz = Math.cos(game.face);
+      want.set(pos.x + fx * 0.9, 2.3, pos.z + fz * 0.9);
+      camera.position.copy(want);
+      look.set(want.x + fx, want.y + Math.tan(game.pitch), want.z + fz);
+      camera.lookAt(look);
+      return;
+    }
     want.set(0, 15, 15).multiplyScalar(game.zoom * (size.width < 600 ? 1.25 : 1)).add(pos);
     camera.position.lerp(want, reduce ? 1 : Math.min(1, dt * 5));
     camera.lookAt(pos.x, 1.2, pos.z);

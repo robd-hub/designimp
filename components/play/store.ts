@@ -19,6 +19,8 @@ type PlayState = {
   close: () => void;
   night: boolean;
   toggleNight: () => void;
+  street: boolean; // first-person "street view"
+  toggleStreet: () => void;
   found: string[];
   collect: (id: string, total: number) => void;
   hydrate: () => void;
@@ -52,6 +54,7 @@ export const game = {
   zoom: 1,
   keys: {} as Record<string, boolean>,
   joy: { x: 0, z: 0 }, // touch joystick, -1..1
+  pitch: 0, // street view: look up/down
 };
 
 // Camera distance multiplier: smaller is closer.
@@ -98,6 +101,16 @@ export const usePlay = create<PlayState>((set) => ({
   // set on mount (not during server render) so the HUD hydrates cleanly
   night: false,
   toggleNight: () => set(({ night }) => ({ night: !night })),
+  street: false,
+  toggleStreet: () =>
+    set(({ street }) => {
+      if (!street) {
+        // Step into street view facing north, the way the map view looks.
+        game.face = Math.PI;
+        game.pitch = 0;
+      }
+      return { street: !street };
+    }),
   found: [],
   hydrate: () => set({ night: isNight(), found: loadFound() }),
   collect: (id, total) =>
