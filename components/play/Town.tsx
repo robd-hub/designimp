@@ -8,7 +8,7 @@ import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, set
 import { Castle, SteepHill, Brayford } from "./Landmarks";
 import { TREES, BOUND, seeded } from "./colliders";
 import Townsfolk from "./Townsfolk";
-import { game, usePlay, placeClick, zoomBy } from "./store";
+import { game, usePlay, placeEvents, zoomBy } from "./store";
 import Imp from "./Imp";
 import Hunt from "./Hunt";
 import { Crowd, Chant } from "./Matchday";
@@ -84,7 +84,7 @@ function Fountain({ reduce }: { reduce: boolean }) {
       <Part geometry={geo.cyl(3.6, 3.8, 0.8, 32)} color={0xd6cfe0} position-y={0.4} />
       <mesh geometry={geo.cyl(3.3, 3.3, 0.1, 32)} material={toon(0x4fc3ff)} position-y={0.78} />
       <Part geometry={geo.box(4.4, 0.5, 2.6)} color={0xd6cfe0} outline={0.06} position-y={0.95} />
-      <Tank position-y={1.2} rotation-y={-0.5} onClick={placeClick(TANK_PLACE)} />
+      <Tank position-y={1.2} rotation-y={-0.5} {...placeEvents(TANK_PLACE)} />
       <group ref={jets}>
         {[0.6, 2.2, 3.8, 5.4].map((a) => (
           <Part key={a} geometry={geo.sphere(0.32)} color={0x9fe3ff} outline={0.04} shadow={false} position={[Math.cos(a) * 2.9, 1.15, Math.sin(a) * 2.9]} />
@@ -103,7 +103,7 @@ function Building({ p, font }: { p: Place; font: string }) {
   for (let f = 0; f < floors; f++)
     for (const sx of [-1, 1]) for (const col of p.w > 8 ? [2.2, 3.6] : [2.4]) windows.push([sx * col, f === 0 ? 1.7 : 3.8 + (f - 1) * 2.4]);
   return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} onClick={placeClick(p)}>
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <Part geometry={geo.box(p.w, p.h, p.d)} color={p.wall} outline={0.09} position-y={p.h / 2} />
       {p.roofType === "pitch" ? (
         <Part
@@ -165,7 +165,7 @@ function Cathedral({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, "#5b6b7a", font), [p, font]);
   const front = p.d / 2;
   return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} onClick={placeClick(p)}>
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <Part geometry={geo.box(10, 10, 24)} color={STONE} outline={0.09} position={[0, 5, -2]} />
       <Ridge r={5.8} len={24} color={LEAD} position={[0, 10 + 5.8 * 0.5 * 0.55, -2]} />
       <Part geometry={geo.box(22, 9, 5)} color={STONE} outline={0.09} position={[0, 4.5, -4]} />
@@ -209,7 +209,7 @@ function Lot({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, hex(p.wall), font), [p, font]);
   const back = -p.d / 2 + 1;
   return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} onClick={placeClick(p)}>
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <mesh geometry={geo.box(p.w, 0.06, p.d)} material={toon(0xc9a46b)} position-y={0.03} receiveShadow />
       {[-1.3, 1.3].map((x) => (
         <Part key={x} geometry={geo.box(0.22, 2.6, 0.22)} color={0x8a5a33} outline={0.04} position={[x, 1.3, back]} />
@@ -250,7 +250,7 @@ function Stadium({ p, font, reduce }: { p: Place; font: string; reduce: boolean 
     { x: pw / 2 + 2.2, z: 0, w: pd, d: 4.4, ry: -Math.PI / 2 },
   ];
   return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} onClick={placeClick(p)}>
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <mesh geometry={geo.box(pw, 0.08, pd)} material={toon(0x4cc25c)} position-y={0.05} receiveShadow />
       {Array.from({ length: 6 }, (_, i) => (
         <mesh key={i} geometry={geo.box(pw / 6, 0.09, pd)} material={toon(0x3fae4f)} position={[-pw / 2 + pw / 12 + (i * pw) / 6, 0.051, 0]} visible={i % 2 === 0} />

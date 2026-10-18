@@ -350,6 +350,34 @@
   box-shadow: 3px 3px 0 var(--ink);
 }
 
+.peek {
+  position: fixed;
+  width: 260px;
+  padding: 12px 14px;
+  border-top: 6px solid var(--c);
+  z-index: 5;
+}
+.peek b {
+  display: block;
+  font: 400 22px/1.1 var(--display);
+  margin: 2px 0 6px;
+}
+.peek p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.peek button {
+  font: 800 14px var(--body);
+  color: var(--ink);
+  background: var(--sun);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
 .joy {
   position: fixed;
   right: calc(232px + env(safe-area-inset-right, 0px));
