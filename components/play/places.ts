@@ -369,7 +369,11 @@ export const PLACES: Place[] = [
       "Brayford Pool is where the River Witham meets the Fossdyke, a canal thought to date back to the Romans and still in use today.",
       "These days it's a marina lined with bars and restaurants, with the University of Lincoln's campus on the waterfront and plenty of swans.",
     ],
-    link: { href: "/about", label: "More about Lincoln and me" },
+    link: {
+      href: "https://www.visitlincoln.com/explore/areas-of-lincoln/brayford-waterfront/",
+      label: "See it on Visit Lincoln",
+      external: true,
+    },
   },
 ];
 
