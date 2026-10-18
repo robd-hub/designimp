@@ -24,6 +24,13 @@ export type Place = {
   link: { href: string; label: string; external?: boolean };
 };
 
+// What a plot's sign says once a visitor has typed their business name there.
+export const SIGN_MAX = 22;
+export function shopSign(name: string) {
+  const t = name.trim();
+  return t.length > SIGN_MAX ? `${t.slice(0, SIGN_MAX - 1).trimEnd()}…` : t;
+}
+
 export const PLACES: Place[] = [
   {
     id: "ayuri",

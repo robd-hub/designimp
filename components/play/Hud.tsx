@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { PLACES, hex, type Place } from "./places";
+import { PLACES, hex, shopSign, type Place } from "./places";
 import { usePlay, walkTo, zoomBy, keepHover, leaveCard } from "./store";
 import { HIDDEN } from "./hidden";
 import PlayLeadForm from "./PlayLeadForm";
@@ -32,6 +32,7 @@ function useMedia(q: string) {
 
 export default function Hud() {
   const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, street, toggleStreet, found, badge, setBadge, hover, setHover } = usePlay();
+  const openShop = usePlay((st) => (open && st.shop?.lot === open.id ? st.shop.name : ""));
   const total = HIDDEN.length;
   const spotter = found.length >= total;
   const touch = useMedia("(pointer: coarse)");
@@ -39,6 +40,9 @@ export default function Hud() {
   const [navPick, setNavOpen] = useState<boolean | null>(null);
   const navOpen = navPick ?? !narrow; // the list starts folded away on phones
   const navRef = useRef<HTMLElement>(null);
+  // The Imp's hello, once per visit, pointing straight at a client's shop.
+  const { welcome, setWelcome } = usePlay();
+  const greet = welcome && ready && !open && !talk;
 
   // Keep the joystick sitting just above the Go to box, however tall it gets.
   useEffect(() => {
@@ -79,7 +83,7 @@ export default function Hud() {
       <div className={`${s.card} ${s.title}`}>
         <h1>Imp&apos;s High Street</h1>
         <p>
-          Walk around the work of <Link href="/">Design Imp</Link>
+          Walk around the work of <Link href="/">Design Imp</Link> · <Link href="/#work">Prefer a list?</Link>
         </p>
       </div>
       <div className={s.status}>
@@ -130,6 +134,24 @@ export default function Hud() {
           </button>
           <button className={s.close} onClick={() => setBadge(false)}>
             ✕
+          </button>
+        </div>
+      )}
+      {greet && (
+        <div className={`${s.card} ${s.welcome}`} role="dialog" aria-label="Welcome">
+          <b>Hello, I&apos;m the Imp!</b>
+          <p>Every shop on this street is a real Design Imp client. Pop in to see their new websites.</p>
+          <button
+            className={s.cta}
+            onClick={() => {
+              setWelcome(false);
+              walkTo(PLACES.find((p) => p.id === "ayuri")!);
+            }}
+          >
+            Show me a client →
+          </button>
+          <button className={s.skip} onClick={() => setWelcome(false)}>
+            I&apos;ll explore
           </button>
         </div>
       )}
@@ -202,8 +224,8 @@ export default function Hud() {
         </button>
         {open && (
           <div>
-            <div className={s.kicker}>{open.kicker}</div>
-            <h2>{open.name}</h2>
+            <div className={s.kicker}>{openShop ? "Opening soon" : open.kicker}</div>
+            <h2>{openShop ? shopSign(openShop) : open.name}</h2>
             {open.image && (
               <Image className={s.shot} src={open.image.src} alt={open.image.alt} width={800} height={500} sizes="380px" />
             )}
@@ -220,7 +242,7 @@ export default function Hud() {
                 ))}
               </ul>
             )}
-            {open.kind === "lot" && <PlayLeadForm />}
+            {open.kind === "lot" && <PlayLeadForm lot={open.id} />}
             {open.link.external ? (
               <a className={s.cta} href={open.link.href} target="_blank" rel="noopener noreferrer">
                 {open.link.label} ↗

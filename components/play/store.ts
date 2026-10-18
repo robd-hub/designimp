@@ -28,6 +28,11 @@ type PlayState = {
   setBadge: (b: boolean) => void;
   hover: { place: Place; x: number; y: number } | null;
   setHover: (h: { place: Place; x: number; y: number } | null) => void;
+  // The visitor's business name, painted on the sign of the plot they typed it at.
+  shop: { name: string; lot: string } | null;
+  welcome: boolean; // the Imp's hello, once per visit
+  setWelcome: (w: boolean) => void;
+  setShop: (name: string, lot: string) => void;
 };
 
 const FOUND_KEY = "imp-hunt";
@@ -39,6 +44,27 @@ function loadFound(): string[] {
     return [];
   }
 }
+const SHOP_KEY = "imp-shop";
+function loadShop(): PlayState["shop"] {
+  try {
+    const v = JSON.parse(localStorage.getItem(SHOP_KEY) ?? "null");
+    return typeof v?.name === "string" && typeof v?.lot === "string" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+// Greet first-time arrivals, not someone sent straight to a building by link.
+function firstArrival() {
+  try {
+    const seen = sessionStorage.getItem("imp-welcome");
+    sessionStorage.setItem("imp-welcome", "1");
+    return !seen && !new URLSearchParams(window.location.search).has("place");
+  } catch {
+    return false;
+  }
+}
+
 function isNight() {
   const h = new Date().getHours();
   return h < 7 || h >= 19;
@@ -112,7 +138,17 @@ export const usePlay = create<PlayState>((set) => ({
       return { street: !street };
     }),
   found: [],
-  hydrate: () => set({ night: isNight(), found: loadFound() }),
+  hydrate: () => set({ night: isNight(), found: loadFound(), shop: loadShop(), welcome: firstArrival() }),
+  welcome: false,
+  setWelcome: (welcome) => set({ welcome }),
+  shop: null,
+  setShop: (name, lot) => {
+    const shop = name.trim() ? { name, lot } : null;
+    try {
+      localStorage.setItem(SHOP_KEY, JSON.stringify(shop));
+    } catch {}
+    set({ shop });
+  },
   collect: (id, total) =>
     set(({ found }) => {
       if (found.includes(id)) return {};
