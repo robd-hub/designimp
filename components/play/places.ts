@@ -344,7 +344,11 @@ export const PLACES: Place[] = [
     items: [
       { title: "Small businesses, big character", detail: "Exactly the kind of shops that deserve a website as good as their shopfront." },
     ],
-    link: { href: "/get-started", label: "Get your free mockup" },
+    link: {
+      href: "https://www.visitlincoln.com/listing/steep-hill/97229101/",
+      label: "See it on Visit Lincoln",
+      external: true,
+    },
   },
   {
     id: "brayford",
