@@ -29,6 +29,11 @@ export const BRAYFORD = {
   front: { x0: -16, x1: 16, z0: -11, z1: -8 },
 };
 
+// The road off the south road to Sincil Bank, east of the high street as in real Lincoln.
+// It runs from the main road's centre line to the stadium's west-facing entrance.
+const stadium = footprint(PLACES.find((p) => p.kind === "stadium")!);
+export const STADIUM_ROAD = { z: (stadium.z0 + stadium.z1) / 2, x0: 0, x1: stadium.x0 };
+
 const boxes = PLACES.filter((p) => p.kind !== "tank").flatMap((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
@@ -51,7 +56,8 @@ const boxes = PLACES.filter((p) => p.kind !== "tank").flatMap((p) => {
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
 });
 
-const onRoad = (x: number, z: number) => Math.abs(x) < 7 || (Math.abs(z) < 7 && Math.abs(x) < BOUND);
+const onRoad = (x: number, z: number) =>
+  Math.abs(x) < 7 || (Math.abs(z) < 7 && Math.abs(x) < BOUND) || (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1);
 const nearBuilding = (x: number, z: number, pad: number) =>
   PLACES.some((p) => {
     const f = footprint(p);

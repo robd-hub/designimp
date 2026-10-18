@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford } from "./Landmarks";
-import { TREES, BOUND, seeded } from "./colliders";
+import { TREES, BOUND, STADIUM_ROAD, seeded } from "./colliders";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy } from "./store";
 import Imp from "./Imp";
@@ -22,23 +22,33 @@ const NORTH_END = -44; // the north road stops at the cathedral close
 const NS_START = -5; // north of the crossroads the road becomes Steep Hill
 const NS_LEN = BOUND + 5 - NS_START;
 const NS_MID = (BOUND + 5 + NS_START) / 2;
+const SB_LEN = STADIUM_ROAD.x1 - STADIUM_ROAD.x0;
+const SB_MID = (STADIUM_ROAD.x0 + STADIUM_ROAD.x1) / 2;
 
 function Roads() {
   const dashes: number[] = [];
   for (let i = -BOUND; i <= BOUND; i += 4) if (Math.abs(i) > 5) dashes.push(i);
+  const sbDashes: number[] = [];
+  for (let i = 8; i < STADIUM_ROAD.x1 - 2; i += 4) sbDashes.push(i);
   return (
     <>
       <Flat w={8.6} d={NS_LEN} color={0xe8dcc2} z={NS_MID} y={0.01} />
       <Flat w={SIZE} d={8.6} color={0xe8dcc2} y={0.01} />
       <Flat w={6} d={NS_LEN} color={0x6b6573} z={NS_MID} />
       <Flat w={SIZE} d={6} color={0x6b6573} />
+      {/* the road east to Sincil Bank */}
+      <Flat w={SB_LEN} d={8.6} color={0xe8dcc2} x={SB_MID} z={STADIUM_ROAD.z} y={0.01} />
+      <Flat w={SB_LEN} d={6} color={0x6b6573} x={SB_MID} z={STADIUM_ROAD.z} />
       {/* cathedral close */}
       <Flat w={26} d={8} color={0xe8dcc2} z={NORTH_END + 1} y={0.015} />
       {dashes.map((i) => (
         <group key={i}>
-          {i > NS_START && <Flat w={0.25} d={1.8} color={0xffd23f} z={i} y={0.05} />}
+          {i > NS_START && Math.abs(i - STADIUM_ROAD.z) > 5 && <Flat w={0.25} d={1.8} color={0xffd23f} z={i} y={0.05} />}
           <Flat w={1.8} d={0.25} color={0xffd23f} x={i} y={0.05} />
         </group>
+      ))}
+      {sbDashes.map((i) => (
+        <Flat key={i} w={1.8} d={0.25} color={0xffd23f} x={i} z={STADIUM_ROAD.z} y={0.05} />
       ))}
     </>
   );
