@@ -51,7 +51,7 @@ export default function Services() {
         </h2>
         <Link
           href="/services"
-          className="shrink-0 text-base text-muted hover:text-foreground transition-colors"
+          className="shrink-0 text-base text-accent hover:text-foreground transition-colors"
         >
           See all services →
         </Link>

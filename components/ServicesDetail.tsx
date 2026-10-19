@@ -68,7 +68,7 @@ export default function ServicesDetail() {
                 {s.link && (
                   <a
                     href={s.link.href}
-                    className="mt-3 inline-block text-sm text-muted hover:text-foreground transition-colors"
+                    className="mt-3 inline-block text-sm text-accent hover:text-foreground transition-colors"
                   >
                     {s.link.label}
                   </a>
@@ -81,7 +81,7 @@ export default function ServicesDetail() {
                   </span>
                   <a
                     href="mailto:rob@designimp.com?subject=Interested in upcoming service"
-                    className="text-sm text-muted hover:text-foreground transition-colors"
+                    className="text-sm text-accent hover:text-foreground transition-colors"
                   >
                     Get notified →
                   </a>
