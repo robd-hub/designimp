@@ -20,7 +20,6 @@ const SERVICES = [
     description:
       "A chat assistant on your website that answers questions, takes enquiry details and books visits straight into your calendar. Every lead is saved, even out of hours.",
     available: true,
-    pricing: "From £99/month",
     link: { href: "/demo", label: "Try the demo →" },
   },
 ];
