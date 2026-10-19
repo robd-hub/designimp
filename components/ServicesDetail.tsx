@@ -9,13 +9,6 @@ const SERVICES = [
   },
   {
     number: "02",
-    title: "Workflow automation",
-    description:
-      "Automate the repetitive tasks that eat into your day. From client onboarding to follow-ups, we connect your tools so you can focus on the work that matters.",
-    available: false,
-  },
-  {
-    number: "03",
     title: "AI assistant for your website",
     description:
       "A chat assistant on your website that answers questions, takes enquiry details and books visits straight into your calendar. Every lead is saved, even out of hours.",
@@ -23,12 +16,19 @@ const SERVICES = [
     link: { href: "/demo", label: "Try the demo →" },
   },
   {
-    number: "04",
+    number: "03",
     title: "Automated lead generation",
     description:
       "A steady supply of new prospects without the legwork. Every weekday it finds businesses in your area that fit your ideal customer, checks their online presence, scores how good a fit they are and drafts a personal first message for each one. They land in a shared sheet for you to review and send, so nothing goes out without your say.",
     available: true,
     link: { href: "https://cal.com/rob-doughty/30min", label: "Talk it through on a call →" },
+  },
+  {
+    number: "04",
+    title: "Workflow automation",
+    description:
+      "Automate the repetitive tasks that eat into your day. From client onboarding to follow-ups, we connect your tools so you can focus on the work that matters.",
+    available: false,
   },
 ];
 
