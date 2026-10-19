@@ -45,14 +45,40 @@ export default function ChatDemo() {
 
   return (
     <style>{`
-      :root {
-        --chat--color-primary: #C8973A;
-        --chat--color-primary-shade-50: #b5872f;
-        --chat--color-primary-shade-100: #a07726;
-        --chat--color-secondary: #C8973A;
+      :root, #n8n-chat {
+        --chat--font-family: var(--font-dm-sans), system-ui, sans-serif;
+        --chat--color--primary: #C8973A;
+        --chat--color--primary-shade-50: #b5872f;
+        --chat--color--primary--shade-100: #a07726;
+        --chat--color--secondary: #C8973A;
+        --chat--color-secondary-shade-50: #b5872f;
+        --chat--color-typing: #a0a0a8;
+        --chat--window--border: 1px solid #2a2a2e;
+        --chat--header--background: #1a1a2e;
+        --chat--header--color: #f0f0f2;
+        --chat--heading--font-size: 1.5em;
+        --chat--header--border-bottom: 1px solid #2a2a2e;
+        --chat--body--background: #111113;
+        --chat--message--bot--background: #1c1c1e;
+        --chat--message--bot--color: #f0f0f2;
+        --chat--message--bot--border: 1px solid #2a2a2e;
+        --chat--message--user--background: #C8973A;
+        --chat--message--user--color: #111113;
+        --chat--message--pre--background: #2a2a2e;
+        --chat--footer--background: #111113;
+        --chat--footer--color: #a0a0a8;
+        --chat--input--background: #1c1c1e;
+        --chat--input--text-color: #f0f0f2;
+        --chat--input--border: 1px solid #2a2a2e;
+        --chat--input--container--background: #1c1c1e;
+        --chat--input--send--button--background: transparent;
+        --chat--input--send--button--color: #C8973A;
+        --chat--input--send--button--background-hover: transparent;
+        --chat--input--send--button--color-hover: #e0b25a;
         --chat--toggle--background: #C8973A;
         --chat--toggle--hover--background: #b5872f;
         --chat--toggle--active--background: #a07726;
+        --chat--toggle--color: #111113;
       }
     `}</style>
   );
