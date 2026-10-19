@@ -21,7 +21,7 @@ const SERVICES = [
     description:
       "A steady supply of new prospects without the legwork. Every weekday it finds businesses in your area that fit your ideal customer, checks their online presence, scores how good a fit they are and drafts a personal first message for each one. They land in a shared sheet for you to review and send, so nothing goes out without your say.",
     available: true,
-    link: { href: "https://cal.com/rob-doughty/30min", label: "Talk it through on a call →" },
+    link: { href: "/lead-generation", label: "See how it works →" },
   },
   {
     number: "04",
