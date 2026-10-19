@@ -33,7 +33,7 @@ const LEAD_GEN_FAQS = [
   },
   {
     q: "Is it GDPR friendly?",
-    a: "It only uses information businesses publish themselves, and it favours general business addresses like info@ over personal ones. We'll help you keep an opt-out list and include a clear way to unsubscribe in every message.",
+    a: "It only uses information businesses publish about themselves online. Every message says clearly who it's from and includes an easy way to opt out, and anyone who opts out is never contacted again.",
   },
   {
     q: "How many leads will I get?",
