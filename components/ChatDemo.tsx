@@ -3,10 +3,10 @@
 import { useEffect } from "react";
 
 const CHAT_URL =
-  "https://robdoughty.app.n8n.cloud/webhook/15fccbc0-8412-4d29-9af4-f5bbb1b5a2f6/chat";
+  "https://robdoughty.app.n8n.cloud/webhook/2845a9e4-4cb3-40b5-824c-67ce29b17be8/chat";
 const CHAT_CDN = "https://cdn.jsdelivr.net/npm/@n8n/chat@1.42.6/dist";
 
-// Loads the n8n chat widget (a floating bubble, bottom right) on this page only
+// Loads the Design Imp assistant (an n8n chat widget, floating bottom right) on this page only
 export default function ChatDemo() {
   useEffect(() => {
     if (document.getElementById("n8n-chat-script")) return;
@@ -26,13 +26,13 @@ export default function ChatDemo() {
         mode: 'window',
         showWelcomeScreen: false,
         initialMessages: [
-          'Hi! 👋 I can answer questions or book you a free quote visit.',
-          'What can we help with today?'
+          "Hi! 👋 I'm the Design Imp assistant.",
+          'Ask me anything about websites, AI assistants or getting a free mockup.'
         ],
         i18n: {
           en: {
-            title: 'Smith Plumbing & Heating',
-            subtitle: 'Ask a question or book a free quote visit',
+            title: 'Design Imp',
+            subtitle: 'Ask a question, any time',
             footer: '',
             getStarted: 'New conversation',
             inputPlaceholder: 'Type your message...'
