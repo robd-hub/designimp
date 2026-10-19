@@ -9,7 +9,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const isHome = pathname === "/";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -27,8 +26,6 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
-  const servicesHref = isHome ? "#services" : "/services";
-
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -43,7 +40,7 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8 text-base text-muted absolute left-1/2 -translate-x-1/2">
-          <Link href={servicesHref} className="hover:text-foreground transition-colors">
+          <Link href="/services" className="hover:text-foreground transition-colors">
             Services
           </Link>
           <Link href="/about" className="hover:text-foreground transition-colors">
@@ -92,7 +89,7 @@ export default function Navbar() {
           className="md:hidden border-t border-border bg-background/95 backdrop-blur-md px-6 py-6 flex flex-col gap-6"
         >
           <Link
-            href={servicesHref}
+            href="/services"
             className="text-base text-muted hover:text-foreground transition-colors"
             onClick={() => setMenuOpen(false)}
           >
