@@ -55,7 +55,7 @@ export default function Work() {
             <div className="px-5 py-4">
               <p className="font-semibold text-foreground text-lg">{project.name}</p>
               <p className="mt-1 text-base text-muted leading-loose">{project.outcome}</p>
-              <p className="mt-3 text-base text-muted group-hover:text-foreground transition-colors">
+              <p className="mt-3 text-base text-accent group-hover:text-foreground transition-colors">
                 {project.cta ?? "Visit site →"}
               </p>
             </div>
