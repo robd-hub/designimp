@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
 import FAQ from "@/components/FAQ";
@@ -54,6 +55,21 @@ export default function DemoPage() {
         title="Meet the Design Imp assistant"
         subtitle="This is the kind of AI assistant we build for your website. Open the chat in the bottom right corner and ask it anything, or read the common questions below."
       />
+      <section className="px-6 pt-16">
+        <figure className="mx-auto max-w-5xl">
+          <h2 className="mb-6 text-xl font-semibold text-foreground">How it looks on a trades website</h2>
+          <Image
+            src="/plumber-assistant-mockup.jpg"
+            alt="A plumber's website with the AI assistant open, booking a customer in for Friday at 2pm"
+            width={1600}
+            height={1125}
+            className="w-full rounded-2xl border border-white/10 shadow-2xl"
+          />
+          <figcaption className="mt-4 text-sm text-muted">
+            Example for a made-up plumber. The assistant matches your brand, offers free slots from your calendar and books the visit.
+          </figcaption>
+        </figure>
+      </section>
       <FAQ items={ASSISTANT_FAQS} heading="What can it do?" />
       <Footer />
       <ChatDemo />
