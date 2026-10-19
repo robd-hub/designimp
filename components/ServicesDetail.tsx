@@ -16,10 +16,12 @@ const SERVICES = [
   },
   {
     number: "03",
-    title: "AI agent integration",
+    title: "AI assistant for your website",
     description:
-      "Put AI to work inside your business. We design and integrate AI agents that handle enquiries, qualify leads, and keep things moving — around the clock.",
-    available: false,
+      "A chat assistant on your website that answers questions, takes enquiry details and books visits straight into your calendar. Every lead is saved, even out of hours.",
+    available: true,
+    pricing: "From £99/month",
+    link: { href: "/demo", label: "Try the demo →" },
   },
 ];
 
@@ -55,6 +57,14 @@ export default function ServicesDetail() {
                 </p>
                 {s.pricing && (
                   <p className="mt-5 text-sm font-medium text-accent">{s.pricing}</p>
+                )}
+                {s.link && (
+                  <a
+                    href={s.link.href}
+                    className="mt-3 inline-block text-sm text-muted hover:text-foreground transition-colors"
+                  >
+                    {s.link.label}
+                  </a>
                 )}
               </div>
               {!s.available && (
