@@ -15,7 +15,7 @@ const STEPS = [
   {
     num: "03",
     title: "Launch",
-    body: "Once you're happy, we build it and get it live. From as little as £250.",
+    body: "Once you're happy, we build it and get it live. From as little as £100.",
   },
 ];
 
