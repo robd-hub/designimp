@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
+import LeadGenExample from "@/components/LeadGenExample";
 import FAQ from "@/components/FAQ";
+import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -41,7 +43,7 @@ const LEAD_GEN_FAQS = [
   },
   {
     q: "How much does it cost?",
-    a: "It depends on how many leads you want and whether we send the messages for you, so we agree the price on a quick call. Book one at cal.com/rob-doughty/30min.",
+    a: "It depends on how many leads you want and whether we send the messages for you, so we agree the price together, no call required. Tell us about your business through our quick form and we'll follow up with pricing.",
   },
 ];
 
@@ -54,7 +56,9 @@ export default function LeadGenerationPage() {
         title="Fresh prospects every weekday"
         subtitle="We find businesses that fit your ideal customer, check them out and draft a personal first message for each one. You review them in a shared sheet and decide who to contact."
       />
+      <LeadGenExample />
       <FAQ items={LEAD_GEN_FAQS} heading="Your questions, answered." />
+      <CTA />
       <Footer />
     </main>
   );
