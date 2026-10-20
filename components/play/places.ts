@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string };
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn by the fountain; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -448,6 +448,28 @@ export const PLACES: Place[] = [
       "It opened in 1996, and its library is in a restored Victorian railway warehouse, one of several old railway buildings on the campus.",
     ],
     link: { href: "https://www.lincoln.ac.uk/", label: "Visit lincoln.ac.uk", external: true },
+  },
+  {
+    id: "scampton",
+    kind: "airfield",
+    name: "RAF Scampton",
+    kicker: "Home of the Red Arrows",
+    nav: "RAF Scampton",
+    x: -44,
+    z: 42,
+    w: 28,
+    d: 30,
+    h: 6,
+    wall: 0xd0202e,
+    roof: 0x8a93a3,
+    roofType: "flat",
+    rot: Math.PI / 2,
+    intro: [
+      "RAF Scampton is just north of Lincoln. In May 1943, 617 Squadron took off from here on the Dambusters raid.",
+      "It was also home to the Red Arrows, the RAF's display team, until they moved to RAF Waddington, just south of the city, in 2022.",
+      "Look up. One of them is still practising over the runway.",
+    ],
+    link: { href: "https://www.raf.mod.uk/display-teams/red-arrows/", label: "Meet the Red Arrows", external: true },
   },
 ];
 

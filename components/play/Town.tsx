@@ -5,8 +5,8 @@ import * as THREE from "three";
 import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-three/fiber";
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
-import { Castle, SteepHill, Brayford, Campus } from "./Landmarks";
-import { TREES, BOUND, STADIUM_ROAD, FOOTPATHS, seeded } from "./colliders";
+import { Castle, SteepHill, Brayford, Campus, Airfield } from "./Landmarks";
+import { TREES, BOUND, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, seeded } from "./colliders";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy } from "./store";
 import Imp from "./Imp";
@@ -24,12 +24,15 @@ const NS_LEN = BOUND + 5 - NS_START;
 const NS_MID = (BOUND + 5 + NS_START) / 2;
 const SB_LEN = STADIUM_ROAD.x1 - STADIUM_ROAD.x0;
 const SB_MID = (STADIUM_ROAD.x0 + STADIUM_ROAD.x1) / 2;
+const AF_LEN = AIRFIELD_ROAD.x1 - AIRFIELD_ROAD.x0;
+const AF_MID = (AIRFIELD_ROAD.x0 + AIRFIELD_ROAD.x1) / 2;
 
 function Roads() {
   const dashes: number[] = [];
   for (let i = -BOUND; i <= BOUND; i += 4) if (Math.abs(i) > 5) dashes.push(i);
   const sbDashes: number[] = [];
   for (let i = 8; i < STADIUM_ROAD.x1 - 2; i += 4) sbDashes.push(i);
+  for (let i = -8; i > AIRFIELD_ROAD.x0 + 2; i -= 4) sbDashes.push(i);
   return (
     <>
       <Flat w={8.6} d={NS_LEN} color={0xe8dcc2} z={NS_MID} y={0.01} />
@@ -39,6 +42,9 @@ function Roads() {
       {/* the road east to Sincil Bank */}
       <Flat w={SB_LEN} d={8.6} color={0xe8dcc2} x={SB_MID} z={STADIUM_ROAD.z} y={0.01} />
       <Flat w={SB_LEN} d={6} color={0x6b6573} x={SB_MID} z={STADIUM_ROAD.z} />
+      {/* and west to RAF Scampton, opposite */}
+      <Flat w={AF_LEN} d={8.6} color={0xe8dcc2} x={AF_MID} z={AIRFIELD_ROAD.z} y={0.01} />
+      <Flat w={AF_LEN} d={6} color={0x6b6573} x={AF_MID} z={AIRFIELD_ROAD.z} />
       {/* cathedral close */}
       <Flat w={26} d={8} color={0xe8dcc2} z={NORTH_END + 1} y={0.015} />
       {dashes.map((i) => (
@@ -560,7 +566,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield }[p.kind ?? "shop"];
           return <C key={p.id} p={p} font={font} reduce={reduce} />;
         })}
       {TREES.map(([x, z, sc], i) => (

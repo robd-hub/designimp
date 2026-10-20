@@ -2,7 +2,7 @@ import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Part, geo, INK } from "./toon";
-import { game, usePlay, nearestPlace, nearestNpc } from "./store";
+import { game, usePlay, nearestPlace, nearestNpc, DOORS } from "./store";
 import { npcPos } from "./npcs";
 import { blocked } from "./colliders";
 
@@ -69,7 +69,10 @@ export default function Imp({ reduce }: { reduce: boolean }) {
       const dx = game.target.x - pos.x,
         dz = game.target.z - pos.z,
         dist = Math.hypot(dx, dz);
-      if (dist < 0.25) {
+      const door = game.pending && DOORS.get(game.pending.id);
+      if (dist < 0.25 && door && door.distanceTo(pos) > 0.5) {
+        game.target = door.clone(); // reached a junction on the way, now on to the door
+      } else if (dist < 0.25) {
         game.target = null;
         if (game.pending) openPlace(game.pending);
       } else {
