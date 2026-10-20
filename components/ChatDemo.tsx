@@ -12,7 +12,7 @@ export default function ChatDemo() {
       subtitle="Ask a question, any time"
       initialMessages={[
         "Hi! 👋 I'm the Design Imp assistant.",
-        "Ask me anything about websites, AI assistants or getting a free mockup.",
+        "Ask me anything about websites, AI assistants, automated lead generation, or getting a free mockup.",
       ]}
     />
   );
