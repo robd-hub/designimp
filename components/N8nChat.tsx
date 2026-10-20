@@ -118,7 +118,7 @@ export default function N8nChat({ id, webhookUrl, title, subtitle, initialMessag
       }
       .chat-header { position: relative; gap: 0.125rem; }
       .chat-header::before {
-        content: "DI";
+        content: "";
         position: absolute;
         left: 1.25rem;
         top: 50%;
@@ -126,14 +126,9 @@ export default function N8nChat({ id, webhookUrl, title, subtitle, initialMessag
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: #C8973A;
-        color: #111113;
-        font-size: 0.8125rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        background-image: url("/logo-icon.png");
+        background-size: cover;
+        background-position: center;
       }
       .chat-header::after {
         content: "";
