@@ -174,7 +174,10 @@ export function walkTo(p: Place) {
   if (!s.ready) return s.openPlace(p); // no 3D scene: just open the panel
   s.close();
   s.endTalk();
-  game.target = DOORS.get(p.id)!.clone();
+  const door = DOORS.get(p.id)!;
+  // Sincil Bank and RAF Scampton sit down side roads: go by the junction rather than into the shops on the corner.
+  const sideRoad = (p.kind === "stadium" || p.kind === "airfield") && Math.abs(game.pos.z - door.z) > 4;
+  game.target = sideRoad ? new THREE.Vector3(0, 0, door.z) : door.clone();
   game.pending = p;
   game.pendingNpc = null;
 }

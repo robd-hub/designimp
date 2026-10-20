@@ -34,6 +34,29 @@ export const BRAYFORD = {
 const stadium = footprint(PLACES.find((p) => p.kind === "stadium")!);
 export const STADIUM_ROAD = { z: (stadium.z0 + stadium.z1) / 2, x0: 0, x1: stadium.x0 };
 
+// RAF Scampton in its own coordinates (front faces the road, so +x is north): a runway along
+// the north edge, the hangar in the middle with its doors onto the apron, and a drive to the gate.
+export const AIRFIELD = {
+  runway: { x0: 8.5, x1: 13.5, z0: -14, z1: 14 },
+  taxiway: { x0: 7, x1: 8.5, z0: 3, z1: 5.4 },
+  apron: { x0: -5, x1: 7, z0: -5, z1: 9 },
+  drive: { x0: -3, x1: 3, z0: 9, z1: 15 },
+  hangar: { x0: -4, x1: 6, z0: -14, z1: -5 },
+  parked: { x0: 1.1, x1: 6.7, z0: -3.6, z1: 1.6 },
+};
+// A rect in a place's own coordinates, turned and moved into world coordinates.
+export function toWorld(p: { x: number; z: number; rot: number }, r: { x0: number; x1: number; z0: number; z1: number }) {
+  const c = Math.round(Math.cos(p.rot)),
+    s = Math.round(Math.sin(p.rot));
+  const xs = [r.x0 * c + r.z0 * s, r.x1 * c + r.z1 * s],
+    zs = [-r.x0 * s + r.z0 * c, -r.x1 * s + r.z1 * c];
+  return { x0: p.x + Math.min(...xs), x1: p.x + Math.max(...xs), z0: p.z + Math.min(...zs), z1: p.z + Math.max(...zs) };
+}
+
+// The road west off the south road to RAF Scampton, opposite the one to Sincil Bank.
+const airfield = footprint(PLACES.find((p) => p.kind === "airfield")!);
+export const AIRFIELD_ROAD = { z: (airfield.z0 + airfield.z1) / 2, x0: airfield.x1, x1: 0 };
+
 // Footpaths in world coordinates: one runs north from the main road past the university and
 // the Brayford's east quay, then turns east to the castle gate.
 const castle = footprint(PLACES.find((p) => p.kind === "castle")!);
@@ -68,6 +91,10 @@ const boxes = PLACES.filter((p) => p.kind !== "tank").flatMap((p) => {
   if (p.kind === "water") {
     return Object.values(BRAYFORD).map((b) => ({ x0: p.x + b.x0, x1: p.x + b.x1, z0: p.z + b.z0, z1: p.z + b.z1 }));
   }
+  if (p.kind === "airfield") {
+    // the runway and apron are walkable; only the hangar and the parked jet are solid
+    return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
+  }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
 });
 
@@ -75,6 +102,7 @@ const onRoad = (x: number, z: number) =>
   Math.abs(x) < 7 ||
   (Math.abs(z) < 7 && Math.abs(x) < BOUND) ||
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
+  (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   FOOTPATHS.some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   PLACES.some((p) => {

@@ -1,10 +1,10 @@
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, type ThreeElements } from "@react-three/fiber";
 import type { Place } from "./places";
 import { Part, geo, toon, signTexture, WINDOW, LAMP } from "./toon";
 import { placeEvents } from "./store";
-import { BRAYFORD, STREET_ROW, seeded, streetHouses } from "./colliders";
+import { AIRFIELD, BRAYFORD, STREET_ROW, seeded, streetHouses } from "./colliders";
 
 const CASTLE_STONE = 0xb8a98a;
 const CASTLE_DARK = 0x9c8d6e;
@@ -344,6 +344,141 @@ export function Campus({ p, font }: { p: Place; font: string }) {
         <Part geometry={geo.cyl(0.06, 0.06, 5, 6)} color={0x8a8a8a} outline={0.02} position-y={2.5} />
         <Part geometry={geo.box(1.4, 0.8, 0.05)} color={0x7a1f3d} outline={0.03} position={[0.75, 4.5, 0]} />
       </group>
+    </group>
+  );
+}
+
+const ARROW_RED = 0xd0202e;
+
+// A Red Arrows Hawk, nose along +x: red with a white flash underneath, swept wings and a tall fin.
+function Jet(props: Omit<ThreeElements["group"], "children">) {
+  return (
+    <group {...props}>
+      <Part geometry={geo.cyl(0.4, 0.28, 4, 10)} color={ARROW_RED} outline={0.05} rotation-z={-Math.PI / 2} />
+      <Part geometry={geo.cone(0.4, 1.1, 10)} color={ARROW_RED} outline={0.04} position-x={2.55} rotation-z={-Math.PI / 2} />
+      <Part geometry={geo.box(3, 0.14, 0.62)} color={0xffffff} outline={0.03} position={[0.2, -0.3, 0]} />
+      <Part geometry={geo.sphere(0.32)} color={0x3a4a6b} outline={0.04} position={[1.1, 0.32, 0]} scale={[1.8, 0.8, 0.85]} />
+      {[-1, 1].map((sz) => (
+        <group key={sz}>
+          <Part geometry={geo.box(1.3, 0.1, 2.5)} color={ARROW_RED} outline={0.04} position={[-0.2, -0.12, sz * 1.4]} rotation-y={-sz * 0.35} />
+          <Part geometry={geo.box(0.5, 0.11, 0.5)} color={0xffffff} outline={0.03} position={[-0.75, -0.12, sz * 2.45]} rotation-y={-sz * 0.35} />
+          <Part geometry={geo.box(0.7, 0.08, 1.1)} color={ARROW_RED} outline={0.03} position={[-1.75, 0, sz * 0.65]} rotation-y={-sz * 0.35} />
+        </group>
+      ))}
+      <Part geometry={geo.box(1, 1.2, 0.08)} color={ARROW_RED} outline={0.03} position={[-1.65, 0.65, 0]} rotation-z={0.4} />
+      <Part geometry={geo.box(0.5, 0.25, 0.09)} color={0xffffff} outline={0.02} position={[-1.85, 1, 0]} rotation-z={0.4} />
+    </group>
+  );
+}
+
+const TRAIL = 18;
+
+// The second jet flies circuits over the runway, trailing white smoke.
+const CIRCUIT = { x: 8, z: 0, rx: 6, rz: 15 };
+function Display({ reduce }: { reduce: boolean }) {
+  const heading = useRef<THREE.Group>(null!);
+  const roll = useRef<THREE.Group>(null!);
+  const puffs = useRef<THREE.Mesh[]>([]);
+  const at = (t: number) => new THREE.Vector3(CIRCUIT.x + Math.sin(t) * CIRCUIT.rx, 8 + Math.sin(t * 2) * 1.2, CIRCUIT.z + Math.cos(t) * CIRCUIT.rz);
+  useFrame(({ clock }) => {
+    const t = reduce ? 0.8 : clock.elapsedTime * 0.35;
+    const pos = at(t),
+      dir = at(t + 0.01).sub(pos);
+    heading.current.position.copy(pos);
+    heading.current.rotation.y = Math.atan2(-dir.z, dir.x);
+    // bank into the turn: tilt the top towards the middle of the circuit
+    const ry = heading.current.rotation.y;
+    roll.current.rotation.x = Math.sign(Math.sin(ry) * (CIRCUIT.x - pos.x) + Math.cos(ry) * (CIRCUIT.z - pos.z)) * 0.55;
+    puffs.current.forEach((m, i) => m.position.copy(at(t - (i + 1) * 0.035)));
+  });
+  return (
+    <>
+      <group ref={heading}>
+        <group ref={roll}>
+          <Jet />
+        </group>
+      </group>
+      {Array.from({ length: TRAIL }, (_, i) => (
+        <mesh
+          key={i}
+          ref={(m) => void (m && (puffs.current[i] = m))}
+          geometry={geo.sphere(0.55 - i * 0.022, 10, 8)}
+          material={toon(0xffffff)}
+          raycast={() => null}
+        />
+      ))}
+    </>
+  );
+}
+
+// RAF Scampton: a runway at the back, a big arched hangar with a jet parked on the apron
+// in front, and another Red Arrow flying circuits overhead.
+export function Airfield({ p, font, reduce }: { p: Place; font: string; reduce: boolean }) {
+  const sign = useMemo(() => signTexture(p.name, "#2b59c3", font), [p, font]);
+  const flat = (r: { x0: number; x1: number; z0: number; z1: number }, color: number, y: number) => (
+    <mesh geometry={geo.box(r.x1 - r.x0, 0.06, r.z1 - r.z0)} material={toon(color)} position={[(r.x0 + r.x1) / 2, y, (r.z0 + r.z1) / 2]} receiveShadow />
+  );
+  const R = AIRFIELD.runway,
+    H = AIRFIELD.hangar,
+    rx = (R.x0 + R.x1) / 2,
+    hx = (H.x0 + H.x1) / 2,
+    hw = H.x1 - H.x0,
+    hd = H.z1 - H.z0;
+  return (
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      <mesh geometry={geo.box(p.w, 0.06, p.d)} material={toon(0x7fcf6a)} position-y={0.03} receiveShadow />
+      {flat(AIRFIELD.taxiway, 0xc9c2b4, 0.06)}
+      {flat(AIRFIELD.apron, 0xc9c2b4, 0.065)}
+      {flat(AIRFIELD.drive, 0xc9c2b4, 0.06)}
+      {flat(R, 0x55505e, 0.07)}
+      {/* centre line and threshold stripes */}
+      {Array.from({ length: 6 }, (_, i) => R.z0 + 5 + i * 3.6).map((z) => (
+        <mesh key={z} geometry={geo.box(0.25, 0.06, 1.6)} material={toon(0xffffff)} position={[rx, 0.1, z]} />
+      ))}
+      {[R.z0 + 1.4, R.z1 - 1.4].flatMap((z) =>
+        [-1.8, -1.1, -0.4, 0.4, 1.1, 1.8].map((dx) => (
+          <mesh key={`${z}${dx}`} geometry={geo.box(0.35, 0.06, 1.6)} material={toon(0xffffff)} position={[rx + dx, 0.1, z]} />
+        )),
+      )}
+      {/* the hangar: low walls under a big arched roof, doors facing the apron */}
+      <group position={[hx, 0, (H.z0 + H.z1) / 2]}>
+        <Part geometry={geo.box(hw, 3.2, hd)} color={p.roof} outline={0.08} position-y={1.6} />
+        <Part geometry={geo.cyl(hw / 2, hw / 2, hd, 24)} color={0x6f7888} outline={0.08} position-y={3.2} rotation-x={Math.PI / 2} scale={[1, 1, 0.45]} />
+        <Part geometry={geo.box(hw - 2, 3, 0.2)} color={0x4a4f5c} outline={0.05} position={[0, 1.5, hd / 2 + 0.05]} />
+        {[-2.5, 0, 2.5].map((x) => (
+          <mesh key={x} geometry={geo.box(0.08, 2.9, 0.22)} material={toon(0x2b2633)} position={[x, 1.5, hd / 2 + 0.07]} />
+        ))}
+        {/* RAF roundel on the gable */}
+        {([[0.9, 0x2b59c3], [0.6, 0xffffff], [0.3, ARROW_RED]] as const).map(([r, c], i) => (
+          <Part key={r} geometry={geo.cyl(r, r, 0.1, 24)} color={c} outline={i ? 0 : 0.04} position={[0, 4.3, hd / 2 + 0.05 + i * 0.03]} rotation-x={Math.PI / 2} />
+        ))}
+      </group>
+      {/* parked jet on its wheels */}
+      <group position={[(AIRFIELD.parked.x0 + AIRFIELD.parked.x1) / 2 - 0.2, 0, (AIRFIELD.parked.z0 + AIRFIELD.parked.z1) / 2]}>
+        {[[1.8, 0], [-0.6, -0.9], [-0.6, 0.9]].map(([x, z]) => (
+          <group key={`${x}${z}`} position={[x, 0, z]}>
+            <Part geometry={geo.cyl(0.05, 0.05, 0.7, 6)} color={0x2b2633} outline={0.02} position-y={0.55} />
+            <Part geometry={geo.cyl(0.22, 0.22, 0.14, 12)} color={0x1a1320} outline={0.02} position-y={0.22} rotation-x={Math.PI / 2} />
+          </group>
+        ))}
+        <Jet position-y={1.05} />
+      </group>
+      <Display reduce={reduce} />
+      {/* name board by the gate, turned to face the road and the town */}
+      <group position={[7.5, 0, p.d / 2 - 1.6]} rotation-y={-Math.PI / 4}>
+        {[-1.6, 1.6].map((x) => (
+          <Part key={x} geometry={geo.box(0.2, 2.2, 0.2)} color={0x2b2633} outline={0.04} position={[x, 1.1, 0]} />
+        ))}
+        <Part geometry={geo.box(4.2, 1, 0.15)} color={0xfff8e7} outline={0.05} position={[0, 2.1, 0]} />
+        <mesh position={[0, 2.1, 0.09]}>
+          <planeGeometry args={[4, 0.9]} />
+          <meshBasicMaterial map={sign} toneMapped={false} />
+        </mesh>
+      </group>
+      {/* gateposts either side of the drive */}
+      {[AIRFIELD.drive.x0 - 0.4, AIRFIELD.drive.x1 + 0.4].map((x) => (
+        <Part key={x} geometry={geo.box(0.5, 1.4, 0.5)} color={0xffffff} outline={0.04} position={[x, 0.7, p.d / 2 - 0.6]} />
+      ))}
     </group>
   );
 }
