@@ -9,16 +9,25 @@ const SERVICES = [
   },
   {
     number: "02",
-    title: "Workflow automation",
+    title: "AI assistant for your website",
     description:
-      "Automate the repetitive tasks that eat into your day. From client onboarding to follow-ups, we connect your tools so you can focus on the work that matters.",
-    available: false,
+      "A chat assistant on your website that answers questions, takes enquiry details and books visits straight into your calendar. Every lead is saved, even out of hours.",
+    available: true,
+    link: { href: "/demo", label: "Try the demo →" },
   },
   {
     number: "03",
-    title: "AI agent integration",
+    title: "Automated lead generation",
     description:
-      "Put AI to work inside your business. We design and integrate AI agents that handle enquiries, qualify leads, and keep things moving — around the clock.",
+      "A steady supply of new prospects without the legwork. Every weekday it finds businesses in your area that fit your ideal customer, checks their online presence, scores how good a fit they are and drafts a personal first message for each one. They land in a shared sheet for you to review and send, so nothing goes out without your say.",
+    available: true,
+    link: { href: "/lead-generation", label: "See how it works →" },
+  },
+  {
+    number: "04",
+    title: "Workflow automation",
+    description:
+      "Automate the repetitive tasks that eat into your day. From client onboarding to follow-ups, we connect your tools so you can focus on the work that matters.",
     available: false,
   },
 ];
@@ -56,6 +65,14 @@ export default function ServicesDetail() {
                 {s.pricing && (
                   <p className="mt-5 text-sm font-medium text-accent">{s.pricing}</p>
                 )}
+                {s.link && (
+                  <a
+                    href={s.link.href}
+                    className="mt-3 inline-block text-sm text-accent hover:text-foreground transition-colors"
+                  >
+                    {s.link.label}
+                  </a>
+                )}
               </div>
               {!s.available && (
                 <div className="flex shrink-0 flex-col items-end gap-3">
@@ -64,7 +81,7 @@ export default function ServicesDetail() {
                   </span>
                   <a
                     href="mailto:rob@designimp.com?subject=Interested in upcoming service"
-                    className="text-sm text-muted hover:text-foreground transition-colors"
+                    className="text-sm text-accent hover:text-foreground transition-colors"
                   >
                     Get notified →
                   </a>

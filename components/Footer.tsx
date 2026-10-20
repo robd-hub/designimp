@@ -9,6 +9,7 @@ const COMPANY_LINKS = [
   { label: "About", href: "/about" },
   { label: "Services", href: "/services" },
   { label: "Work", href: "/#work" },
+  { label: "Imp's High Street", href: "/play" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Book a Call", href: "https://cal.com/rob-doughty/30min" },
 ];

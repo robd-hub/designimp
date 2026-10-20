@@ -29,7 +29,12 @@ const FAQS = [
   },
 ];
 
-export default function FAQ() {
+type FAQProps = {
+  items?: { q: string; a: string }[];
+  heading?: string;
+};
+
+export default function FAQ({ items = FAQS, heading = "Common questions." }: FAQProps) {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
@@ -39,12 +44,12 @@ export default function FAQ() {
           FAQ
         </p>
         <h2 className="text-3xl font-semibold text-foreground md:text-4xl">
-          Common questions.
+          {heading}
         </h2>
       </div>
 
       <div className="flex flex-col divide-y divide-border">
-        {FAQS.map((item, i) => (
+        {items.map((item, i) => (
           <div key={i}>
             <button
               className="flex w-full items-center justify-between gap-4 py-5 text-left"
