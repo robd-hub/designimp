@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow } from "./Landmarks";
-import { TREES, BOUND, NORTH, CLOSE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, seeded } from "./colliders";
+import { TREES, BOUND, NORTH, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy } from "./store";
@@ -53,6 +53,8 @@ function Roads() {
       <Flat w={AF_LEN} d={6} color={0x6b6573} x={AF_MID} z={AIRFIELD_ROAD.z} />
       {/* Castle Square, pedestrianised */}
       <Strip w={CLOSE.x1 - CLOSE.x0} d={CLOSE.z1 - CLOSE.z0} color={PAVED} x={(CLOSE.x0 + CLOSE.x1) / 2} z={(CLOSE.z0 + CLOSE.z1) / 2} y={0.035} />
+      {/* and Bailgate, north from the square */}
+      <Strip w={BAILGATE.x1 - BAILGATE.x0} d={BAILGATE.z1 - BAILGATE.z0} color={PAVED} z={(BAILGATE.z0 + BAILGATE.z1) / 2} y={0.035} />
       {dashes.map((i) => (
         <group key={i}>
           {i > 0 && Math.abs(i - STADIUM_ROAD.z) > 5 && (
@@ -384,12 +386,13 @@ for (let i = 20; i < BOUND; i += 18) {
 }
 for (let i = -27; i > NS_START; i -= 16) LAMPS.push([5.5, i], [-5.5, i]); // up the High Street
 
-// Paving slabs scattered over Castle Square and up the High Street.
+// Paving slabs scattered over Castle Square, Bailgate and up the High Street.
 const SLABS = (() => {
   const r = seeded(23);
   const square = Array.from({ length: 90 }, () => [CLOSE.x0 + 1 + r() * (CLOSE.x1 - CLOSE.x0 - 2), CLOSE.z0 + 1 + r() * (CLOSE.z1 - CLOSE.z0 - 2)] as const);
   const street = Array.from({ length: 40 }, () => [(r() - 0.5) * 7, NS_START + 1 + r() * (-8 - NS_START)] as const);
-  return [...square, ...street];
+  const bailgate = Array.from({ length: 25 }, () => [(r() - 0.5) * 7, BAILGATE.z0 + 1 + r() * (BAILGATE.z1 - BAILGATE.z0 - 2)] as const);
+  return [...square, ...street, ...bailgate];
 })();
 
 // The farmers' market on Castle Square: striped stalls piled with fruit and veg.
