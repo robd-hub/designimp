@@ -2,13 +2,13 @@ import { useLayoutEffect, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Part, geo, toon, INK, WINDOW, LAMP } from "./toon";
-import { BOUND, CROSSING, RAIL, RAIL_FENCE_RUNS, STATION } from "./colliders";
+import { BOUND, CROSSING, EAST, MID_X, RAIL, RAIL_FENCE_RUNS, STATION } from "./colliders";
 
 // The railway south of the Workshop and HQ. Passenger trains and long tanker trains take it in
 // turns to run across town, and the level crossing's barriers drop on the main road for each one.
 
-const LEN = BOUND * 2 + 10; // track runs right across the map
-const END = 100; // trains appear and disappear this far east and west, off the edge of town
+const LEN = BOUND + EAST + 10; // track runs right across the map
+const END = EAST + 24; // trains appear and disappear this far east and west, off the edge of town
 const GAP_S = 7; // seconds between one train clearing town and the next setting off
 const WARN_S = 6; // the barriers start dropping this long before a train reaches the crossing
 const BRAKE = 3; // passenger trains slow and pull away at this rate (units/s²) at Lincoln Central
@@ -58,7 +58,7 @@ function Repeat({ geometry, color, at }: { geometry: THREE.BufferGeometry; color
 const tracks = [-1, 1].map((s) => RAIL.z + s * RAIL.gap);
 // no sleepers showing through the road and pavements at the crossing
 const SLEEPERS = tracks.flatMap((z) =>
-  Array.from({ length: Math.floor(LEN / 1.2) }, (_, i) => -LEN / 2 + 0.6 + i * 1.2)
+  Array.from({ length: Math.floor(LEN / 1.2) }, (_, i) => MID_X - LEN / 2 + 0.6 + i * 1.2)
     .filter((x) => Math.abs(x) > 4.6)
     .map((x) => [x, 0.06, z] as [number, number, number]),
 );
@@ -75,10 +75,10 @@ function Track() {
   return (
     <group raycast={() => null}>
       {/* ballast under the road and pavements, which are drawn over it at the crossing */}
-      <mesh geometry={geo.box(LEN, 0.04, RAIL.gap * 2 + 3)} material={toon(BALLAST)} position={[0, 0.005, RAIL.z]} receiveShadow />
+      <mesh geometry={geo.box(LEN, 0.04, RAIL.gap * 2 + 3)} material={toon(BALLAST)} position={[MID_X, 0.005, RAIL.z]} receiveShadow />
       <Repeat geometry={geo.box(0.45, 0.08, 2.3)} color={SLEEPER} at={SLEEPERS} />
       {tracks.flatMap((z) =>
-        [-0.7, 0.7].map((o) => <mesh key={`${z}${o}`} geometry={geo.box(LEN, 0.12, 0.14)} material={toon(STEEL)} position={[0, 0.11, z + o]} receiveShadow />),
+        [-0.7, 0.7].map((o) => <mesh key={`${z}${o}`} geometry={geo.box(LEN, 0.12, 0.14)} material={toon(STEEL)} position={[MID_X, 0.11, z + o]} receiveShadow />),
       )}
       {/* post-and-rail fences either side of the line, open where the road crosses */}
       <Repeat geometry={geo.box(0.22, 1.1, 0.22)} color={FENCE} at={POSTS} />

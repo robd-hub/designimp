@@ -2,12 +2,13 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BOUND, SOUTH, HOUSE, HOUSES, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, STADIUM_ROAD, STATION, STREET_ROW, streetHouses, toWorld } from "./colliders";
+import { AIRFIELD, AIRFIELD_ROAD, BOUND, EAST, SOUTH, HOUSE, HOUSES, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, STADIUM_ROAD, STATION, STREET_ROW, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
 import { game, walkTo } from "./store";
 import s from "./play.module.css";
 
-const V = BOUND + 4;
+const L = -BOUND - 4,
+  W = BOUND + EAST + 8;
 const TOP = NORTH - 4,
   H = SOUTH + 4 - TOP;
 
@@ -25,7 +26,7 @@ export default function Minimap() {
   }, []);
   const water = PLACES.find((p) => p.kind === "water");
   return (
-    <svg className={`${s.card} ${s.minimap}`} viewBox={`${-V} ${TOP} ${V * 2} ${H}`} role="img" aria-label="Map of the town">
+    <svg className={`${s.card} ${s.minimap}`} viewBox={`${L} ${TOP} ${W} ${H}`} role="img" aria-label="Map of the town">
       {/* the ground darkens as it climbs the hill */}
       <defs>
         <linearGradient id="minimap-hill" gradientUnits="userSpaceOnUse" x1={0} y1={RISE.z0} x2={0} y2={RISE.z1}>
@@ -33,11 +34,11 @@ export default function Minimap() {
           <stop offset={1} stopColor="#4ea84b" />
         </linearGradient>
       </defs>
-      <rect x={-V} y={TOP} width={V * 2} height={H} fill="url(#minimap-hill)" />
-      <rect x={-V} y={RAIL.z - RAIL.gap - 1.5} width={V * 2} height={RAIL.gap * 2 + 3} fill="#a39a8f" />
+      <rect x={L} y={TOP} width={W} height={H} fill="url(#minimap-hill)" />
+      <rect x={L} y={RAIL.z - RAIL.gap - 1.5} width={W} height={RAIL.gap * 2 + 3} fill="#a39a8f" />
       <rect x={-3} y={0} width={6} height={SOUTH + 4} fill="#6b6573" />
       {[-1, 1].map((side) => (
-        <rect key={side} x={-V} y={RAIL.z + side * RAIL.gap - 0.6} width={V * 2} height={1.2} fill="#55505e" pointerEvents="none" />
+        <rect key={side} x={L} y={RAIL.z + side * RAIL.gap - 0.6} width={W} height={1.2} fill="#55505e" pointerEvents="none" />
       ))}
       {STATION.platforms.map((pl) => (
         <rect key={pl.side} x={STATION.x0} y={pl.z0} width={STATION.x1 - STATION.x0} height={pl.z1 - pl.z0} fill="#e8dcc2" pointerEvents="none" />
@@ -45,7 +46,7 @@ export default function Minimap() {
       <rect x={-4.3} y={RISE.z0} width={8.6} height={-RISE.z0} fill="#d9ccb2" />
       <rect x={BAILGATE.x0} y={BAILGATE.z0} width={BAILGATE.x1 - BAILGATE.x0} height={BAILGATE.z1 - BAILGATE.z0} fill="#e8dcc2" />
       <rect x={CLOSE.x0} y={CLOSE.z0} width={CLOSE.x1 - CLOSE.x0} height={CLOSE.z1 - CLOSE.z0} fill="#e8dcc2" />
-      <rect x={-V} y={-3} width={V * 2} height={6} fill="#6b6573" />
+      <rect x={L} y={-3} width={W} height={6} fill="#6b6573" />
       <rect x={STADIUM_ROAD.x0} y={STADIUM_ROAD.z - 3} width={STADIUM_ROAD.x1 - STADIUM_ROAD.x0} height={6} fill="#6b6573" />
       <rect x={AIRFIELD_ROAD.x0} y={AIRFIELD_ROAD.z - 3} width={AIRFIELD_ROAD.x1 - AIRFIELD_ROAD.x0} height={6} fill="#6b6573" />
       {water &&

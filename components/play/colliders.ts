@@ -1,6 +1,8 @@
 import { PLACES, footprint } from "./places";
 
-export const BOUND = 76; // east and west edges of the map
+export const BOUND = 76; // the west edge of the map
+export const EAST = 100; // the east edge, further out to make room for the cathedral's long east end
+export const MID_X = (EAST - BOUND) / 2; // the map's centre line, east to west
 export const SOUTH = 168; // the south road runs a long way down, past rows of shops and houses to Sincil Bank and RAF Scampton
 export const NORTH = -138; // the map runs further north, up the hill to the cathedral and castle
 
@@ -138,7 +140,7 @@ export const STATION = {
 export const RAIL_FENCE_RUNS: [number, number][] = [
   [-BOUND, -RAIL.crossing],
   [RAIL.crossing, STATION.x0],
-  [STATION.x1, BOUND],
+  [STATION.x1, EAST],
 ];
 const RAIL_FENCES = RAIL_FENCE_RUNS.flatMap(([x0, x1]) =>
   [-1, 1].map((sz) => ({ x0, x1, z0: RAIL.z + sz * RAIL.fence - 0.3, z1: RAIL.z + sz * RAIL.fence + 0.3 })),
@@ -203,7 +205,7 @@ const boxes = PLACES.filter((p) => p.kind !== "tank" && p.kind !== "gate").flatM
 
 const onRoad = (x: number, z: number) =>
   Math.abs(x) < 7 ||
-  (Math.abs(z) < 7 && Math.abs(x) < BOUND) ||
+  (Math.abs(z) < 7 && x > -BOUND && x < EAST) ||
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
@@ -224,7 +226,7 @@ export const TREES: [number, number, number][] = (() => {
   const rand = seeded(11);
   const out: [number, number, number][] = [];
   for (let tries = 0; out.length < 140 && tries < 6000; tries++) {
-    const x = (rand() * 2 - 1) * (BOUND - 3),
+    const x = -BOUND + 3 + rand() * (BOUND + EAST - 6),
       z = NORTH + 3 + rand() * (SOUTH - NORTH - 6);
     if (onRoad(x, z) || nearBuilding(x, z, 3) || Math.hypot(x, z) < 10) continue;
     if (out.some(([ox, oz]) => Math.hypot(ox - x, oz - z) < 5)) continue;
@@ -238,7 +240,7 @@ const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));
 // barrier: whether the level crossing counts as blocked while its barriers are down.
 export function blocked(x: number, z: number, barrier = true) {
   if (barrier && atBarrier(x, z)) return true;
-  if (Math.abs(x) > BOUND || z > SOUTH || z < NORTH) return true;
+  if (x < -BOUND || x > EAST || z > SOUTH || z < NORTH) return true;
   if (Math.hypot(x, z) < 4.3) return true; // fountain
   for (const c of circles) if (Math.hypot(x - c.cx, z - c.cz) < c.r) return true;
   for (const b of boxes) if (x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1) return true;
