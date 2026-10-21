@@ -2,11 +2,14 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BOUND, BRAYFORD, STADIUM_ROAD, STREET_ROW, streetHouses, toWorld } from "./colliders";
+import { AIRFIELD, AIRFIELD_ROAD, BOUND, BRAYFORD, CLOSE, NORTH, STADIUM_ROAD, STREET_ROW, streetHouses, toWorld } from "./colliders";
+import { RISE } from "./terrain";
 import { game, walkTo } from "./store";
 import s from "./play.module.css";
 
 const V = BOUND + 4;
+const TOP = NORTH - 4,
+  H = BOUND + 4 - TOP;
 
 // A little map of the town. Tap a building to walk there.
 export default function Minimap() {
@@ -22,9 +25,17 @@ export default function Minimap() {
   }, []);
   const water = PLACES.find((p) => p.kind === "water");
   return (
-    <svg className={`${s.card} ${s.minimap}`} viewBox={`${-V} ${-V} ${V * 2} ${V * 2}`} role="img" aria-label="Map of the town">
-      <rect x={-V} y={-V} width={V * 2} height={V * 2} fill="#6fd36b" />
-      <rect x={-3} y={-5} width={6} height={BOUND + 10} fill="#6b6573" />
+    <svg className={`${s.card} ${s.minimap}`} viewBox={`${-V} ${TOP} ${V * 2} ${H}`} role="img" aria-label="Map of the town">
+      {/* the ground darkens as it climbs the hill */}
+      <defs>
+        <linearGradient id="minimap-hill" gradientUnits="userSpaceOnUse" x1={0} y1={RISE.z0} x2={0} y2={RISE.z1}>
+          <stop offset={0} stopColor="#6fd36b" />
+          <stop offset={1} stopColor="#4ea84b" />
+        </linearGradient>
+      </defs>
+      <rect x={-V} y={TOP} width={V * 2} height={H} fill="url(#minimap-hill)" />
+      <rect x={-3} y={RISE.z0} width={6} height={BOUND + 4 - RISE.z0} fill="#6b6573" />
+      <rect x={CLOSE.x0} y={CLOSE.z0} width={CLOSE.x1 - CLOSE.x0} height={CLOSE.z1 - CLOSE.z0} fill="#e8dcc2" />
       <rect x={-V} y={-3} width={V * 2} height={6} fill="#6b6573" />
       <rect x={STADIUM_ROAD.x0} y={STADIUM_ROAD.z - 3} width={STADIUM_ROAD.x1 - STADIUM_ROAD.x0} height={6} fill="#6b6573" />
       <rect x={AIRFIELD_ROAD.x0} y={AIRFIELD_ROAD.z - 3} width={AIRFIELD_ROAD.x1 - AIRFIELD_ROAD.x0} height={6} fill="#6b6573" />

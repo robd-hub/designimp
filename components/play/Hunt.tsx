@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { Part, geo } from "./toon";
 import { game, usePlay } from "./store";
 import { HIDDEN } from "./hidden";
+import { groundY } from "./terrain";
 
 
 const GOLD = 0xffc93a;
@@ -15,14 +16,14 @@ function MiniImp({ id, x, z, reduce }: { id: string; x: number; z: number; reduc
     if (found) return;
     const t = clock.elapsedTime + x;
     if (!reduce) {
-      g.current.position.y = 0.3 + Math.sin(t * 2.5) * 0.15;
+      g.current.position.y = groundY(z) + 0.3 + Math.sin(t * 2.5) * 0.15;
       g.current.rotation.y = t * 1.2;
     }
     if (Math.hypot(game.pos.x - x, game.pos.z - z) < 1.6) usePlay.getState().collect(id, HIDDEN.length);
   });
   if (found) return null;
   return (
-    <group ref={g} position={[x, 0.3, z]} scale={0.55}>
+    <group ref={g} position={[x, groundY(z) + 0.3, z]} scale={0.55}>
       <Part geometry={geo.sphere(0.6)} color={GOLD} outline={0.06} position-y={0.7} scale={[1, 1.1, 0.9]} />
       <Part geometry={geo.sphere(0.48)} color={GOLD} outline={0.06} position-y={1.6} />
       {[-1, 1].map((s) => (

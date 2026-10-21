@@ -6,11 +6,13 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield } from "./Landmarks";
-import { TREES, BOUND, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, seeded } from "./colliders";
+import { TREES, BOUND, NORTH, CLOSE, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, seeded } from "./colliders";
+import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy } from "./store";
 import Imp from "./Imp";
 import Hunt from "./Hunt";
+import Ghost from "./Ghost";
 import { Crowd, Chant } from "./Matchday";
 
 function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; color: number; x?: number; z?: number; y?: number }) {
@@ -18,8 +20,9 @@ function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; c
 }
 
 const SIZE = BOUND * 2 + 10;
-const NORTH_END = -44; // the north road stops at the cathedral close
-const NS_START = -5; // north of the crossroads the road becomes Steep Hill
+const DEPTH = BOUND - NORTH + 10; // north to south
+const MID_Z = (BOUND + NORTH) / 2;
+const NS_START = PLACES.find((p) => p.kind === "street")!.z + 20; // the north road runs up to the foot of Steep Hill
 const NS_LEN = BOUND + 5 - NS_START;
 const NS_MID = (BOUND + 5 + NS_START) / 2;
 const SB_LEN = STADIUM_ROAD.x1 - STADIUM_ROAD.x0;
@@ -35,9 +38,9 @@ function Roads() {
   for (let i = -8; i > AIRFIELD_ROAD.x0 + 2; i -= 4) sbDashes.push(i);
   return (
     <>
-      <Flat w={8.6} d={NS_LEN} color={0xe8dcc2} z={NS_MID} y={0.01} />
+      <Strip w={8.6} d={NS_LEN} color={0xe8dcc2} z={NS_MID} y={0.03} />
       <Flat w={SIZE} d={8.6} color={0xe8dcc2} y={0.01} />
-      <Flat w={6} d={NS_LEN} color={0x6b6573} z={NS_MID} />
+      <Strip w={6} d={NS_LEN} color={0x6b6573} z={NS_MID} y={0.04} />
       <Flat w={SIZE} d={6} color={0x6b6573} />
       {/* the road east to Sincil Bank */}
       <Flat w={SB_LEN} d={8.6} color={0xe8dcc2} x={SB_MID} z={STADIUM_ROAD.z} y={0.01} />
@@ -46,10 +49,14 @@ function Roads() {
       <Flat w={AF_LEN} d={8.6} color={0xe8dcc2} x={AF_MID} z={AIRFIELD_ROAD.z} y={0.01} />
       <Flat w={AF_LEN} d={6} color={0x6b6573} x={AF_MID} z={AIRFIELD_ROAD.z} />
       {/* cathedral close */}
-      <Flat w={26} d={8} color={0xe8dcc2} z={NORTH_END + 1} y={0.015} />
+      <Strip w={CLOSE.x1 - CLOSE.x0} d={CLOSE.z1 - CLOSE.z0} color={0xe8dcc2} z={(CLOSE.z0 + CLOSE.z1) / 2} y={0.035} />
       {dashes.map((i) => (
         <group key={i}>
-          {i > NS_START && Math.abs(i - STADIUM_ROAD.z) > 5 && <Flat w={0.25} d={1.8} color={0xffd23f} z={i} y={0.05} />}
+          {i > NS_START + 2 && Math.abs(i - STADIUM_ROAD.z) > 5 && (
+            <group position={[0, groundY(i), i]} rotation-x={groundTilt(i)}>
+              <Flat w={0.25} d={1.8} color={0xffd23f} y={0.05} />
+            </group>
+          )}
           <Flat w={1.8} d={0.25} color={0xffd23f} x={i} y={0.05} />
         </group>
       ))}
@@ -335,8 +342,9 @@ function Sun({ night }: { night: boolean }) {
   // keep the shadow box centred on the imp so shadows work across the whole town
   useFrame(() => {
     const { x, z } = game.pos;
-    light.current.position.set(x + 20, 35, z + 15);
-    light.current.target.position.set(x, 0, z);
+    const y = groundY(z);
+    light.current.position.set(x + 20, y + 35, z + 15);
+    light.current.target.position.set(x, y, z);
     light.current.target.updateMatrixWorld();
   });
   return (
@@ -358,7 +366,7 @@ function Sun({ night }: { night: boolean }) {
 function Tree({ x, z, s }: { x: number; z: number; s: number }) {
   const c = [0x3fae4f, 0x4cc25c, 0x36994a][Math.floor(Math.abs(x * 7 + z * 3)) % 3];
   return (
-    <group position={[x, 0, z]} scale={s}>
+    <group position={[x, groundY(z), z]} scale={s}>
       <Part geometry={geo.cyl(0.25, 0.35, 1.6, 8)} color={0x8a5a33} outline={0.05} position-y={0.8} />
       {([[0, 2.3, 0, 1.2], [0.6, 1.9, 0.3, 0.8], [-0.55, 2, -0.2, 0.85]] as const).map(([a, b, cc, r]) => (
         <Part key={r} geometry={geo.sphere(r)} color={c} outline={0.06} position={[a, b, cc]} />
@@ -371,6 +379,7 @@ const LAMPS: [number, number][] = [[-5.5, -5.5], [5.5, -5.5], [-5.5, 5.5], [5.5,
 for (let i = 20; i < BOUND; i += 18) {
   LAMPS.push([5.5, i], [-5.5, i], [i, -5.5], [i, 5.5], [-i, -5.5], [-i, 5.5]);
 }
+for (let i = -20; i > NS_START; i -= 18) LAMPS.push([5.5, i], [-5.5, i]); // up the north road
 
 // Footpaths ignore the pointer so clicking one still walks the Imp to that spot.
 function Footpaths() {
@@ -378,17 +387,19 @@ function Footpaths() {
   return (
     <>
       {FOOTPATHS.map((f, i) => (
-        <mesh
+        <Strip
           key={i}
-          geometry={geo.box(f.x1 - f.x0, 0.05, f.z1 - f.z0)}
-          material={toon(0xe8dcc2)}
-          position={[(f.x0 + f.x1) / 2, 0.035 + i * 0.002, (f.z0 + f.z1) / 2]}
-          receiveShadow
+          w={f.x1 - f.x0}
+          d={f.z1 - f.z0}
+          color={0xe8dcc2}
+          x={(f.x0 + f.x1) / 2}
+          z={(f.z0 + f.z1) / 2}
+          y={0.06 + i * 0.002}
           raycast={() => null}
         />
       ))}
-      {[-12, -28, -44].map((z) => (
-        <group key={z} position={[run.x1 + 0.8, 0, z]}>
+      {Array.from({ length: Math.floor((run.z1 - run.z0) / 16) }, (_, i) => -12 - i * 16).map((z) => (
+        <group key={z} position={[run.x1 + 0.8, groundY(z), z]}>
           <Part geometry={geo.cyl(0.08, 0.1, 2.6, 8)} color={0x2b2633} outline={0.03} position-y={1.3} />
           <Part geometry={geo.sphere(0.24)} color={LAMP} outline={0.04} position-y={2.7} />
         </group>
@@ -401,7 +412,7 @@ function Lamps() {
   return (
     <>
       {LAMPS.map(([x, z]) => (
-        <group key={`${x},${z}`}>
+        <group key={`${x},${z}`} position-y={groundY(z)}>
           <Part geometry={geo.cyl(0.1, 0.12, 3.2, 8)} color={0x2b2633} outline={0.04} position={[x, 1.6, z]} />
           <Part geometry={geo.sphere(0.3)} color={LAMP} outline={0.05} position={[x, 3.3, z]} />
         </group>
@@ -413,7 +424,7 @@ function Lamps() {
 // Small seeded random so the sky is the same on every visit.
 const rand = seeded(7);
 const CLOUDS = Array.from({ length: 16 }, (_, i) => ({
-  pos: [-85 + i * 11, 16 + rand() * 6, -80 + rand() * 140] as const,
+  pos: [-85 + i * 11, 16 + rand() * 6, NORTH - 4 + rand() * (BOUND - NORTH)] as const,
   puffs: Array.from({ length: 4 }, (_, j) => ({ r: Math.round((1.2 + rand() * 1.1) * 10) / 10, p: [j * 1.5 - 2.2, rand() * 0.8, rand() - 0.5] as const })),
 }));
 
@@ -429,7 +440,7 @@ function Clouds({ reduce }: { reduce: boolean }) {
   return (
     <>
       {CLOUDS.map((c, i) => (
-        <group key={i} ref={(g) => void (g && (refs.current[i] = g))} position={c.pos}>
+        <group key={i} ref={(g) => void (g && (refs.current[i] = g))} position={[c.pos[0], c.pos[1] + groundY(c.pos[2]), c.pos[2]]}>
           {c.puffs.map((b, j) => (
             <Part key={j} geometry={geo.sphere(b.r)} color={0xffffff} outline={0.08} shadow={false} position={b.p} />
           ))}
@@ -444,16 +455,15 @@ const hillRand = seeded(4242);
 const HILLS = Array.from({ length: 28 }, (_, i) => {
   const a = (i / 28) * Math.PI * 2 + hillRand() * 0.2,
     r = 100 + hillRand() * 40;
-  return [Math.cos(a) * r, Math.sin(a) * r, 18 + hillRand() * 22] as const;
+  // round an oval, since the town is longer north to south
+  return [Math.cos(a) * r, MID_Z + Math.sin(a) * r * 1.35, 18 + hillRand() * 22] as const;
 });
 function Hills() {
   return (
     <group>
-      <mesh rotation-x={-Math.PI / 2} position-y={-0.05} material={toon(0x5fc25c)}>
-        <circleGeometry args={[260, 48]} />
-      </mesh>
+      <Strip w={520} d={560} color={0x5fc25c} z={MID_Z} y={-0.05} raycast={() => null} />
       {HILLS.map(([x, z, r], i) => (
-        <mesh key={i} geometry={geo.dome(1)} material={toon(i % 2 ? 0x56b553 : 0x4ea84b)} position={[x, -2, z]} scale={[r, r * 0.45, r]} />
+        <mesh key={i} geometry={geo.dome(1)} material={toon(i % 2 ? 0x56b553 : 0x4ea84b)} position={[x, groundY(z) - 2, z]} scale={[r, r * 0.45, r]} />
       ))}
     </group>
   );
@@ -558,16 +568,18 @@ export default function Town({ font }: { font: string }) {
       {street && <Hills />}
       <hemisphereLight args={night ? [0x6a7bd6, 0x2a3350, 1.1] : [0xffffff, 0x88aa66, 2]} />
       <Sun night={night} />
-      <mesh rotation-x={-Math.PI / 2} material={toon(0x6fd36b)} receiveShadow onClick={onGround}>
-        <planeGeometry args={[SIZE, SIZE]} />
-      </mesh>
+      <Strip w={SIZE} d={DEPTH} color={0x6fd36b} z={MID_Z} onClick={onGround} />
       <Roads />
       <Fountain reduce={reduce} />
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;
           const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield }[p.kind ?? "shop"];
-          return <C key={p.id} p={p} font={font} reduce={reduce} />;
+          return (
+            <group key={p.id} position-y={groundY(p.z)}>
+              <C p={p} font={font} reduce={reduce} />
+            </group>
+          );
         })}
       {TREES.map(([x, z, sc], i) => (
         <Tree key={i} x={x} z={z} s={sc} />
@@ -577,6 +589,7 @@ export default function Town({ font }: { font: string }) {
       <Footpaths />
       <Clouds reduce={reduce} />
       <Hunt reduce={reduce} />
+      {night && <Ghost reduce={reduce} />}
       <Imp reduce={reduce} />
     </Canvas>
   );

@@ -5,6 +5,7 @@ import type { Place } from "./places";
 import { Part, geo, toon, signTexture, WINDOW, LAMP } from "./toon";
 import { placeEvents } from "./store";
 import { AIRFIELD, BRAYFORD, STREET_ROW, seeded, streetHouses } from "./colliders";
+import { Strip, groundY, groundTilt } from "./terrain";
 
 const CASTLE_STONE = 0xb8a98a;
 const CASTLE_DARK = 0x9c8d6e;
@@ -76,11 +77,15 @@ export function Castle({ p, font }: { p: Place; font: string }) {
 const HOUSE_COLORS = [0xe8a33d, 0xf2e2c4, 0x9fc0d8, 0xd77a61, 0xf2d06b, 0xc8b6e2];
 
 // Steep Hill: a narrow cobbled lane climbing north, lined with old houses that step up the hill.
+// The street is drawn lifted to the ground at its middle, so heights here are relative to that.
 export function SteepHill({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, "#8a3b2e", font), [p, font]);
+  const y = (z: number) => groundY(p.z + z) - groundY(p.z);
   const rows = streetHouses(p).map((h) => ({
     ...h,
-    step: h.i * 0.6, // each house sits a little higher up the hill
+    // each house stands level with the uphill end of its plot, on a stone plinth down to the lane below
+    top: y(h.z - h.len / 2),
+    low: y(h.z + h.len / 2) - 0.3,
     h: 4.2 + ((h.i * 7 + h.side * 3 + 10) % 4) * 0.5,
     color: HOUSE_COLORS[(h.i + (h.side > 0 ? 3 : 0)) % HOUSE_COLORS.length],
   }));
@@ -90,28 +95,28 @@ export function SteepHill({ p, font }: { p: Place; font: string }) {
   }, [p]);
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
-      <mesh geometry={geo.box(p.w - 2 * STREET_ROW, 0.06, p.d)} material={toon(0xb9ad9a)} position-y={0.03} receiveShadow />
+      <Strip w={p.w - 2 * STREET_ROW} d={p.d} color={0xb9ad9a} wz={p.z} y={0.06} />
       {cobbles.map(([x, z], i) => (
-        <mesh key={i} geometry={geo.box(0.5, 0.07, 0.4)} material={toon(0xa0947f)} position={[x, 0.04, z]} />
+        <mesh key={i} geometry={geo.box(0.5, 0.07, 0.4)} material={toon(0xa0947f)} position={[x, y(z) + 0.06, z]} rotation-x={groundTilt(p.z + z)} />
       ))}
       {rows.map((r) => {
         const { x, len } = r;
         const front = -r.side * (STREET_ROW / 2); // faces the lane
         return (
           <group key={`${r.side}${r.i}`} position={[x, 0, r.z]}>
-            <Part geometry={geo.box(STREET_ROW, r.step + 0.01, len - 0.2)} color={0x9c8d6e} outline={0.05} position-y={r.step / 2} />
-            <Part geometry={geo.box(STREET_ROW - 0.2, r.h, len - 0.4)} color={r.color} outline={0.07} position-y={r.step + r.h / 2} />
-            <group position={[0, r.step + r.h, 0]} rotation-y={Math.PI / 2}>
+            <Part geometry={geo.box(STREET_ROW, r.top - r.low + 0.01, len - 0.2)} color={0x9c8d6e} outline={0.05} position-y={(r.top + r.low) / 2} />
+            <Part geometry={geo.box(STREET_ROW - 0.2, r.h, len - 0.4)} color={r.color} outline={0.07} position-y={r.top + r.h / 2} />
+            <group position={[0, r.top + r.h, 0]} rotation-y={Math.PI / 2}>
               <Part geometry={geo.cyl(2.3, 2.3, len - 0.2, 3)} color={p.roof} outline={0.06} rotation-x={-Math.PI / 2} scale={[1, 1, 0.5]} position-y={0.55} />
             </group>
-            <Part geometry={geo.box(0.2, 1.8, 0.9)} color={0x5a3a22} outline={0.04} position={[front, r.step + 0.9, 0]} />
-            <Part geometry={geo.box(0.2, 0.9, 0.9)} color={WINDOW} outline={0.04} position={[front, r.step + r.h - 1.2, len / 4]} />
-            <Part geometry={geo.box(0.2, 0.9, 0.9)} color={WINDOW} outline={0.04} position={[front, r.step + r.h - 1.2, -len / 4]} />
+            <Part geometry={geo.box(0.2, 1.8, 0.9)} color={0x5a3a22} outline={0.04} position={[front, r.top + 0.9, 0]} />
+            <Part geometry={geo.box(0.2, 0.9, 0.9)} color={WINDOW} outline={0.04} position={[front, r.top + r.h - 1.2, len / 4]} />
+            <Part geometry={geo.box(0.2, 0.9, 0.9)} color={WINDOW} outline={0.04} position={[front, r.top + r.h - 1.2, -len / 4]} />
           </group>
         );
       })}
       {/* name board hung across the bottom of the hill */}
-      <group position={[0, 0, p.d / 2 - 0.4]}>
+      <group position={[0, y(p.d / 2 - 0.4), p.d / 2 - 0.4]}>
         <Part geometry={geo.box(p.w - 2 * STREET_ROW + 0.4, 0.25, 0.25)} color={0x2b2633} outline={0.04} position-y={5.6} />
         <Part geometry={geo.box(4.6, 1.2, 0.15)} color={0xfff8e7} outline={0.05} position-y={4.8} />
         <mesh position={[0, 4.8, 0.09]}>
