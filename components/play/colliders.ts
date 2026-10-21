@@ -118,14 +118,36 @@ export const RAIL = { z: 18.5, gap: 1.6, fence: 3.6, crossing: 4.6 };
 // Set every frame by the railway while the barriers are down.
 export const CROSSING = { closed: false };
 export const atBarrier = (x: number, z: number) => CROSSING.closed && Math.abs(x) < RAIL.crossing && Math.abs(z - RAIL.z) < RAIL.fence + 0.4;
-const RAIL_FENCES = [-1, 1].flatMap((sx) =>
-  [-1, 1].map((sz) => ({
-    x0: sx < 0 ? -BOUND : RAIL.crossing,
-    x1: sx < 0 ? -RAIL.crossing : BOUND,
-    z0: RAIL.z + sz * RAIL.fence - 0.3,
-    z1: RAIL.z + sz * RAIL.fence + 0.3,
-  })),
+// Lincoln Central, just east of the crossing as in real Lincoln: the station building on the main road,
+// a platform along each track and a covered footbridge between them at the east end. edge is the
+// platform edges' offset from the line's centre, and the fences are left out alongside the platforms.
+const stationPlace = PLACES.find((p) => p.kind === "station")!;
+const PLATFORM = { edge: RAIL.gap + 1.3, depth: 2.6 };
+export const STATION = {
+  x: stationPlace.x,
+  x0: stationPlace.x - 10,
+  x1: stationPlace.x + 10,
+  platforms: [-1, 1].map((s) => {
+    const a = RAIL.z + s * PLATFORM.edge,
+      b = a + s * PLATFORM.depth;
+    return { side: s, z0: Math.min(a, b), z1: Math.max(a, b), edge: a };
+  }),
+  bridge: { x0: stationPlace.x + 8, x1: stationPlace.x + 10 }, // the stair towers stand on the platforms' east ends
+};
+// Runs of fence along each side of the line, west to east.
+export const RAIL_FENCE_RUNS: [number, number][] = [
+  [-BOUND, -RAIL.crossing],
+  [RAIL.crossing, STATION.x0],
+  [STATION.x1, BOUND],
+];
+const RAIL_FENCES = RAIL_FENCE_RUNS.flatMap(([x0, x1]) =>
+  [-1, 1].map((sz) => ({ x0, x1, z0: RAIL.z + sz * RAIL.fence - 0.3, z1: RAIL.z + sz * RAIL.fence + 0.3 })),
 );
+// Nobody steps off the platform edges onto the line, and the footbridge's stair towers are solid.
+const STATION_BOXES = STATION.platforms.flatMap((p) => [
+  { x0: STATION.x0 - 0.3, x1: STATION.x1 + 0.3, z0: p.edge - 0.35, z1: p.edge + 0.35 },
+  { x0: STATION.bridge.x0, x1: STATION.bridge.x1, z0: p.z0, z1: p.z1 },
+]);
 // Which side of the railway z is on: -1 north, 1 south, 0 on the crossing itself.
 const railSide = (z: number) => (z < RAIL.z - RAIL.fence ? -1 : z > RAIL.z + RAIL.fence ? 1 : 0);
 // Waypoints for a walk from one side of the railway to the other: onto the main road, over the
@@ -177,7 +199,7 @@ const boxes = PLACES.filter((p) => p.kind !== "tank" && p.kind !== "gate").flatM
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS, RAIL_FENCES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS, RAIL_FENCES, STATION_BOXES);
 
 const onRoad = (x: number, z: number) =>
   Math.abs(x) < 7 ||
@@ -185,7 +207,7 @@ const onRoad = (x: number, z: number) =>
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, ...STONEBOW_PIERS, ...FOOTPATHS].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, ...STONEBOW_PIERS, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   PLACES.some((p) => {

@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string };
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn by the fountain; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -245,24 +245,26 @@ export const PLACES: Place[] = [
     link: { href: "/get-started", label: "Claim this plot" },
   },
   {
-    id: "tolet-east",
-    kind: "lot",
-    name: "To Let",
-    kicker: "Shop to let",
-    nav: "To let (east)",
+    id: "station",
+    kind: "station",
+    name: "Lincoln Central",
+    kicker: "The railway station",
+    nav: "Lincoln Central station",
+    // just east of the level crossing, its front on the main road and its platforms along the line behind
     x: 36,
-    z: 11,
-    w: 10,
-    d: 8,
-    h: 0,
-    wall: 0x1fb5a8,
-    roof: 0xffd23f,
-    roofType: "flat",
+    z: 10,
+    w: 14,
+    d: 6,
+    h: 4.6,
+    wall: 0xe0c48e,
+    roof: 0x4a4f5c,
+    roofType: "pitch",
     rot: Math.PI,
     intro: [
-      "Picture your business here. Tell me a little about it and I'll design a free mockup of your new website before you spend a penny.",
+      "Lincoln Central, the city's railway station, sits just off the High Street beside the level crossing where the barriers come down for every train.",
+      "Wait on a platform and the next passenger train will pull in and stop for a few seconds before heading on.",
     ],
-    link: { href: "/get-started", label: "Open the full form" },
+    link: { href: "https://www.nationalrail.co.uk/stations/lincoln/", label: "Live departures", external: true },
   },
   {
     id: "tolet-west",

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BOUND, SOUTH, HOUSE, HOUSES, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, STADIUM_ROAD, STREET_ROW, streetHouses, toWorld } from "./colliders";
+import { AIRFIELD, AIRFIELD_ROAD, BOUND, SOUTH, HOUSE, HOUSES, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, STADIUM_ROAD, STATION, STREET_ROW, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
 import { game, walkTo } from "./store";
 import s from "./play.module.css";
@@ -38,6 +38,9 @@ export default function Minimap() {
       <rect x={-3} y={0} width={6} height={SOUTH + 4} fill="#6b6573" />
       {[-1, 1].map((side) => (
         <rect key={side} x={-V} y={RAIL.z + side * RAIL.gap - 0.6} width={V * 2} height={1.2} fill="#55505e" pointerEvents="none" />
+      ))}
+      {STATION.platforms.map((pl) => (
+        <rect key={pl.side} x={STATION.x0} y={pl.z0} width={STATION.x1 - STATION.x0} height={pl.z1 - pl.z0} fill="#e8dcc2" pointerEvents="none" />
       ))}
       <rect x={-4.3} y={RISE.z0} width={8.6} height={-RISE.z0} fill="#d9ccb2" />
       <rect x={BAILGATE.x0} y={BAILGATE.z0} width={BAILGATE.x1 - BAILGATE.x0} height={BAILGATE.z1 - BAILGATE.z0} fill="#e8dcc2" />

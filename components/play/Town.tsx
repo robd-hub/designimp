@@ -14,6 +14,7 @@ import Imp from "./Imp";
 import Hunt from "./Hunt";
 import Ghost from "./Ghost";
 import Railway from "./Railway";
+import { Station } from "./Station";
 import { Crowd, Chant } from "./Matchday";
 
 function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; color: number; x?: number; z?: number; y?: number }) {
@@ -848,7 +849,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
