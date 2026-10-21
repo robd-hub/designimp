@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield } from "./Landmarks";
-import { TREES, BOUND, NORTH, CLOSE, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, seeded } from "./colliders";
+import { TREES, BOUND, NORTH, CLOSE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy } from "./store";
@@ -48,8 +48,8 @@ function Roads() {
       {/* and west to RAF Scampton, opposite */}
       <Flat w={AF_LEN} d={8.6} color={0xe8dcc2} x={AF_MID} z={AIRFIELD_ROAD.z} y={0.01} />
       <Flat w={AF_LEN} d={6} color={0x6b6573} x={AF_MID} z={AIRFIELD_ROAD.z} />
-      {/* cathedral close */}
-      <Strip w={CLOSE.x1 - CLOSE.x0} d={CLOSE.z1 - CLOSE.z0} color={0xe8dcc2} z={(CLOSE.z0 + CLOSE.z1) / 2} y={0.035} />
+      {/* Castle Square, pedestrianised */}
+      <Strip w={CLOSE.x1 - CLOSE.x0} d={CLOSE.z1 - CLOSE.z0} color={0xd9ccb2} x={(CLOSE.x0 + CLOSE.x1) / 2} z={(CLOSE.z0 + CLOSE.z1) / 2} y={0.035} />
       {dashes.map((i) => (
         <group key={i}>
           {i > NS_START + 2 && Math.abs(i - STADIUM_ROAD.z) > 5 && (
@@ -381,6 +381,57 @@ for (let i = 20; i < BOUND; i += 18) {
 }
 for (let i = -20; i > NS_START; i -= 18) LAMPS.push([5.5, i], [-5.5, i]); // up the north road
 
+// Paving slabs scattered over Castle Square.
+const SLABS = (() => {
+  const r = seeded(23);
+  return Array.from({ length: 90 }, () => [CLOSE.x0 + 1 + r() * (CLOSE.x1 - CLOSE.x0 - 2), CLOSE.z0 + 1 + r() * (CLOSE.z1 - CLOSE.z0 - 2)] as const);
+})();
+
+// The farmers' market on Castle Square: striped stalls piled with fruit and veg.
+const AWNINGS = [0xe03a3e, 0x2f8f5b, 0x2b59c3, 0xffb627];
+const PRODUCE = [0xe03a3e, 0xff8c1a, 0x6cc24a, 0xffd23f, 0x7a3b8f];
+function Market() {
+  return (
+    <>
+      {SLABS.map(([x, z], i) => (
+        <mesh key={i} geometry={geo.box(1.1, 0.06, 0.8)} material={toon(0xc7b89a)} position={[x, groundY(z) + 0.05, z]} rotation-x={groundTilt(z)} raycast={() => null} />
+      ))}
+      {STALLS.map((s, i) => (
+        <group key={s.x} position={[s.x, groundY(s.z), s.z]}>
+          {[-1, 1].flatMap((sx) =>
+            [-1, 1].map((sz) => (
+              <Part key={`${sx}${sz}`} geometry={geo.box(0.12, 2.6, 0.12)} color={0x8a5a33} outline={0.03} position={[(sx * (STALL.w - 0.2)) / 2, 1.3, (sz * (STALL.d - 0.2)) / 2]} />
+            )),
+          )}
+          <Part geometry={geo.box(STALL.w - 0.2, 0.9, STALL.d - 0.6)} color={0xc9a46b} outline={0.05} position={[0, 0.45, 0.2]} />
+          {/* striped awning */}
+          {Array.from({ length: 5 }, (_, k) => (
+            <Part
+              key={k}
+              geometry={geo.box(STALL.w / 5, 0.12, STALL.d + 0.4)}
+              color={k % 2 ? 0xfff8e7 : AWNINGS[i % AWNINGS.length]}
+              outline={0.03}
+              position={[-STALL.w / 2 + STALL.w / 10 + (k * STALL.w) / 5, 2.65, 0.1]}
+              rotation-x={0.18}
+            />
+          ))}
+          {/* crates of produce on the counter */}
+          {[-1.2, 0, 1.2].map((x, j) => (
+            <group key={x} position={[x, 0.9, 0.5]}>
+              <Part geometry={geo.box(1, 0.3, 0.8)} color={0x8a5a33} outline={0.03} position-y={0.15} />
+              {[-0.25, 0.25].flatMap((px) =>
+                [-0.18, 0.18].map((pz) => (
+                  <Part key={`${px}${pz}`} geometry={geo.sphere(0.17, 10, 8)} color={PRODUCE[(i * 3 + j) % PRODUCE.length]} outline={0.02} position={[px, 0.38, pz]} />
+                )),
+              )}
+            </group>
+          ))}
+        </group>
+      ))}
+    </>
+  );
+}
+
 // Footpaths ignore the pointer so clicking one still walks the Imp to that spot.
 function Footpaths() {
   const run = FOOTPATHS[0];
@@ -587,6 +638,7 @@ export default function Town({ font }: { font: string }) {
       <Townsfolk reduce={reduce} />
       <Lamps />
       <Footpaths />
+      <Market />
       <Clouds reduce={reduce} />
       <Hunt reduce={reduce} />
       {night && <Ghost reduce={reduce} />}

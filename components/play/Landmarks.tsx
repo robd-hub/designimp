@@ -4,7 +4,7 @@ import { useFrame, type ThreeElements } from "@react-three/fiber";
 import type { Place } from "./places";
 import { Part, geo, toon, signTexture, WINDOW, LAMP } from "./toon";
 import { placeEvents } from "./store";
-import { AIRFIELD, BRAYFORD, STREET_ROW, seeded, streetHouses } from "./colliders";
+import { AIRFIELD, BRAYFORD, CANNONS, STREET_ROW, seeded, streetHouses } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 
 const CASTLE_STONE = 0xb8a98a;
@@ -16,6 +16,28 @@ function Crenels({ len, y, ...g }: { len: number; y: number; position?: [number,
     <group {...g}>
       {Array.from({ length: n }, (_, i) => (
         <Part key={i} geometry={geo.box(0.7, 0.7, 0.9)} color={CASTLE_STONE} outline={0.04} position={[-len / 2 + 0.7 + i * 1.4, y, 0]} />
+      ))}
+    </group>
+  );
+}
+
+// An old cannon on a wooden carriage, barrel pointing out over Castle Square, with a pile of shot.
+function Cannon(g: { position: [number, number, number] }) {
+  return (
+    <group {...g}>
+      <Part geometry={geo.box(1, 0.5, 1.8)} color={0x6b4a2a} outline={0.05} position-y={0.55} />
+      {[-1, 1].flatMap((sx) =>
+        [-0.55, 0.6].map((z) => (
+          <Part key={`${sx}${z}`} geometry={geo.cyl(0.45, 0.45, 0.16, 14)} color={0x4a3320} outline={0.04} position={[sx * 0.62, 0.45, z]} rotation-z={Math.PI / 2} />
+        )),
+      )}
+      <group position={[0, 1, 0.1]} rotation-x={Math.PI / 2 - 0.15}>
+        <Part geometry={geo.cyl(0.24, 0.34, 2.4, 14)} color={0x2b2633} outline={0.04} />
+        <Part geometry={geo.cyl(0.3, 0.3, 0.14, 14)} color={0x2b2633} outline={0.03} position-y={1.15} />
+      </group>
+      <Part geometry={geo.sphere(0.32, 12, 8)} color={0x2b2633} outline={0.04} position={[0, 0.9, -1.05]} />
+      {([[-0.25, 0.2], [0.25, 0.2], [0, 0.6]] as const).map(([x, y]) => (
+        <Part key={`${x}${y}`} geometry={geo.sphere(0.22, 10, 8)} color={0x2b2633} outline={0.03} position={[x + 1.3, y, 0.6]} />
       ))}
     </group>
   );
@@ -66,6 +88,9 @@ export function Castle({ p, font }: { p: Place; font: string }) {
         <planeGeometry args={[5.6, 1.4]} />
         <meshBasicMaterial map={sign} toneMapped={false} />
       </mesh>
+      {CANNONS.map((c) => (
+        <Cannon key={c.x} position={[c.x, 0, c.z]} />
+      ))}
       {/* the keep on its mound, like the Lucy Tower */}
       <Part geometry={geo.cyl(4.5, 6, 2, 20)} color={0x5fbf5b} outline={0.06} position={[-hw + 6, 1, -hd + 5]} />
       <Part geometry={geo.cyl(3, 3.2, 5, 16)} color={CASTLE_DARK} outline={0.08} position={[-hw + 6, 4.5, -hd + 5]} />

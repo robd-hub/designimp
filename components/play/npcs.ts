@@ -127,7 +127,7 @@ export const NPCS: Npc[] = [
     legs: 0x4a3a2a,
     skin: 0xf2d0b5,
     hat: 0x1a1320,
-    path: [[-10, -93], [10, -93]],
+    path: [[-18, -96], [16, -96]],
     speed: 1.2,
     lines: [
       "Lovely, isn't she? Building started on this cathedral over 900 years ago.",

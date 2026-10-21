@@ -73,6 +73,16 @@ export const FOOTPATH_ROUTE: [number, number][] = [
   [(castle.x0 + castle.x1) / 2, castle.z1 + 3],
 ];
 
+// Castle Square: a pedestrianised square at the top of Steep Hill, from the castle gate
+// across to the cathedral, with a row of farmers' market stalls along its north side.
+const hill = footprint(PLACES.find((p) => p.kind === "street")!);
+export const CLOSE = { x0: -27, x1: 34, z0: hill.z0 - 12, z1: hill.z0 + 3 };
+export const STALL = { w: 4, d: 2.4 };
+export const STALLS = [-7, -1, 5, 11].map((x) => ({ x, z: CLOSE.z0 + 2.5 }));
+
+// Two cannons guarding the castle gate, on the right as you face it (in the castle's own coordinates).
+export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: (castle.z1 - castle.z0) / 2 + 2.6 }));
+
 const boxes = PLACES.filter((p) => p.kind !== "tank").flatMap((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
@@ -92,16 +102,16 @@ const boxes = PLACES.filter((p) => p.kind !== "tank").flatMap((p) => {
   if (p.kind === "water") {
     return Object.values(BRAYFORD).map((b) => ({ x0: p.x + b.x0, x1: p.x + b.x1, z0: p.z + b.z0, z1: p.z + b.z1 }));
   }
+  if (p.kind === "castle") {
+    const walls = { x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 };
+    return [walls, ...CANNONS.map((c) => ({ x0: p.x + c.x - 0.7, x1: p.x + c.x + 0.7, z0: p.z + c.z - 1.3, z1: p.z + c.z + 1.3 }))];
+  }
   if (p.kind === "airfield") {
     // the runway and apron are walkable; only the hangar and the parked jet are solid
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-});
-
-// The cathedral close at the top of Steep Hill, between the cathedral and the castle.
-const hill = footprint(PLACES.find((p) => p.kind === "street")!);
-export const CLOSE = { x0: -13, x1: 13, z0: hill.z0 - 5, z1: hill.z0 + 3 };
+}).concat(STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })));
 
 const onRoad = (x: number, z: number) =>
   Math.abs(x) < 7 ||
