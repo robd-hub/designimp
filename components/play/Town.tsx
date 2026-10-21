@@ -189,32 +189,215 @@ function Pinnacles({ x, z, w, y }: { x: number; z: number; w: number; y: number 
   );
 }
 
-// Lincoln Cathedral, simplified: west front with twin towers, long nave, transept and a central tower.
-function Cathedral({ p, font }: { p: Place; font: string }) {
-  const sign = useMemo(() => signTexture(p.name, "#5b6b7a", font), [p, font]);
-  const front = p.d / 2;
+const RECESS = 0xb3a383; // shaded stone in the deep arches, left unlit when the cathedral is floodlit
+const LOUVRE = 0x4a4060;
+const ROSE = 0x7fb3ff;
+const NAVE_W = 8,
+  NAVE_H = 11,
+  AISLE_W = 2.4,
+  AISLE_H = 6;
+const SQ3 = Math.sqrt(3);
+
+// A tall lancet window, its pane facing +z, with a pointed head.
+function Lancet({ w, h, color = WINDOW, ...g }: { w: number; h: number; color?: number } & Omit<ThreeElements["group"], "children">) {
   return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
-      <Part geometry={geo.box(10, 10, 24)} color={STONE} outline={0.09} position={[0, 5, -2]} />
-      <Ridge r={5.8} len={24} color={LEAD} position={[0, 10 + 5.8 * 0.5 * 0.55, -2]} />
-      <Part geometry={geo.box(22, 9, 5)} color={STONE} outline={0.09} position={[0, 4.5, -4]} />
-      <group position={[0, 9 + 2.9 * 0.55, -4]} rotation-y={Math.PI / 2}>
-        <Ridge r={2.9} len={22} color={LEAD} />
-      </group>
-      {/* central tower */}
-      <Part geometry={geo.box(6.5, 25, 6.5)} color={STONE_DARK} outline={0.09} position={[0, 12.5, -4]} />
-      <Pinnacles x={0} z={-4} w={6.5} y={25} />
-      {/* west front */}
-      <Part geometry={geo.box(15, 13, 2)} color={STONE} outline={0.09} position={[0, 6.5, front - 1]} />
-      {[-1, 1].map((sx) => (
-        <group key={sx}>
-          <Part geometry={geo.box(3.6, 21, 3.6)} color={STONE_DARK} outline={0.09} position={[sx * 5.6, 10.5, front - 1.6]} />
-          <Pinnacles x={sx * 5.6} z={front - 1.6} w={3.6} y={21} />
-          <Part geometry={geo.box(1.4, 2.8, 0.3)} color={0x5a3a22} outline={0.05} position={[sx * 3.2, 1.4, front + 0.1]} />
+    <group {...g}>
+      <mesh geometry={geo.box(w, h, 0.12)} material={toon(color)} position-y={h / 2} />
+      <mesh geometry={geo.cone(w / 2, w * 0.8, 4)} material={toon(color)} position-y={h + w * 0.4} scale={[1, 1, 0.12]} />
+    </group>
+  );
+}
+
+// One arm of the cathedral, nave or choir, running from z0 to z1: a tall lead-roofed body with
+// lower aisles either side under lean-to roofs, flying buttresses between the bays, and a window in every bay.
+function Arm({ z0, z1 }: { z0: number; z1: number }) {
+  const len = z1 - z0,
+    zc = (z0 + z1) / 2;
+  const n = Math.max(1, Math.round(len / 2.8)),
+    step = len / n;
+  const bays = Array.from({ length: n }, (_, i) => z0 + (i + 0.5) * step);
+  const piers = bays.slice(1).map((z) => z - step / 2);
+  const r = NAVE_W / SQ3;
+  const inner = NAVE_W / 2,
+    outer = inner + AISLE_W;
+  const lean = Math.atan2(NAVE_H - 3.4 - AISLE_H, AISLE_W);
+  const fly = Math.atan2(3, 2.75);
+  return (
+    <>
+      <Part geometry={geo.box(NAVE_W, NAVE_H, len)} color={STONE} outline={0.09} position={[0, NAVE_H / 2, zc]} />
+      <Ridge r={r} len={len} color={LEAD} position={[0, NAVE_H + r * 0.275, zc]} />
+      {[-1, 1].map((s) => (
+        <group key={s}>
+          <Part geometry={geo.box(AISLE_W, AISLE_H, len)} color={STONE} outline={0.08} position={[s * (inner + AISLE_W / 2), AISLE_H / 2, zc]} />
+          <Part
+            geometry={geo.box(Math.hypot(AISLE_W, NAVE_H - 3.4 - AISLE_H) + 0.3, 0.22, len)}
+            color={LEAD}
+            outline={0.05}
+            position={[s * (inner + AISLE_W / 2), (NAVE_H - 3.4 + AISLE_H) / 2 + 0.1, zc]}
+            rotation-z={-s * lean}
+          />
+          {piers.map((z) => (
+            <group key={z} position={[s * (outer + 0.3), 0, z]}>
+              <Part geometry={geo.box(0.7, AISLE_H + 1.2, 0.8)} color={STONE_DARK} outline={0.05} position-y={(AISLE_H + 1.2) / 2} />
+              <Part geometry={geo.cone(0.4, 1.6, 4)} color={STONE_DARK} outline={0.04} position-y={AISLE_H + 2} rotation-y={Math.PI / 4} />
+              {/* the flying buttress, leaping from the pier to the top of the nave wall */}
+              <Part geometry={geo.box(4.1, 0.35, 0.4)} color={STONE_DARK} outline={0.04} position={[-s * 1.35, AISLE_H + 2.3, 0]} rotation-z={-s * fly} />
+            </group>
+          ))}
+          {bays.map((z) => (
+            <group key={z}>
+              <Lancet w={0.8} h={2.4} position={[s * (outer + 0.02), 1.8, z]} rotation-y={(s * Math.PI) / 2} />
+              <Lancet w={0.9} h={2} position={[s * (inner + 0.02), NAVE_H - 3, z]} rotation-y={(s * Math.PI) / 2} />
+            </group>
+          ))}
         </group>
       ))}
+    </>
+  );
+}
+
+// A transept: an arm crossing the cathedral from side to side, with a lancet in each bay and a rose window in each end.
+function Transept({ z, span, d, h, rose }: { z: number; span: number; d: number; h: number; rose?: boolean }) {
+  const r = d / SQ3;
+  const wing = span / 2 - NAVE_W / 2 - AISLE_W;
+  return (
+    <>
+      <Part geometry={geo.box(span, h, d)} color={STONE} outline={0.09} position={[0, h / 2, z]} />
+      <group position={[0, h + r * 0.275, z]} rotation-y={Math.PI / 2}>
+        <Ridge r={r} len={span} color={LEAD} />
+      </group>
+      {[-1, 1].map((s) => (
+        <group key={s}>
+          {rose ? (
+            <>
+              <Part geometry={geo.cyl(1.5, 1.5, 0.2, 24)} color={ROSE} outline={0.07} position={[(s * span) / 2, h - 3.6, z]} rotation-z={Math.PI / 2} />
+              <Lancet w={0.8} h={2.6} position={[(s * span) / 2 + s * 0.02, 1.4, z]} rotation-y={(s * Math.PI) / 2} />
+            </>
+          ) : (
+            [-0.9, 0.9].map((o) => <Lancet key={o} w={0.7} h={3.4} position={[(s * span) / 2 + s * 0.02, 2.2, z + o]} rotation-y={(s * Math.PI) / 2} />)
+          )}
+          {/* turrets at the corners of each end */}
+          {[-1, 1].map((sz) => (
+            <group key={sz} position={[(s * span) / 2, 0, z + (sz * d) / 2]}>
+              <Part geometry={geo.cyl(0.5, 0.5, h + 1.2, 8)} color={STONE_DARK} outline={0.05} position-y={(h + 1.2) / 2} />
+              <Part geometry={geo.cone(0.6, 2.2, 8)} color={STONE_DARK} outline={0.04} position-y={h + 2.3} />
+            </group>
+          ))}
+          {/* windows along the side walls of the arm, beyond the aisles */}
+          {Array.from({ length: Math.max(0, Math.floor(wing / 2.4)) }, (_, i) => s * (span / 2 - 1.4 - i * 2.4)).flatMap((x) =>
+            [-1, 1].map((sz) => <Lancet key={`${x}${sz}`} w={0.8} h={2.8} position={[x, 2, z + sz * (d / 2 + 0.02)]} rotation-y={sz < 0 ? Math.PI : 0} />),
+          )}
+        </group>
+      ))}
+    </>
+  );
+}
+
+// A tower with a belfry stage of tall louvred openings near the top, a parapet and corner pinnacles.
+function Tower({ x, z, w, h, belfry }: { x: number; z: number; w: number; h: number; belfry: number }) {
+  const n = w > 5 ? 3 : 2;
+  return (
+    <group position={[x, 0, z]}>
+      <Part geometry={geo.box(w, h, w)} color={STONE_DARK} outline={0.09} position-y={h / 2} />
+      <Part geometry={geo.box(w + 0.4, 0.4, w + 0.4)} color={STONE} outline={0.05} position-y={h - belfry - 0.8} />
+      <Part geometry={geo.box(w + 0.5, 0.6, w + 0.5)} color={STONE} outline={0.05} position-y={h + 0.3} />
+      {[0, 1, 2, 3].map((side) => (
+        <group key={side} rotation-y={(side * Math.PI) / 2}>
+          {Array.from({ length: n }, (_, i) => (i - (n - 1) / 2) * (w / n)).map((o) => (
+            <Lancet key={o} w={w / n - 0.7} h={belfry - 1.8} color={LOUVRE} position={[o, h - belfry, w / 2 + 0.02]} />
+          ))}
+        </group>
+      ))}
+      <Pinnacles x={0} z={0} w={w} y={h + 0.6} />
+    </group>
+  );
+}
+
+// Lincoln Cathedral. From the west: the great screen front with its arcading and two towers rising
+// behind it, the long aisled nave, the main transept under the tall central tower, the choir crossed
+// by the east transept, and the square east end. The polygonal chapter house stands off the north side.
+// In its own coordinates the west front faces +z and north is -x.
+function Cathedral({ p, font }: { p: Place; font: string }) {
+  const sign = useMemo(() => signTexture(p.name, "#5b6b7a", font), [p, font]);
+  useEffect(() => () => sign.dispose(), [sign]);
+  const front = p.d / 2,
+    back = -p.d / 2;
+  const SCREEN = { w: 19, h: 15 };
+  const cross = back + 14.5; // main crossing, under the central tower
+  const east = back + 5.75; // east transept
+  const chapter = { x: -9.6, z: back + 3.6, r: 2.3 };
+  return (
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      {/* a stone apron the whole cathedral stands on, levelling it on the brow of the hill */}
+      <Part geometry={geo.box(p.w + 0.4, 2, p.d + 0.4)} color={0xd2c4a6} outline={0.05} position-y={-0.95} />
+      <Arm z0={cross + 2.5} z1={front - 2} />
+      <Arm z0={back} z1={cross - 2.5} />
+      <Transept z={cross} span={p.w - 2} d={5} h={NAVE_H - 0.5} rose />
+      <Transept z={east} span={18} d={3.5} h={NAVE_H - 1.5} />
+      <Tower x={0} z={cross} w={7.4} h={31} belfry={7} />
+      {/* the square east end with its great window */}
+      <group position-z={back - 0.02} rotation-y={Math.PI}>
+        <Lancet w={1.2} h={5} position={[-1.5, 2.6, 0]} />
+        <Lancet w={1.4} h={5.8} position={[0, 2.6, 0]} />
+        <Lancet w={1.2} h={5} position={[1.5, 2.6, 0]} />
+        <Part geometry={geo.cyl(0.8, 0.8, 0.14, 16)} color={ROSE} outline={0.04} position={[0, 9.6, 0]} rotation-x={Math.PI / 2} />
+        {[-1, 1].map((s) => (
+          <Lancet key={s} w={1} h={2.6} position={[s * (NAVE_W / 2 + AISLE_W / 2), 1.6, 0]} />
+        ))}
+      </group>
+      {[-1, 1].map((s) => (
+        <group key={s} position={[(s * NAVE_W) / 2, 0, back]}>
+          <Part geometry={geo.cyl(0.6, 0.6, NAVE_H + 2, 8)} color={STONE_DARK} outline={0.05} position-y={(NAVE_H + 2) / 2} />
+          <Part geometry={geo.cone(0.7, 2.6, 8)} color={STONE_DARK} outline={0.04} position-y={NAVE_H + 3.3} />
+        </group>
+      ))}
+      {/* the chapter house: ten-sided, under a tall lead roof, braced by flying buttresses */}
+      <group position={[chapter.x, 0, chapter.z]}>
+        <Part geometry={geo.cyl(chapter.r, chapter.r, 7, 10)} color={STONE} outline={0.08} position-y={3.5} />
+        <Part geometry={geo.cone(chapter.r + 0.4, 3.6, 10)} color={LEAD} outline={0.07} position-y={8.8} />
+        {[160, 200, 240, 280, 320].map((deg) => (
+          <group key={deg} rotation-y={(-deg * Math.PI) / 180}>
+            <Part geometry={geo.box(0.6, 4.4, 0.6)} color={STONE_DARK} outline={0.04} position={[chapter.r + 1.1, 2.2, 0]} />
+            <Part geometry={geo.box(2.5, 0.3, 0.35)} color={STONE_DARK} outline={0.04} position={[chapter.r + 0.55, 5.4, 0]} rotation-z={-Math.atan2(2, 1.1)} />
+          </group>
+        ))}
+        {[180, 220, 260, 300, 340].map((deg) => (
+          <group key={deg} rotation-y={(-deg * Math.PI) / 180}>
+            <Lancet w={0.8} h={3.2} position={[chapter.r * 0.98, 2, 0]} rotation-y={Math.PI / 2} />
+          </group>
+        ))}
+      </group>
+      {/* the two west towers, rising behind the screen */}
+      {[-1, 1].map((s) => (
+        <Tower key={s} x={s * 4.4} z={front - 3.6} w={3.8} h={25} belfry={6} />
+      ))}
+      {/* the west front: a broad screen with three great recessed arches, a band of arcading and a turret at each end */}
+      <Part geometry={geo.box(SCREEN.w, SCREEN.h, 2)} color={STONE} outline={0.09} position={[0, SCREEN.h / 2, front - 1]} />
+      <Part geometry={geo.box(3.4, 3.4, 0.8)} color={STONE} outline={0.07} position={[0, SCREEN.h, front - 1]} rotation-z={Math.PI / 4} />
+      <Lancet w={4.4} h={7.6} color={RECESS} position={[0, 0, front + 0.01]} />
+      {[-1, 1].map((s) => (
+        <group key={s}>
+          <Lancet w={2.8} h={5.6} color={RECESS} position={[s * 5.4, 0, front + 0.01]} />
+          <Part geometry={geo.box(1.4, 2.8, 0.3)} color={0x5a3a22} outline={0.05} position={[s * 5.4, 1.4, front + 0.1]} />
+          <Lancet w={1} h={2.4} position={[s * 5.4, 3.6, front + 0.04]} />
+          {[0, 1].map((i) => (
+            <Lancet key={i} w={0.9} h={3} color={RECESS} position={[s * (7 + i * 1.1), 5, front + 0.01]} />
+          ))}
+          <group position={[(s * SCREEN.w) / 2, 0, front - 1]}>
+            <Part geometry={geo.cyl(0.8, 0.8, SCREEN.h + 2.5, 8)} color={STONE_DARK} outline={0.06} position-y={(SCREEN.h + 2.5) / 2} />
+            <Part geometry={geo.cone(0.9, 3, 8)} color={STONE_DARK} outline={0.05} position-y={SCREEN.h + 4} />
+          </group>
+        </group>
+      ))}
+      {/* the arcading high across the screen */}
+      {[13, 14.6].map((y) => (
+        <Part key={y} geometry={geo.box(SCREEN.w, 0.25, 0.3)} color={STONE_DARK} outline={0.03} position={[0, y, front + 0.1]} />
+      ))}
+      {Array.from({ length: 24 }, (_, i) => -SCREEN.w / 2 + 0.6 + i * ((SCREEN.w - 1.2) / 23)).map((x) => (
+        <mesh key={x} geometry={geo.box(0.18, 1.35, 0.14)} material={toon(STONE_DARK)} position={[x, 13.8, front + 0.06]} />
+      ))}
       {/* rose window, great door and the imp perched above it */}
-      <Part geometry={geo.cyl(1.6, 1.6, 0.25, 24)} color={0x7fb3ff} outline={0.08} position={[0, 8.6, front + 0.05]} rotation-x={Math.PI / 2} />
+      <Part geometry={geo.cyl(1.4, 1.4, 0.25, 24)} color={ROSE} outline={0.07} position={[0, 8.9, front + 0.08]} rotation-x={Math.PI / 2} />
       <Part geometry={geo.box(2.8, 4.4, 0.3)} color={0x5a3a22} outline={0.06} position={[0, 2.2, front + 0.1]} />
       <Part geometry={geo.cyl(1.4, 1.4, 0.3, 16)} color={0x5a3a22} outline={0.06} position={[0, 4.4, front + 0.1]} rotation-x={Math.PI / 2} scale={[1, 1, 0.6]} />
       <Part geometry={geo.box(3.6, 0.3, 0.8)} color={STONE_DARK} outline={0.05} position={[0, 5.6, front + 0.3]} />
@@ -225,7 +408,7 @@ function Cathedral({ p, font }: { p: Place; font: string }) {
           <Part key={sx} geometry={geo.cone(0.07, 0.25)} color={0x4a2f22} outline={0.02} position={[sx * 0.12, 0.7, 0.02]} rotation-z={-sx * 0.4} />
         ))}
       </group>
-      <mesh position={[0, 11.6, front + 0.02]}>
+      <mesh position={[0, 11.9, front + 0.03]}>
         <planeGeometry args={[6.4, 1.6]} />
         <meshBasicMaterial map={sign} toneMapped={false} />
       </mesh>
