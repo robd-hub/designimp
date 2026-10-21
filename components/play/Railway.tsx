@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Part, geo, toon, INK, WINDOW, LAMP } from "./toon";
-import { BOUND, CROSSING, RAIL } from "./colliders";
+import { BOUND, CROSSING, RAIL, RAIL_FENCE_RUNS, STATION } from "./colliders";
 
 // The railway south of the Workshop and HQ. Passenger trains and long tanker trains take it in
 // turns to run across town, and the level crossing's barriers drop on the main road for each one.
@@ -11,6 +11,9 @@ const LEN = BOUND * 2 + 10; // track runs right across the map
 const END = 100; // trains appear and disappear this far east and west, off the edge of town
 const GAP_S = 7; // seconds between one train clearing town and the next setting off
 const WARN_S = 6; // the barriers start dropping this long before a train reaches the crossing
+const BRAKE = 3; // passenger trains slow and pull away at this rate (units/s²) at Lincoln Central
+const DWELL_S = 6; // and wait this long at the platform
+const SHUT_S = 3; // a train stopped short of the crossing gets its barriers this long before it leaves
 const UP = Math.PI / 2 - 0.08; // barrier arm raised, just short of vertical
 const BALLAST = 0xa39a8f;
 const SLEEPER = 0x6b4a32;
@@ -59,14 +62,16 @@ const SLEEPERS = tracks.flatMap((z) =>
     .filter((x) => Math.abs(x) > 4.6)
     .map((x) => [x, 0.06, z] as [number, number, number]),
 );
+// fences run out from the crossing and stop at the station's platforms
 const POSTS = [-1, 1].flatMap((sz) =>
-  Array.from({ length: Math.floor((BOUND - RAIL.crossing) / 2.5) + 1 }, (_, i) => RAIL.crossing + i * 2.5).flatMap((x) =>
-    [-x, x].map((px) => [px, 0.55, RAIL.z + sz * RAIL.fence] as [number, number, number]),
+  RAIL_FENCE_RUNS.flatMap(([x0, x1]) =>
+    Array.from({ length: Math.floor((x1 - x0) / 2.5) + 1 }, (_, i) => (x0 < 0 ? x1 - i * 2.5 : x0 + i * 2.5)).map(
+      (x) => [x, 0.55, RAIL.z + sz * RAIL.fence] as [number, number, number],
+    ),
   ),
 );
 
 function Track() {
-  const fenceLen = BOUND - RAIL.crossing;
   return (
     <group raycast={() => null}>
       {/* ballast under the road and pavements, which are drawn over it at the crossing */}
@@ -77,14 +82,14 @@ function Track() {
       )}
       {/* post-and-rail fences either side of the line, open where the road crosses */}
       <Repeat geometry={geo.box(0.22, 1.1, 0.22)} color={FENCE} at={POSTS} />
-      {[-1, 1].flatMap((sx) =>
+      {RAIL_FENCE_RUNS.flatMap(([x0, x1]) =>
         [-1, 1].flatMap((sz) =>
           [0.45, 0.9].map((y) => (
             <mesh
-              key={`${sx}${sz}${y}`}
-              geometry={geo.box(fenceLen, 0.1, 0.08)}
+              key={`${x0}${sz}${y}`}
+              geometry={geo.box(x1 - x0, 0.1, 0.08)}
               material={toon(FENCE)}
-              position={[sx * (RAIL.crossing + fenceLen / 2), y, RAIL.z + sz * RAIL.fence]}
+              position={[(x0 + x1) / 2, y, RAIL.z + sz * RAIL.fence]}
               castShadow
             />
           )),
@@ -220,7 +225,8 @@ export default function Railway({ reduce }: { reduce: boolean }) {
   const trains = useRef<Record<Kind, THREE.Group | null>>({ passenger: null, tanker: null });
   const arms = useRef<(THREE.Group | null)[]>([]);
   // the first train sets off a few seconds after the town loads
-  const st = useRef({ i: 0, head: -SCHEDULE[0].dir * END, wait: 3, arm: UP });
+  // v is the train's speed; called and dwell track a passenger train's stop at the station.
+  const st = useRef({ i: 0, head: -SCHEDULE[0].dir * END, wait: 3, arm: UP, v: TRAINS[SCHEDULE[0].kind].speed, called: false, dwell: 0 });
 
   useFrame(({ clock }, delta) => {
     const dt = Math.min(delta, 0.05);
@@ -233,14 +239,35 @@ export default function Railway({ reduce }: { reduce: boolean }) {
     } else if (s.wait > 0) {
       s.wait -= dt;
     } else {
-      s.head += run.dir * train.speed * dt;
+      // passenger trains brake to a stop with their middle car at Lincoln Central, wait, then pull away
+      const stopAt = STATION.x + (run.dir * train.len) / 2;
+      const stops = run.kind === "passenger";
+      if (stops && !s.called) {
+        const left = run.dir * (stopAt - s.head);
+        s.v = Math.min(train.speed, Math.sqrt(2 * BRAKE * Math.max(left, 0)));
+        if (left <= s.v * dt + 0.01) {
+          s.head = stopAt;
+          s.v = 0;
+          s.called = true;
+          s.dwell = DWELL_S;
+        } else s.head += run.dir * s.v * dt;
+      } else if (stops && s.dwell > 0) {
+        s.dwell -= dt;
+      } else {
+        s.v = Math.min(train.speed, s.v + BRAKE * dt);
+        s.head += run.dir * s.v * dt;
+      }
       const ahead = -run.dir * s.head; // how far the front still has to go to reach the crossing
       const tail = run.dir * (s.head - run.dir * train.len); // how far the back is past it
       closed = ahead < train.speed * WARN_S && tail < RAIL.crossing + 1;
+      // a train calling at the station before it reaches the crossing keeps the road open until it's nearly ready to go
+      if (stops && -run.dir * stopAt > 0 && (!s.called || s.dwell > SHUT_S)) closed = false;
       if (tail > END) {
         s.i++;
         s.wait = GAP_S;
         s.head = -SCHEDULE[s.i % SCHEDULE.length].dir * END;
+        s.v = TRAINS[SCHEDULE[s.i % SCHEDULE.length].kind].speed;
+        s.called = false;
       }
     }
     CROSSING.closed = closed;

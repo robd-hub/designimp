@@ -127,7 +127,7 @@ export default function Hud() {
             className={s.cta}
             onClick={() => {
               setBadge(false);
-              openPlace(PLACES.find((p) => p.id === "tolet-east")!);
+              openPlace(PLACES.find((p) => p.id === "tolet-west")!);
             }}
           >
             Get my free mockup →
