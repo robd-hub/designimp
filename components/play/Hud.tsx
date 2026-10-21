@@ -207,7 +207,7 @@ export default function Hud() {
         !open && (
           <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
             <kbd>E</kbd>
-            <span>{near.kind === "lot" || near.kind === "tank" ? "Look at" : "Enter"} {near.name}</span>
+            <span>{near.kind === "lot" || near.kind === "tank" || near.kind === "gate" ? "Look at" : "Enter"} {near.name}</span>
           </button>
         )
       )}

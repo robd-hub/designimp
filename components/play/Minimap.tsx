@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BOUND, BRAYFORD, CLOSE, NORTH, STONEBOW, STADIUM_ROAD, STREET_ROW, streetHouses, toWorld } from "./colliders";
+import { AIRFIELD, AIRFIELD_ROAD, BOUND, BRAYFORD, BAILGATE, CLOSE, NORTH, STADIUM_ROAD, STREET_ROW, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
 import { game, walkTo } from "./store";
 import s from "./play.module.css";
@@ -36,7 +36,7 @@ export default function Minimap() {
       <rect x={-V} y={TOP} width={V * 2} height={H} fill="url(#minimap-hill)" />
       <rect x={-3} y={0} width={6} height={BOUND + 4} fill="#6b6573" />
       <rect x={-4.3} y={RISE.z0} width={8.6} height={-RISE.z0} fill="#d9ccb2" />
-      <rect x={-STONEBOW.half} y={STONEBOW.z - STONEBOW.d / 2} width={STONEBOW.half * 2} height={STONEBOW.d} fill="#c4b393" pointerEvents="none" />
+      <rect x={BAILGATE.x0} y={BAILGATE.z0} width={BAILGATE.x1 - BAILGATE.x0} height={BAILGATE.z1 - BAILGATE.z0} fill="#e8dcc2" />
       <rect x={CLOSE.x0} y={CLOSE.z0} width={CLOSE.x1 - CLOSE.x0} height={CLOSE.z1 - CLOSE.z0} fill="#e8dcc2" />
       <rect x={-V} y={-3} width={V * 2} height={6} fill="#6b6573" />
       <rect x={STADIUM_ROAD.x0} y={STADIUM_ROAD.z - 3} width={STADIUM_ROAD.x1 - STADIUM_ROAD.x0} height={6} fill="#6b6573" />

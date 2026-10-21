@@ -5,15 +5,14 @@ import { geo, INK } from "./toon";
 import { groundY } from "./terrain";
 
 // After dark a friendly ghost drifts round the top of Steep Hill, over the castle and past the cathedral.
-// It flies low over the castle and the square and rises to clear the cathedral roof.
-const LOOP = { x: 2, z: -108, rx: 26, rz: 14, low: 10, high: 13.5 };
+// Its loop runs from over the castle, across the square, to swoop past the cathedral's west front.
+const LOOP = { x: -2, z: -97, rx: 36, rz: 12, y: 10 };
 const SHEET = new THREE.MeshToonMaterial({ color: 0xf4f7ff, emissive: 0xdfe8ff, emissiveIntensity: 0.9, transparent: true, opacity: 0.9 });
 
 const at = (t: number, out: THREE.Vector3) => {
   const x = LOOP.x + Math.cos(t) * LOOP.rx,
     z = LOOP.z + Math.sin(t) * LOOP.rz;
-  const rise = Math.min(1, Math.max(0, (x - 8) / 8));
-  return out.set(x, groundY(z) + LOOP.low + (LOOP.high - LOOP.low) * rise + Math.sin(t * 3), z);
+  return out.set(x, groundY(z) + LOOP.y + Math.sin(t * 3), z);
 };
 const next = new THREE.Vector3();
 

@@ -23,14 +23,17 @@ function Crenels({ len, y, ...g }: { len: number; y: number; position?: [number,
 
 // The Stonebow, simplified: a stone gateway over the High Street with the Guildhall on top,
 // corner turrets, and the old Mote Bell in a little cupola on the roof.
-export function Stonebow({ font }: { font: string }) {
-  const sign = useMemo(() => signTexture("Stonebow", "#5b6b7a", font), [font]);
-  const { open, half, d } = STONEBOW,
+export function Stonebow({ p, font }: { p: Place; font: string }) {
+  const sign = useMemo(() => signTexture(p.name, "#5b6b7a", font), [p, font]);
+  // drawn at full size here, then scaled down to fit (see STONEBOW)
+  const open = 3.5,
+    half = 8,
+    d = 4,
     pier = half - open,
     arch = 4.8,
     top = 10;
   return (
-    <group position={[0, groundY(STONEBOW.z), STONEBOW.z]}>
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} scale={STONEBOW.scale} {...placeEvents(p)}>
       {[-1, 1].map((sx) => (
         <Part key={sx} geometry={geo.box(pier, arch + 0.6, d)} color={STONE} outline={0.08} position={[sx * (open + pier / 2), (arch + 0.6) / 2, 0]} />
       ))}
