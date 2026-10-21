@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BOUND, BRAYFORD, CLOSE, NORTH, STONEBOW, STADIUM_ROAD, STREET_ROW, streetHouses, toWorld } from "./colliders";
+import { AIRFIELD, AIRFIELD_ROAD, BOUND, BRAYFORD, CLOSE, NORTH, RAIL, STONEBOW, STADIUM_ROAD, STREET_ROW, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
 import { game, walkTo } from "./store";
 import s from "./play.module.css";
@@ -34,7 +34,11 @@ export default function Minimap() {
         </linearGradient>
       </defs>
       <rect x={-V} y={TOP} width={V * 2} height={H} fill="url(#minimap-hill)" />
+      <rect x={-V} y={RAIL.z - RAIL.gap - 1.5} width={V * 2} height={RAIL.gap * 2 + 3} fill="#a39a8f" />
       <rect x={-3} y={0} width={6} height={BOUND + 4} fill="#6b6573" />
+      {[-1, 1].map((side) => (
+        <rect key={side} x={-V} y={RAIL.z + side * RAIL.gap - 0.6} width={V * 2} height={1.2} fill="#55505e" pointerEvents="none" />
+      ))}
       <rect x={-4.3} y={RISE.z0} width={8.6} height={-RISE.z0} fill="#d9ccb2" />
       <rect x={-STONEBOW.half} y={STONEBOW.z - STONEBOW.d / 2} width={STONEBOW.half * 2} height={STONEBOW.d} fill="#c4b393" pointerEvents="none" />
       <rect x={CLOSE.x0} y={CLOSE.z0} width={CLOSE.x1 - CLOSE.x0} height={CLOSE.z1 - CLOSE.z0} fill="#e8dcc2" />

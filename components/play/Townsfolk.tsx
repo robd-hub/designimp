@@ -5,6 +5,7 @@ import { Part, geo, INK } from "./toon";
 import { NPCS, npcPos, type Npc } from "./npcs";
 import { game, usePlay, walkToNpc } from "./store";
 import { groundY } from "./terrain";
+import { atBarrier } from "./colliders";
 
 const tmp = new THREE.Vector3();
 
@@ -32,9 +33,13 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
       if (dist < 0.1) s.leg = (s.leg + 1) % npc.path.length;
       else {
         const step = Math.min(dist, npc.speed * dt);
-        pos.addScaledVector(tmp.normalize(), step);
+        tmp.normalize();
         want = Math.atan2(tmp.x, tmp.z);
-        moving = true;
+        // townsfolk wait at the level crossing too
+        if (atBarrier(pos.x, pos.z) || !atBarrier(pos.x + tmp.x * step, pos.z + tmp.z * step)) {
+          pos.addScaledVector(tmp, step);
+          moving = true;
+        }
       }
     }
     let d = want - s.face;

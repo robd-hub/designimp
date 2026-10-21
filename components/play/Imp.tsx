@@ -2,9 +2,9 @@ import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Part, geo, INK } from "./toon";
-import { game, usePlay, nearestPlace, nearestNpc, DOORS } from "./store";
+import { game, usePlay, nearestPlace, nearestNpc } from "./store";
 import { npcPos } from "./npcs";
-import { blocked } from "./colliders";
+import { atBarrier, blocked, overRailway } from "./colliders";
 import { groundY, groundTilt } from "./terrain";
 
 const SKIN = 0xc8973a; // Design Imp gold
@@ -57,10 +57,13 @@ export default function Imp({ reduce }: { reduce: boolean }) {
       if (!vx && !vz && Math.hypot(game.joy.x, game.joy.z) > 0.2) [vx, vz] = [game.joy.x, game.joy.z];
     }
     const pos = game.pos;
+    if (!game.target) game.via = [];
     if (game.pendingNpc) {
-      // townsfolk keep walking, so keep chasing them until we're close
-      game.target = npcPos.get(game.pendingNpc.id)!.clone();
-      if (game.target.distanceTo(pos) < 1.8) startTalk(game.pendingNpc);
+      // townsfolk keep walking, so keep chasing them until we're close, over the level crossing if need be
+      const npc = npcPos.get(game.pendingNpc.id)!;
+      const hop = overRailway([pos.x, pos.z], [npc.x, npc.z]).find(([x, z]) => Math.hypot(x - pos.x, z - pos.z) > 0.5);
+      game.target = hop ? new THREE.Vector3(hop[0], 0, hop[1]) : npc.clone();
+      if (npc.distanceTo(pos) < 1.8) startTalk(game.pendingNpc);
     }
     if (vx || vz) {
       game.target = null;
@@ -70,9 +73,8 @@ export default function Imp({ reduce }: { reduce: boolean }) {
       const dx = game.target.x - pos.x,
         dz = game.target.z - pos.z,
         dist = Math.hypot(dx, dz);
-      const door = game.pending && DOORS.get(game.pending.id);
-      if (dist < 0.25 && door && door.distanceTo(pos) > 0.5) {
-        game.target = door.clone(); // reached a junction on the way, now on to the door
+      if (dist < 0.25 && game.via.length) {
+        game.target = game.via.shift()!; // reached a junction on the way, now on to the next
       } else if (dist < 0.25) {
         game.target = null;
         if (game.pending) openPlace(game.pending);
@@ -81,7 +83,7 @@ export default function Imp({ reduce }: { reduce: boolean }) {
         vz = dz / dist;
       }
     }
-    const moving = !!(vx || vz);
+    let moving = !!(vx || vz);
     if (moving) {
       const l = Math.hypot(vx, vz),
         sp = 7 * dt;
@@ -89,15 +91,19 @@ export default function Imp({ reduce }: { reduce: boolean }) {
       vz /= l;
       const nx = pos.x + vx * sp,
         nz = pos.z + vz * sp;
-      if (!blocked(nx, nz)) pos.set(nx, 0, nz);
-      else if (Math.abs(vx) > 0.2 && !blocked(nx, pos.z)) pos.x = nx;
-      else if (Math.abs(vz) > 0.2 && !blocked(pos.x, nz)) pos.z = nz;
+      // caught on the crossing when the barriers came down: let the imp walk off it
+      const onCrossing = atBarrier(pos.x, pos.z);
+      const hit = (x: number, z: number) => blocked(x, z, !onCrossing);
+      if (!onCrossing && atBarrier(nx, nz)) moving = false; // wait at the barrier for the train
+      else if (!hit(nx, nz)) pos.set(nx, 0, nz);
+      else if (Math.abs(vx) > 0.2 && !hit(nx, pos.z)) pos.x = nx;
+      else if (Math.abs(vz) > 0.2 && !hit(pos.x, nz)) pos.z = nz;
       else if (game.target) {
         // Walking somewhere and bumped into something: veer around it.
         const step = STEER.find((a) => {
           const c = Math.cos(a),
             s = Math.sin(a);
-          return !blocked(pos.x + (vx * c - vz * s) * sp, pos.z + (vx * s + vz * c) * sp);
+          return !hit(pos.x + (vx * c - vz * s) * sp, pos.z + (vx * s + vz * c) * sp);
         });
         if (step === undefined) {
           game.target = null;
@@ -115,8 +121,9 @@ export default function Imp({ reduce }: { reduce: boolean }) {
         d = Math.atan2(Math.sin(d), Math.cos(d));
         game.face += d * Math.min(1, dt * 12);
       }
-      walkT.current += dt * 11;
-    } else walkT.current *= 0.85;
+    }
+    if (moving) walkT.current += dt * 11;
+    else walkT.current *= 0.85;
 
     const sw = Math.sin(walkT.current) * 0.6 * (moving ? 1 : 0);
     legL.current.rotation.x = sw;

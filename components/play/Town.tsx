@@ -6,13 +6,14 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow } from "./Landmarks";
-import { TREES, BOUND, NORTH, CLOSE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, seeded } from "./colliders";
+import { TREES, BOUND, NORTH, CLOSE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, overRailway, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
-import { game, usePlay, placeEvents, zoomBy } from "./store";
+import { game, usePlay, placeEvents, zoomBy, walkRoute } from "./store";
 import Imp from "./Imp";
 import Hunt from "./Hunt";
 import Ghost from "./Ghost";
+import Railway from "./Railway";
 import { Crowd, Chant } from "./Matchday";
 
 function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; color: number; x?: number; z?: number; y?: number }) {
@@ -55,7 +56,7 @@ function Roads() {
       <Strip w={CLOSE.x1 - CLOSE.x0} d={CLOSE.z1 - CLOSE.z0} color={PAVED} x={(CLOSE.x0 + CLOSE.x1) / 2} z={(CLOSE.z0 + CLOSE.z1) / 2} y={0.035} />
       {dashes.map((i) => (
         <group key={i}>
-          {i > 0 && Math.abs(i - STADIUM_ROAD.z) > 5 && (
+          {i > 0 && Math.abs(i - STADIUM_ROAD.z) > 5 && Math.abs(i - RAIL.z) > RAIL.fence + 1 && (
             <group position={[0, groundY(i), i]} rotation-x={groundTilt(i)}>
               <Flat w={0.25} d={1.8} color={0xffd23f} y={0.05} />
             </group>
@@ -380,7 +381,8 @@ function Tree({ x, z, s }: { x: number; z: number; s: number }) {
 
 const LAMPS: [number, number][] = [[-5.5, -5.5], [5.5, -5.5], [-5.5, 5.5], [5.5, 5.5]];
 for (let i = 20; i < BOUND; i += 18) {
-  LAMPS.push([5.5, i], [-5.5, i], [i, -5.5], [i, 5.5], [-i, -5.5], [-i, 5.5]);
+  if (Math.abs(i - RAIL.z) > 5) LAMPS.push([5.5, i], [-5.5, i]); // none on the level crossing
+  LAMPS.push([i, -5.5], [i, 5.5], [-i, -5.5], [-i, 5.5]);
 }
 for (let i = -27; i > NS_START; i -= 16) LAMPS.push([5.5, i], [-5.5, i]); // up the High Street
 
@@ -600,7 +602,8 @@ export default function Town({ font }: { font: string }) {
     if (e.delta > 8) return;
     usePlay.getState().close();
     usePlay.getState().endTalk();
-    game.target = e.point.clone().setY(0);
+    const to = e.point.clone().setY(0);
+    walkRoute([...overRailway([game.pos.x, game.pos.z], [to.x, to.z]).map(([x, z]) => new THREE.Vector3(x, 0, z)), to]);
     game.pending = null;
     game.pendingNpc = null;
   };
@@ -627,6 +630,7 @@ export default function Town({ font }: { font: string }) {
       <Strip w={SIZE} d={DEPTH} color={0x6fd36b} z={MID_Z} onClick={onGround} />
       <Roads />
       <Fountain reduce={reduce} />
+      <Railway reduce={reduce} />
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;

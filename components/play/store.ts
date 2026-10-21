@@ -3,6 +3,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PLACES, type Place } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
+import { overRailway } from "./colliders";
 
 type PlayState = {
   ready: boolean;
@@ -75,6 +76,7 @@ export const game = {
   pos: new THREE.Vector3(0, 0, 9),
   face: 0,
   target: null as THREE.Vector3 | null,
+  via: [] as THREE.Vector3[], // where to head next after target, e.g. over the level crossing
   pending: null as Place | null,
   pendingNpc: null as Npc | null,
   zoom: 1,
@@ -175,11 +177,19 @@ export function walkTo(p: Place) {
   s.close();
   s.endTalk();
   const door = DOORS.get(p.id)!;
+  const route = overRailway([game.pos.x, game.pos.z], [door.x, door.z]).map(([x, z]) => new THREE.Vector3(x, 0, z));
   // Sincil Bank and RAF Scampton sit down side roads: go by the junction rather than into the shops on the corner.
-  const sideRoad = (p.kind === "stadium" || p.kind === "airfield") && Math.abs(game.pos.z - door.z) > 4;
-  game.target = sideRoad ? new THREE.Vector3(0, 0, door.z) : door.clone();
+  const sideRoad = (p.kind === "stadium" || p.kind === "airfield") && Math.abs((route.at(-1) ?? game.pos).z - door.z) > 4;
+  if (sideRoad) route.push(new THREE.Vector3(0, 0, door.z));
+  walkRoute([...route, door.clone()]);
   game.pending = p;
   game.pendingNpc = null;
+}
+
+// Walk to each point in turn.
+export function walkRoute([first, ...rest]: THREE.Vector3[]) {
+  game.target = first;
+  game.via = rest;
 }
 
 export function walkToNpc(n: Npc) {
