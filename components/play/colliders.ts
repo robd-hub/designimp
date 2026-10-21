@@ -101,6 +101,38 @@ const STONEBOW_PIERS = [-1, 1].map((s) => ({
   z1: STONEBOW.z + STONEBOW.d / 2,
 }));
 
+// The railway: two tracks running east to west across the town, south of the Workshop and HQ,
+// fenced off on both sides. It crosses the main road at a level crossing, as the real line crosses
+// Lincoln's High Street. gap is each track's offset from the centre line, fence the fences' offset,
+// and crossing the half-width of the gap left in the fences for the road and its pavements.
+export const RAIL = { z: 18.5, gap: 1.6, fence: 3.6, crossing: 4.6 };
+// Set every frame by the railway while the barriers are down.
+export const CROSSING = { closed: false };
+export const atBarrier = (x: number, z: number) => CROSSING.closed && Math.abs(x) < RAIL.crossing && Math.abs(z - RAIL.z) < RAIL.fence + 0.4;
+const RAIL_FENCES = [-1, 1].flatMap((sx) =>
+  [-1, 1].map((sz) => ({
+    x0: sx < 0 ? -BOUND : RAIL.crossing,
+    x1: sx < 0 ? -RAIL.crossing : BOUND,
+    z0: RAIL.z + sz * RAIL.fence - 0.3,
+    z1: RAIL.z + sz * RAIL.fence + 0.3,
+  })),
+);
+// Which side of the railway z is on: -1 north, 1 south, 0 on the crossing itself.
+const railSide = (z: number) => (z < RAIL.z - RAIL.fence ? -1 : z > RAIL.z + RAIL.fence ? 1 : 0);
+// Waypoints for a walk from one side of the railway to the other: onto the main road, over the
+// level crossing, and back off the road on the far side. Empty when the walk doesn't cross the line.
+export function overRailway([fx, fz]: [number, number], [tx, tz]: [number, number]) {
+  const a = railSide(fz),
+    b = railSide(tz);
+  const pts: [number, number][] = [];
+  if (a === b) return pts;
+  if (a && Math.abs(fx) > 7) pts.push([0, fz]);
+  if (a) pts.push([0, RAIL.z + a * (RAIL.fence + 1)]);
+  if (b) pts.push([0, RAIL.z + b * (RAIL.fence + 1)]);
+  if (b && Math.abs(tx) > 7) pts.push([0, tz]);
+  return pts;
+}
+
 // Two cannons guarding the castle gate, on the right as you face it (in the castle's own coordinates).
 export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 }));
 
@@ -136,13 +168,14 @@ const boxes = PLACES.filter((p) => p.kind !== "tank" && p.kind !== "gate").flatM
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS);
+}).concat(STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS, RAIL_FENCES);
 
 const onRoad = (x: number, z: number) =>
   Math.abs(x) < 7 ||
   (Math.abs(z) < 7 && Math.abs(x) < BOUND) ||
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
+  Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
   [CLOSE, BAILGATE, ...STONEBOW_PIERS, ...FOOTPATHS].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   PLACES.some((p) => {
@@ -170,7 +203,9 @@ export const TREES: [number, number, number][] = (() => {
 
 const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));
 
-export function blocked(x: number, z: number) {
+// barrier: whether the level crossing counts as blocked while its barriers are down.
+export function blocked(x: number, z: number, barrier = true) {
+  if (barrier && atBarrier(x, z)) return true;
   if (Math.abs(x) > BOUND || z > BOUND || z < NORTH) return true;
   if (Math.hypot(x, z) < 4.3) return true; // fountain
   for (const c of circles) if (Math.hypot(x - c.cx, z - c.cz) < c.r) return true;
