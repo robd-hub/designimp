@@ -2,9 +2,9 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, type ThreeElements } from "@react-three/fiber";
 import type { Place } from "./places";
-import { Part, geo, toon, signTexture, WINDOW, LAMP } from "./toon";
+import { Part, geo, toon, signTexture, WINDOW, LAMP, STONE, STONE_DARK } from "./toon";
 import { placeEvents } from "./store";
-import { AIRFIELD, BRAYFORD, CANNONS, STREET_ROW, seeded, streetHouses } from "./colliders";
+import { AIRFIELD, BRAYFORD, CANNONS, STONEBOW, STREET_ROW, seeded, streetHouses } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 
 const CASTLE_STONE = 0xb8a98a;
@@ -17,6 +17,64 @@ function Crenels({ len, y, ...g }: { len: number; y: number; position?: [number,
       {Array.from({ length: n }, (_, i) => (
         <Part key={i} geometry={geo.box(0.7, 0.7, 0.9)} color={CASTLE_STONE} outline={0.04} position={[-len / 2 + 0.7 + i * 1.4, y, 0]} />
       ))}
+    </group>
+  );
+}
+
+// The Stonebow, simplified: a stone gateway over the High Street with the Guildhall on top,
+// corner turrets, and the old Mote Bell in a little cupola on the roof.
+export function Stonebow({ font }: { font: string }) {
+  const sign = useMemo(() => signTexture("Stonebow", "#5b6b7a", font), [font]);
+  const { open, half, d } = STONEBOW,
+    pier = half - open,
+    arch = 4.8,
+    top = 10;
+  return (
+    <group position={[0, groundY(STONEBOW.z), STONEBOW.z]}>
+      {[-1, 1].map((sx) => (
+        <Part key={sx} geometry={geo.box(pier, arch + 0.6, d)} color={STONE} outline={0.08} position={[sx * (open + pier / 2), (arch + 0.6) / 2, 0]} />
+      ))}
+      {/* lintel over the archway, with a darker arch ring on each face */}
+      <Part geometry={geo.box(open * 2, 0.9, d)} color={STONE} outline={0.06} position-y={arch + 0.15} />
+      {[-1, 1].map((sz) => (
+        <Part key={sz} geometry={geo.box(open * 2 + 0.6, 0.35, 0.2)} color={STONE_DARK} outline={0.04} position={[0, arch - 0.2, sz * (d / 2 + 0.05)]} />
+      ))}
+      {/* the Guildhall upstairs */}
+      <Part geometry={geo.box(half * 2, top - arch - 0.6, d + 0.4)} color={0xe6dbc4} outline={0.08} position-y={(top + arch + 0.6) / 2} />
+      {[-1, 1].flatMap((sz) =>
+        [-5.2, -2.6, 0, 2.6, 5.2].map((x) => (
+          <Part key={`${sz}${x}`} geometry={geo.box(1, 1.5, 0.2)} color={WINDOW} outline={0.04} position={[x, 7.8, sz * (d / 2 + 0.22)]} />
+        )),
+      )}
+      {/* battlements */}
+      {[-1, 1].map((sz) =>
+        Array.from({ length: 8 }, (_, i) => (
+          <Part key={`${sz}${i}`} geometry={geo.box(0.9, 0.7, 0.5)} color={STONE} outline={0.04} position={[-half + 1 + i * ((half * 2 - 2) / 7), top + 0.35, sz * (d / 2)]} />
+        )),
+      )}
+      {/* turrets at the corners */}
+      {[-1, 1].flatMap((sx) =>
+        [-1, 1].map((sz) => (
+          <group key={`${sx}${sz}`} position={[sx * half, 0, sz * (d / 2)]}>
+            <Part geometry={geo.cyl(0.8, 0.9, top + 1.6, 8)} color={STONE_DARK} outline={0.06} position-y={(top + 1.6) / 2} />
+            <Part geometry={geo.cone(0.95, 1.4, 8)} color={STONE_DARK} outline={0.05} position-y={top + 2.3} />
+          </group>
+        )),
+      )}
+      {/* the Mote Bell */}
+      <group position-y={top}>
+        {[-1, 1].flatMap((sx) =>
+          [-1, 1].map((sz) => (
+            <Part key={`${sx}${sz}`} geometry={geo.box(0.2, 1.6, 0.2)} color={STONE_DARK} outline={0.03} position={[sx * 0.7, 0.8, sz * 0.7]} />
+          )),
+        )}
+        <Part geometry={geo.cone(1.3, 1.1, 4)} color={0x5b6b7a} outline={0.05} position-y={2.1} rotation-y={Math.PI / 4} />
+        <Part geometry={geo.cone(0.4, 0.6, 12)} color={0xc8973a} outline={0.03} position-y={1.1} />
+      </group>
+      <mesh position={[0, 6.4, d / 2 + 0.24]}>
+        <planeGeometry args={[4.4, 1.1]} />
+        <meshBasicMaterial map={sign} toneMapped={false} />
+      </mesh>
     </group>
   );
 }

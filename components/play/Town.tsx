@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-three/fiber";
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
-import { Castle, SteepHill, Brayford, Campus, Airfield } from "./Landmarks";
+import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow } from "./Landmarks";
 import { TREES, BOUND, NORTH, CLOSE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
@@ -22,7 +22,8 @@ function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; c
 const SIZE = BOUND * 2 + 10;
 const DEPTH = BOUND - NORTH + 10; // north to south
 const MID_Z = (BOUND + NORTH) / 2;
-const NS_START = PLACES.find((p) => p.kind === "street")!.z + 20; // the north road runs up to the foot of Steep Hill
+const NS_START = PLACES.find((p) => p.kind === "street")!.z + 20; // the High Street runs north to the foot of Steep Hill
+const PAVED = 0xd9ccb2; // the pedestrianised High Street and Castle Square
 const NS_LEN = BOUND + 5 - NS_START;
 const NS_MID = (BOUND + 5 + NS_START) / 2;
 const SB_LEN = STADIUM_ROAD.x1 - STADIUM_ROAD.x0;
@@ -40,7 +41,9 @@ function Roads() {
     <>
       <Strip w={8.6} d={NS_LEN} color={0xe8dcc2} z={NS_MID} y={0.03} />
       <Flat w={SIZE} d={8.6} color={0xe8dcc2} y={0.01} />
-      <Strip w={6} d={NS_LEN} color={0x6b6573} z={NS_MID} y={0.04} />
+      {/* the road south of the roundabout; north of it the High Street is pedestrianised */}
+      <Strip w={6} d={BOUND + 5} color={0x6b6573} z={(BOUND + 5) / 2} y={0.04} />
+      <Strip w={8.6} d={-6 - NS_START} color={PAVED} z={(NS_START - 6) / 2} y={0.045} />
       <Flat w={SIZE} d={6} color={0x6b6573} />
       {/* the road east to Sincil Bank */}
       <Flat w={SB_LEN} d={8.6} color={0xe8dcc2} x={SB_MID} z={STADIUM_ROAD.z} y={0.01} />
@@ -49,10 +52,10 @@ function Roads() {
       <Flat w={AF_LEN} d={8.6} color={0xe8dcc2} x={AF_MID} z={AIRFIELD_ROAD.z} y={0.01} />
       <Flat w={AF_LEN} d={6} color={0x6b6573} x={AF_MID} z={AIRFIELD_ROAD.z} />
       {/* Castle Square, pedestrianised */}
-      <Strip w={CLOSE.x1 - CLOSE.x0} d={CLOSE.z1 - CLOSE.z0} color={0xd9ccb2} x={(CLOSE.x0 + CLOSE.x1) / 2} z={(CLOSE.z0 + CLOSE.z1) / 2} y={0.035} />
+      <Strip w={CLOSE.x1 - CLOSE.x0} d={CLOSE.z1 - CLOSE.z0} color={PAVED} x={(CLOSE.x0 + CLOSE.x1) / 2} z={(CLOSE.z0 + CLOSE.z1) / 2} y={0.035} />
       {dashes.map((i) => (
         <group key={i}>
-          {i > NS_START + 2 && Math.abs(i - STADIUM_ROAD.z) > 5 && (
+          {i > 0 && Math.abs(i - STADIUM_ROAD.z) > 5 && (
             <group position={[0, groundY(i), i]} rotation-x={groundTilt(i)}>
               <Flat w={0.25} d={1.8} color={0xffd23f} y={0.05} />
             </group>
@@ -379,12 +382,14 @@ const LAMPS: [number, number][] = [[-5.5, -5.5], [5.5, -5.5], [-5.5, 5.5], [5.5,
 for (let i = 20; i < BOUND; i += 18) {
   LAMPS.push([5.5, i], [-5.5, i], [i, -5.5], [i, 5.5], [-i, -5.5], [-i, 5.5]);
 }
-for (let i = -20; i > NS_START; i -= 18) LAMPS.push([5.5, i], [-5.5, i]); // up the north road
+for (let i = -27; i > NS_START; i -= 16) LAMPS.push([5.5, i], [-5.5, i]); // up the High Street
 
-// Paving slabs scattered over Castle Square.
+// Paving slabs scattered over Castle Square and up the High Street.
 const SLABS = (() => {
   const r = seeded(23);
-  return Array.from({ length: 90 }, () => [CLOSE.x0 + 1 + r() * (CLOSE.x1 - CLOSE.x0 - 2), CLOSE.z0 + 1 + r() * (CLOSE.z1 - CLOSE.z0 - 2)] as const);
+  const square = Array.from({ length: 90 }, () => [CLOSE.x0 + 1 + r() * (CLOSE.x1 - CLOSE.x0 - 2), CLOSE.z0 + 1 + r() * (CLOSE.z1 - CLOSE.z0 - 2)] as const);
+  const street = Array.from({ length: 40 }, () => [(r() - 0.5) * 7, NS_START + 1 + r() * (-8 - NS_START)] as const);
+  return [...square, ...street];
 })();
 
 // The farmers' market on Castle Square: striped stalls piled with fruit and veg.
@@ -639,6 +644,7 @@ export default function Town({ font }: { font: string }) {
       <Lamps />
       <Footpaths />
       <Market />
+      {signsReady && <Stonebow font={font} />}
       <Clouds reduce={reduce} />
       <Hunt reduce={reduce} />
       {night && <Ghost reduce={reduce} />}

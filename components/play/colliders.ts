@@ -80,6 +80,16 @@ export const CLOSE = { x0: -27, x1: 34, z0: hill.z0 - 12, z1: hill.z0 + 3 };
 export const STALL = { w: 4, d: 2.4 };
 export const STALLS = [-7, -1, 5, 11].map((x) => ({ x, z: CLOSE.z0 + 2.5 }));
 
+// The Stonebow: the old city gate with the Guildhall above it, spanning the pedestrianised
+// High Street partway between the roundabout and Steep Hill. Only its two piers are solid.
+export const STONEBOW = { z: -19, open: 3.5, half: 8, d: 4 };
+const STONEBOW_PIERS = [-1, 1].map((s) => ({
+  x0: s < 0 ? -STONEBOW.half : STONEBOW.open,
+  x1: s < 0 ? -STONEBOW.open : STONEBOW.half,
+  z0: STONEBOW.z - STONEBOW.d / 2,
+  z1: STONEBOW.z + STONEBOW.d / 2,
+}));
+
 // Two cannons guarding the castle gate, on the right as you face it (in the castle's own coordinates).
 export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: (castle.z1 - castle.z0) / 2 + 2.6 }));
 
@@ -111,14 +121,14 @@ const boxes = PLACES.filter((p) => p.kind !== "tank").flatMap((p) => {
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })));
+}).concat(STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS);
 
 const onRoad = (x: number, z: number) =>
   Math.abs(x) < 7 ||
   (Math.abs(z) < 7 && Math.abs(x) < BOUND) ||
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
-  [CLOSE, ...FOOTPATHS].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, ...STONEBOW_PIERS, ...FOOTPATHS].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   PLACES.some((p) => {
     const f = footprint(p);
