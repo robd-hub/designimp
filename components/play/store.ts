@@ -3,7 +3,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PLACES, type Place } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
-import { overRailway } from "./colliders";
+import { overRailway, RAIL } from "./colliders";
 
 type PlayState = {
   ready: boolean;
@@ -178,8 +178,11 @@ export function walkTo(p: Place) {
   s.endTalk();
   const door = DOORS.get(p.id)!;
   const route = overRailway([game.pos.x, game.pos.z], [door.x, door.z]).map(([x, z]) => new THREE.Vector3(x, 0, z));
-  // Sincil Bank and RAF Scampton sit down side roads: go by the junction rather than into the shops on the corner.
-  const sideRoad = (p.kind === "stadium" || p.kind === "airfield") && Math.abs((route.at(-1) ?? game.pos).z - door.z) > 4;
+  // Everything south of the railway lines the south road or sits down a side road off it: walk down the road
+  // and turn off level with the door, rather than cutting across the shops and houses on the way.
+  const from = route.at(-1) ?? game.pos;
+  const sideRoad = door.z > RAIL.z + RAIL.fence && Math.abs(door.x) > 7 && Math.abs(from.z - door.z) > 4;
+  if (sideRoad && Math.abs(from.x) > 7 && from.z > RAIL.z + RAIL.fence) route.push(new THREE.Vector3(0, 0, from.z));
   if (sideRoad) route.push(new THREE.Vector3(0, 0, door.z));
   walkRoute([...route, door.clone()]);
   game.pending = p;
@@ -264,3 +267,4 @@ export function placeEvents(p: Place) {
     },
   };
 }
+if (typeof window !== "undefined") (window as unknown as { __game: typeof game }).__game = game;

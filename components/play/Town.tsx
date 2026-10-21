@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow } from "./Landmarks";
-import { TREES, BOUND, NORTH, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, overRailway, seeded } from "./colliders";
+import { TREES, BOUND, NORTH, SOUTH, HOUSE, HOUSES, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, overRailway, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy, walkRoute } from "./store";
@@ -21,12 +21,12 @@ function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; c
 }
 
 const SIZE = BOUND * 2 + 10;
-const DEPTH = BOUND - NORTH + 10; // north to south
-const MID_Z = (BOUND + NORTH) / 2;
+const DEPTH = SOUTH - NORTH + 10; // north to south
+const MID_Z = (SOUTH + NORTH) / 2;
 const NS_START = PLACES.find((p) => p.kind === "street")!.z + 20; // the High Street runs north to the foot of Steep Hill
 const PAVED = 0xd9ccb2; // the pedestrianised High Street and Castle Square
-const NS_LEN = BOUND + 5 - NS_START;
-const NS_MID = (BOUND + 5 + NS_START) / 2;
+const NS_LEN = SOUTH + 5 - NS_START;
+const NS_MID = (SOUTH + 5 + NS_START) / 2;
 const SB_LEN = STADIUM_ROAD.x1 - STADIUM_ROAD.x0;
 const SB_MID = (STADIUM_ROAD.x0 + STADIUM_ROAD.x1) / 2;
 const AF_LEN = AIRFIELD_ROAD.x1 - AIRFIELD_ROAD.x0;
@@ -35,6 +35,9 @@ const AF_MID = (AIRFIELD_ROAD.x0 + AIRFIELD_ROAD.x1) / 2;
 function Roads() {
   const dashes: number[] = [];
   for (let i = -BOUND; i <= BOUND; i += 4) if (Math.abs(i) > 5) dashes.push(i);
+  // down the south road, clear of the level crossing and the junction with the side roads
+  const nsDashes: number[] = [];
+  for (let i = 8; i <= SOUTH; i += 4) if (Math.abs(i - STADIUM_ROAD.z) > 5 && Math.abs(i - RAIL.z) > RAIL.fence + 1) nsDashes.push(i);
   const sbDashes: number[] = [];
   for (let i = 8; i < STADIUM_ROAD.x1 - 2; i += 4) sbDashes.push(i);
   for (let i = -8; i > AIRFIELD_ROAD.x0 + 2; i -= 4) sbDashes.push(i);
@@ -43,7 +46,7 @@ function Roads() {
       <Strip w={8.6} d={NS_LEN} color={0xe8dcc2} z={NS_MID} y={0.03} />
       <Flat w={SIZE} d={8.6} color={0xe8dcc2} y={0.01} />
       {/* the road south of the roundabout; north of it the High Street is pedestrianised */}
-      <Strip w={6} d={BOUND + 5} color={0x6b6573} z={(BOUND + 5) / 2} y={0.04} />
+      <Strip w={6} d={SOUTH + 5} color={0x6b6573} z={(SOUTH + 5) / 2} y={0.04} />
       <Strip w={8.6} d={-6 - NS_START} color={PAVED} z={(NS_START - 6) / 2} y={0.045} />
       <Flat w={SIZE} d={6} color={0x6b6573} />
       {/* the road east to Sincil Bank */}
@@ -57,14 +60,10 @@ function Roads() {
       {/* and Bailgate, north from the square */}
       <Strip w={BAILGATE.x1 - BAILGATE.x0} d={BAILGATE.z1 - BAILGATE.z0} color={PAVED} z={(BAILGATE.z0 + BAILGATE.z1) / 2} y={0.035} />
       {dashes.map((i) => (
-        <group key={i}>
-          {i > 0 && Math.abs(i - STADIUM_ROAD.z) > 5 && Math.abs(i - RAIL.z) > RAIL.fence + 1 && (
-            <group position={[0, groundY(i), i]} rotation-x={groundTilt(i)}>
-              <Flat w={0.25} d={1.8} color={0xffd23f} y={0.05} />
-            </group>
-          )}
-          <Flat w={1.8} d={0.25} color={0xffd23f} x={i} y={0.05} />
-        </group>
+        <Flat key={i} w={1.8} d={0.25} color={0xffd23f} x={i} y={0.05} />
+      ))}
+      {nsDashes.map((i) => (
+        <Flat key={i} w={0.25} d={1.8} color={0xffd23f} z={i} y={0.05} />
       ))}
       {sbDashes.map((i) => (
         <Flat key={i} w={1.8} d={0.25} color={0xffd23f} x={i} z={STADIUM_ROAD.z} y={0.05} />
@@ -565,10 +564,9 @@ function Tree({ x, z, s }: { x: number; z: number; s: number }) {
 }
 
 const LAMPS: [number, number][] = [[-5.5, -5.5], [5.5, -5.5], [-5.5, 5.5], [5.5, 5.5]];
-for (let i = 20; i < BOUND; i += 18) {
-  if (Math.abs(i - RAIL.z) > 5) LAMPS.push([5.5, i], [-5.5, i]); // none on the level crossing
-  LAMPS.push([i, -5.5], [i, 5.5], [-i, -5.5], [-i, 5.5]);
-}
+for (let i = 20; i < BOUND; i += 18) LAMPS.push([i, -5.5], [i, 5.5], [-i, -5.5], [-i, 5.5]);
+// down the south road, none on the level crossing or across the junction with the side roads
+for (let i = 20; i < SOUTH; i += 18) if (Math.abs(i - RAIL.z) > 5 && Math.abs(i - STADIUM_ROAD.z) > 5) LAMPS.push([5.5, i], [-5.5, i]);
 for (let i = -27; i > NS_START; i -= 16) LAMPS.push([5.5, i], [-5.5, i]); // up the High Street
 
 // Paving slabs scattered over Castle Square, Bailgate and up the High Street.
@@ -652,6 +650,36 @@ function Footpaths() {
   );
 }
 
+// The houses down the south road: little two-up two-down cottages, front doors onto the road.
+const HOUSE_WALLS = [0xfff1d6, 0xffd9b8, 0xd6ecff, 0xe8f5c8, 0xffd6e4, 0xf2e2c4];
+const HOUSE_ROOFS = [0xb5523b, 0x5b6b7a, 0x8a5a33, 0x7a3b8f];
+const DOORS = [0x2b59c3, 0xe03a3e, 0x2f8f5b, 0x1a1320, 0xffb627];
+function Houses() {
+  const { w, d, h } = HOUSE;
+  return (
+    <>
+      {HOUSES.map((o) => {
+        const k = o.i + (o.side > 0 ? 3 : 0);
+        return (
+          <group key={`${o.side}${o.i}`} position={[o.x, 0, o.z]} rotation-y={(-o.side * Math.PI) / 2}>
+            <Part geometry={geo.box(w, h, d)} color={HOUSE_WALLS[k % HOUSE_WALLS.length]} outline={0.07} position-y={h / 2} />
+            <Ridge r={d / 1.6} len={w + 0.4} color={HOUSE_ROOFS[k % HOUSE_ROOFS.length]} position-y={h + (d / 1.6) * 0.275} rotation-y={Math.PI / 2} />
+            <Part geometry={geo.box(0.6, 1.4, 0.6)} color={0x9a5a44} outline={0.04} position={[w / 2 - 0.8, h + 1.6, -0.6]} />
+            <Part geometry={geo.box(1, 1.9, 0.2)} color={DOORS[k % DOORS.length]} outline={0.05} position={[-0.9, 0.95, d / 2 + 0.05]} />
+            {[
+              [1.1, 1.3],
+              [-1.1, 2.75],
+              [1.1, 2.75],
+            ].map(([x, y]) => (
+              <Part key={`${x}${y}`} geometry={geo.box(1, 0.9, 0.2)} color={WINDOW} outline={0.04} position={[x, y, d / 2 + 0.05]} />
+            ))}
+          </group>
+        );
+      })}
+    </>
+  );
+}
+
 function Lamps() {
   return (
     <>
@@ -668,7 +696,7 @@ function Lamps() {
 // Small seeded random so the sky is the same on every visit.
 const rand = seeded(7);
 const CLOUDS = Array.from({ length: 16 }, (_, i) => ({
-  pos: [-85 + i * 11, 16 + rand() * 6, NORTH - 4 + rand() * (BOUND - NORTH)] as const,
+  pos: [-85 + i * 11, 16 + rand() * 6, NORTH - 4 + rand() * (SOUTH - NORTH)] as const,
   puffs: Array.from({ length: 4 }, (_, j) => ({ r: Math.round((1.2 + rand() * 1.1) * 10) / 10, p: [j * 1.5 - 2.2, rand() * 0.8, rand() - 0.5] as const })),
 }));
 
@@ -699,8 +727,8 @@ const hillRand = seeded(4242);
 const HILLS = Array.from({ length: 28 }, (_, i) => {
   const a = (i / 28) * Math.PI * 2 + hillRand() * 0.2,
     r = 100 + hillRand() * 40;
-  // round an oval, since the town is longer north to south
-  return [Math.cos(a) * r, MID_Z + Math.sin(a) * r * 1.35, 18 + hillRand() * 22] as const;
+  // round an oval, since the town is much longer north to south
+  return [Math.cos(a) * r, MID_Z + Math.sin(a) * r * 1.8, 18 + hillRand() * 22] as const;
 });
 function Hills() {
   return (
@@ -831,6 +859,7 @@ export default function Town({ font }: { font: string }) {
         <Tree key={i} x={x} z={z} s={sc} />
       ))}
       <Townsfolk reduce={reduce} />
+      <Houses />
       <Lamps />
       <Footpaths />
       <Market />

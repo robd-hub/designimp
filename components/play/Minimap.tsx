@@ -2,14 +2,14 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BOUND, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, STADIUM_ROAD, STREET_ROW, streetHouses, toWorld } from "./colliders";
+import { AIRFIELD, AIRFIELD_ROAD, BOUND, SOUTH, HOUSE, HOUSES, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, STADIUM_ROAD, STREET_ROW, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
 import { game, walkTo } from "./store";
 import s from "./play.module.css";
 
 const V = BOUND + 4;
 const TOP = NORTH - 4,
-  H = BOUND + 4 - TOP;
+  H = SOUTH + 4 - TOP;
 
 // A little map of the town. Tap a building to walk there.
 export default function Minimap() {
@@ -35,7 +35,7 @@ export default function Minimap() {
       </defs>
       <rect x={-V} y={TOP} width={V * 2} height={H} fill="url(#minimap-hill)" />
       <rect x={-V} y={RAIL.z - RAIL.gap - 1.5} width={V * 2} height={RAIL.gap * 2 + 3} fill="#a39a8f" />
-      <rect x={-3} y={0} width={6} height={BOUND + 4} fill="#6b6573" />
+      <rect x={-3} y={0} width={6} height={SOUTH + 4} fill="#6b6573" />
       {[-1, 1].map((side) => (
         <rect key={side} x={-V} y={RAIL.z + side * RAIL.gap - 0.6} width={V * 2} height={1.2} fill="#55505e" pointerEvents="none" />
       ))}
@@ -76,6 +76,9 @@ export default function Minimap() {
           <rect key={`${p.id}${h.side}${h.i}`} x={p.x + h.x - STREET_ROW / 2} y={p.z + h.z - h.len / 2} width={STREET_ROW} height={h.len} fill={hex(p.roof)} pointerEvents="none" />
         )),
       )}
+      {HOUSES.map((h) => (
+        <rect key={`${h.side}${h.i}`} x={h.x - HOUSE.d / 2} y={h.z - HOUSE.w / 2} width={HOUSE.d} height={HOUSE.w} fill="#b5523b" pointerEvents="none" />
+      ))}
       {PLACES.filter((p) => p.kind === "airfield").flatMap((p) =>
         (["runway", "apron", "hangar"] as const).map((k) => {
           const r = toWorld(p, AIRFIELD[k]);
