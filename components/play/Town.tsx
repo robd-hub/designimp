@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow } from "./Landmarks";
-import { TREES, BOUND, NORTH, SOUTH, HOUSE, HOUSES, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, overRailway, seeded } from "./colliders";
+import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, overRailway, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy, walkRoute } from "./store";
@@ -21,7 +21,7 @@ function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; c
   return <mesh geometry={geo.box(w, 0.04, d)} material={toon(color)} position={[x, y, z]} receiveShadow />;
 }
 
-const SIZE = BOUND * 2 + 10;
+const SIZE = BOUND + EAST + 10;
 const DEPTH = SOUTH - NORTH + 10; // north to south
 const MID_Z = (SOUTH + NORTH) / 2;
 const NS_START = PLACES.find((p) => p.kind === "street")!.z + 20; // the High Street runs north to the foot of Steep Hill
@@ -35,7 +35,7 @@ const AF_MID = (AIRFIELD_ROAD.x0 + AIRFIELD_ROAD.x1) / 2;
 
 function Roads() {
   const dashes: number[] = [];
-  for (let i = -BOUND; i <= BOUND; i += 4) if (Math.abs(i) > 5) dashes.push(i);
+  for (let i = -BOUND; i <= EAST; i += 4) if (Math.abs(i) > 5) dashes.push(i);
   // down the south road, clear of the level crossing and the junction with the side roads
   const nsDashes: number[] = [];
   for (let i = 8; i <= SOUTH; i += 4) if (Math.abs(i - STADIUM_ROAD.z) > 5 && Math.abs(i - RAIL.z) > RAIL.fence + 1) nsDashes.push(i);
@@ -45,11 +45,11 @@ function Roads() {
   return (
     <>
       <Strip w={8.6} d={NS_LEN} color={0xe8dcc2} z={NS_MID} y={0.03} />
-      <Flat w={SIZE} d={8.6} color={0xe8dcc2} y={0.01} />
+      <Flat w={SIZE} d={8.6} color={0xe8dcc2} x={MID_X} y={0.01} />
       {/* the road south of the roundabout; north of it the High Street is pedestrianised */}
       <Strip w={6} d={SOUTH + 5} color={0x6b6573} z={(SOUTH + 5) / 2} y={0.04} />
       <Strip w={8.6} d={-6 - NS_START} color={PAVED} z={(NS_START - 6) / 2} y={0.045} />
-      <Flat w={SIZE} d={6} color={0x6b6573} />
+      <Flat w={SIZE} d={6} color={0x6b6573} x={MID_X} />
       {/* the road east to Sincil Bank */}
       <Flat w={SB_LEN} d={8.6} color={0xe8dcc2} x={SB_MID} z={STADIUM_ROAD.z} y={0.01} />
       <Flat w={SB_LEN} d={6} color={0x6b6573} x={SB_MID} z={STADIUM_ROAD.z} />
@@ -323,9 +323,9 @@ function Cathedral({ p, font }: { p: Place; font: string }) {
   const front = p.d / 2,
     back = -p.d / 2;
   const SCREEN = { w: 19, h: 15 };
-  const cross = back + 14.5; // main crossing, under the central tower
-  const east = back + 5.75; // east transept
-  const chapter = { x: -9.6, z: back + 3.6, r: 2.3 };
+  const cross = back + 30; // main crossing, under the central tower, with the long choir east of it
+  const east = back + 13; // east transept, with the Angel Choir beyond it
+  const chapter = { x: -9.6, z: east - 2.15, r: 2.3 };
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       {/* a stone apron the whole cathedral stands on, levelling it on the brow of the hill */}
@@ -565,7 +565,8 @@ function Tree({ x, z, s }: { x: number; z: number; s: number }) {
 }
 
 const LAMPS: [number, number][] = [[-5.5, -5.5], [5.5, -5.5], [-5.5, 5.5], [5.5, 5.5]];
-for (let i = 20; i < BOUND; i += 18) LAMPS.push([i, -5.5], [i, 5.5], [-i, -5.5], [-i, 5.5]);
+for (let i = 20; i < BOUND; i += 18) LAMPS.push([-i, -5.5], [-i, 5.5]);
+for (let i = 20; i < EAST; i += 18) LAMPS.push([i, -5.5], [i, 5.5]);
 // down the south road, none on the level crossing or across the junction with the side roads
 for (let i = 20; i < SOUTH; i += 18) if (Math.abs(i - RAIL.z) > 5 && Math.abs(i - STADIUM_ROAD.z) > 5) LAMPS.push([5.5, i], [-5.5, i]);
 for (let i = -27; i > NS_START; i -= 16) LAMPS.push([5.5, i], [-5.5, i]); // up the High Street
@@ -728,8 +729,10 @@ const hillRand = seeded(4242);
 const HILLS = Array.from({ length: 28 }, (_, i) => {
   const a = (i / 28) * Math.PI * 2 + hillRand() * 0.2,
     r = 100 + hillRand() * 40;
-  // round an oval, since the town is much longer north to south
-  return [Math.cos(a) * r, MID_Z + Math.sin(a) * r * 1.8, 18 + hillRand() * 22] as const;
+  // round an oval, since the town is much longer north to south, pushed out further east where
+  // the map runs on past the cathedral's east end
+  const c = Math.cos(a);
+  return [c * r + Math.max(0, c) * 34, MID_Z + Math.sin(a) * r * 1.8, 18 + hillRand() * 22] as const;
 });
 function Hills() {
   return (
@@ -842,7 +845,7 @@ export default function Town({ font }: { font: string }) {
       {street && <Hills />}
       <hemisphereLight args={night ? [0x6a7bd6, 0x2a3350, 1.1] : [0xffffff, 0x88aa66, 2]} />
       <Sun night={night} />
-      <Strip w={SIZE} d={DEPTH} color={0x6fd36b} z={MID_Z} onClick={onGround} />
+      <Strip w={SIZE} d={DEPTH} color={0x6fd36b} x={MID_X} z={MID_Z} onClick={onGround} />
       <Roads />
       <Fountain reduce={reduce} />
       <Railway reduce={reduce} />

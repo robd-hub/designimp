@@ -493,11 +493,12 @@ export const PLACES: Place[] = [
     kicker: "Where the name comes from",
     nav: "Cathedral",
     // at the east end of Castle Square, its west front facing back across the city as in real life.
-    // w spans the main transept and d runs from the west front to the east end.
-    x: 54,
+    // w spans the main transept and d runs from the west front to the east end, near the real
+    // building's proportions: about three times as long as its west front is wide.
+    x: 65,
     z: -101,
     w: 26,
-    d: 36,
+    d: 58,
     h: 10,
     wall: 0xd9cbb0,
     roof: 0x5b6b7a,
