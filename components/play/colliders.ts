@@ -1,6 +1,7 @@
 import { PLACES, footprint } from "./places";
 
-export const BOUND = 76;
+export const BOUND = 76; // east, west and south edges of the map
+export const NORTH = -138; // the map runs further north, up the hill to the cathedral and castle
 
 // Small seeded random so the town is laid out the same on every visit.
 export function seeded(seed: number) {
@@ -9,7 +10,7 @@ export function seeded(seed: number) {
 
 export const STREET_ROW = 3.6; // depth of the house rows either side of Steep Hill
 export const STREET_HOUSES = 7;
-export const STREET_GAP = 4; // house left out on both sides: a little square by the Post Office and Town Hall
+export const STREET_GAP = 4; // house left out on both sides: a little square halfway up the hill
 
 // Steep Hill's houses, bottom of the hill first, in the street's own coordinates.
 export function streetHouses(p: { w: number; d: number }) {
@@ -58,7 +59,7 @@ const airfield = footprint(PLACES.find((p) => p.kind === "airfield")!);
 export const AIRFIELD_ROAD = { z: (airfield.z0 + airfield.z1) / 2, x0: airfield.x1, x1: 0 };
 
 // Footpaths in world coordinates: one runs north from the main road past the university and
-// the Brayford's east quay, then turns east to the castle gate.
+// the Brayford's east quay, climbs the hill, then turns east to the castle gate.
 const castle = footprint(PLACES.find((p) => p.kind === "castle")!);
 const PATH_X = -29;
 export const FOOTPATHS = [
@@ -98,12 +99,16 @@ const boxes = PLACES.filter((p) => p.kind !== "tank").flatMap((p) => {
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
 });
 
+// The cathedral close at the top of Steep Hill, between the cathedral and the castle.
+const hill = footprint(PLACES.find((p) => p.kind === "street")!);
+export const CLOSE = { x0: -13, x1: 13, z0: hill.z0 - 5, z1: hill.z0 + 3 };
+
 const onRoad = (x: number, z: number) =>
   Math.abs(x) < 7 ||
   (Math.abs(z) < 7 && Math.abs(x) < BOUND) ||
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
-  FOOTPATHS.some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, ...FOOTPATHS].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   PLACES.some((p) => {
     const f = footprint(p);
@@ -118,9 +123,9 @@ const nearBuilding = (x: number, z: number, pad: number) =>
 export const TREES: [number, number, number][] = (() => {
   const rand = seeded(11);
   const out: [number, number, number][] = [];
-  for (let tries = 0; out.length < 70 && tries < 3000; tries++) {
+  for (let tries = 0; out.length < 95 && tries < 4000; tries++) {
     const x = (rand() * 2 - 1) * (BOUND - 3),
-      z = (rand() * 2 - 1) * (BOUND - 3);
+      z = NORTH + 3 + rand() * (BOUND - NORTH - 6);
     if (onRoad(x, z) || nearBuilding(x, z, 3) || Math.hypot(x, z) < 10) continue;
     if (out.some(([ox, oz]) => Math.hypot(ox - x, oz - z) < 5)) continue;
     out.push([x, z, 0.85 + (out.length % 4) * 0.12]);
@@ -131,7 +136,7 @@ export const TREES: [number, number, number][] = (() => {
 const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));
 
 export function blocked(x: number, z: number) {
-  if (Math.abs(x) > BOUND || Math.abs(z) > BOUND) return true;
+  if (Math.abs(x) > BOUND || z > BOUND || z < NORTH) return true;
   if (Math.hypot(x, z) < 4.3) return true; // fountain
   for (const c of circles) if (Math.hypot(x - c.cx, z - c.cz) < c.r) return true;
   for (const b of boxes) if (x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1) return true;

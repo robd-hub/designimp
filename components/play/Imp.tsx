@@ -5,6 +5,7 @@ import { Part, geo, INK } from "./toon";
 import { game, usePlay, nearestPlace, nearestNpc, DOORS } from "./store";
 import { npcPos } from "./npcs";
 import { blocked } from "./colliders";
+import { groundY, groundTilt } from "./terrain";
 
 const SKIN = 0xc8973a; // Design Imp gold
 const BELLY = 0xf2c879;
@@ -124,9 +125,12 @@ export default function Imp({ reduce }: { reduce: boolean }) {
     armR.current.rotation.x = sw * 0.8;
     const t = clock.elapsedTime;
     tail.current.rotation.y = reduce ? 0 : Math.sin(t * 3) * 0.35;
-    body.current.position.set(pos.x, moving ? Math.abs(Math.sin(walkT.current)) * 0.12 : 0, pos.z);
+    // game.pos stays on the flat map; the imp is drawn up on the hill wherever the ground rises
+    const gy = groundY(pos.z);
+    body.current.position.set(pos.x, gy + (moving ? Math.abs(Math.sin(walkT.current)) * 0.12 : 0), pos.z);
     body.current.rotation.y = game.face;
-    blob.current.position.set(pos.x, 0.06, pos.z);
+    blob.current.position.set(pos.x, gy + 0.08, pos.z);
+    blob.current.rotation.x = -Math.PI / 2 + groundTilt(pos.z);
 
     if (talk && npcPos.get(talk.npc.id)!.distanceTo(pos) > 4) endTalk();
     const nn = open ? null : nearestNpc();
@@ -145,15 +149,16 @@ export default function Imp({ reduce }: { reduce: boolean }) {
       // Eyes just in front of the imp's face, looking where it faces.
       const fx = Math.sin(game.face),
         fz = Math.cos(game.face);
-      want.set(pos.x + fx * 0.9, 2.3, pos.z + fz * 0.9);
+      want.set(pos.x + fx * 0.9, gy + 2.3, pos.z + fz * 0.9);
       camera.position.copy(want);
       look.set(want.x + fx, want.y + Math.tan(game.pitch), want.z + fz);
       camera.lookAt(look);
       return;
     }
     want.set(0, 15, 15).multiplyScalar(game.zoom * (size.width < 600 ? 1.25 : 1)).add(pos);
+    want.y += gy;
     camera.position.lerp(want, reduce ? 1 : Math.min(1, dt * 5));
-    camera.lookAt(pos.x, 1.2, pos.z);
+    camera.lookAt(pos.x, gy + 1.2, pos.z);
   });
 
   return (

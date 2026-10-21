@@ -323,13 +323,14 @@
   position: fixed;
   right: calc(14px + env(safe-area-inset-right, 0px));
   bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-  width: 150px;
-  height: 150px;
+  /* taller than wide: the town runs further north, up the hill */
+  width: 130px;
+  height: 182px;
   padding: 0;
   overflow: hidden;
   box-sizing: border-box;
 }
-.minimap rect[fill]:not(:first-child) {
+.minimap rect[fill]:not(:first-of-type) {
   cursor: pointer;
 }
 
@@ -496,8 +497,8 @@
   .minimap {
     top: calc(84px + env(safe-area-inset-top, 0px));
     bottom: auto;
-    width: 96px;
-    height: 96px;
+    width: 84px;
+    height: 118px;
   }
   .places {
     max-height: 40vh;

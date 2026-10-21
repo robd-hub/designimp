@@ -4,6 +4,7 @@ import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { Part, geo, INK } from "./toon";
 import { NPCS, npcPos, type Npc } from "./npcs";
 import { game, usePlay, walkToNpc } from "./store";
+import { groundY } from "./terrain";
 
 const tmp = new THREE.Vector3();
 
@@ -48,7 +49,7 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
     // wave hello while chatting
     armR.current.rotation.x = talking ? Math.PI : sw * 0.8;
     armR.current.rotation.z = talking && !reduce ? Math.sin(clock.elapsedTime * 8) * 0.35 : 0;
-    body.current.position.set(pos.x, moving ? Math.abs(Math.sin(s.walkT)) * 0.08 : 0, pos.z);
+    body.current.position.set(pos.x, groundY(pos.z) + (moving ? Math.abs(Math.sin(s.walkT)) * 0.08 : 0), pos.z);
     body.current.rotation.y = s.face;
   });
 
