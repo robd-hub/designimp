@@ -63,7 +63,17 @@ export const AIRFIELD_ROAD = { z: (airfield.z0 + airfield.z1) / 2, x0: airfield.
 const castlePlace = PLACES.find((p) => p.kind === "castle")!;
 const castle = footprint(castlePlace);
 const PATH_X = castle.x1 + 1;
-export const FOOTPATHS = [{ x0: PATH_X - 1, x1: PATH_X + 1, z0: castlePlace.z - 1, z1: -4.3 }];
+// Another runs right round the cathedral, crossing its west front where it meets Castle Square.
+const cathedral = footprint(PLACES.find((p) => p.kind === "cathedral")!);
+const PRECINCT = { x0: cathedral.x0 - 3, x1: cathedral.x1 + 3, z0: cathedral.z0 - 3, z1: cathedral.z1 + 3, w: 2.4 };
+const P = PRECINCT;
+export const FOOTPATHS = [
+  { x0: PATH_X - 1, x1: PATH_X + 1, z0: castlePlace.z - 1, z1: -4.3 },
+  { x0: P.x0, x1: P.x1, z0: P.z0, z1: P.z0 + P.w },
+  { x0: P.x0, x1: P.x1, z0: P.z1 - P.w, z1: P.z1 },
+  { x0: P.x0, x1: P.x0 + P.w, z0: P.z0 + P.w, z1: P.z1 - P.w },
+  { x0: P.x1 - P.w, x1: P.x1, z0: P.z0 + P.w, z1: P.z1 - P.w },
+];
 // The walk along it, from the main road to the castle gate.
 export const FOOTPATH_ROUTE: [number, number][] = [
   [PATH_X, -5],
@@ -73,7 +83,6 @@ export const FOOTPATH_ROUTE: [number, number][] = [
 // Castle Square: a pedestrianised square at the top of Steep Hill, from the castle gate
 // across to the cathedral, with a row of farmers' market stalls along its north side, either side of the way into Bailgate.
 const hill = footprint(PLACES.find((p) => p.kind === "street")!);
-const cathedral = footprint(PLACES.find((p) => p.kind === "cathedral")!);
 export const CLOSE = { x0: castle.x1 - 1, x1: cathedral.x0 + 1, z0: hill.z0 - 12, z1: hill.z0 + 3 };
 // Bailgate, pedestrianised too, running north from the square between the castle and the cathedral.
 export const BAILGATE = { x0: -4.3, x1: 4.3, z0: NORTH + 3, z1: CLOSE.z0 + 0.5 };

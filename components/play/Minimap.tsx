@@ -48,8 +48,10 @@ export default function Minimap() {
       {PLACES.filter((p) => p.kind !== "water").map((p) => {
         const f = footprint(p);
         return (
+          <g key={p.id}>
+            {/* the path right round the cathedral */}
+            {p.kind === "cathedral" && <rect x={f.x0 - 3} y={f.z0 - 3} width={f.x1 - f.x0 + 6} height={f.z1 - f.z0 + 6} fill="#e8dcc2" pointerEvents="none" />}
           <rect
-            key={p.id}
             x={f.x0}
             y={f.z0}
             width={f.x1 - f.x0}
@@ -62,6 +64,7 @@ export default function Minimap() {
           >
             <title>{p.name}</title>
           </rect>
+          </g>
         );
       })}
       {PLACES.filter((p) => p.kind === "street").flatMap((p) =>

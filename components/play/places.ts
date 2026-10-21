@@ -370,11 +370,12 @@ export const PLACES: Place[] = [
     name: "Lincoln Cathedral",
     kicker: "Where the name comes from",
     nav: "Cathedral",
-    // at the east end of Castle Square, its west front facing back across the city as in real life
-    x: 51,
+    // at the east end of Castle Square, its west front facing back across the city as in real life.
+    // w spans the main transept and d runs from the west front to the east end.
+    x: 54,
     z: -101,
-    w: 14,
-    d: 30,
+    w: 26,
+    d: 36,
     h: 10,
     wall: 0xd9cbb0,
     roof: 0x5b6b7a,
