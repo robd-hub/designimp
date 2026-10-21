@@ -323,9 +323,9 @@
   position: fixed;
   right: calc(14px + env(safe-area-inset-right, 0px));
   bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-  /* taller than wide: the town runs further north, up the hill */
-  width: 130px;
-  height: 182px;
+  /* about twice as tall as wide: the town runs north up the hill and a long way down the south road */
+  width: 112px;
+  height: 220px;
   padding: 0;
   overflow: hidden;
   box-sizing: border-box;
@@ -336,7 +336,7 @@
 
 .zoom {
   position: fixed;
-  right: calc(176px + env(safe-area-inset-right, 0px));
+  right: calc(158px + env(safe-area-inset-right, 0px));
   bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
@@ -497,14 +497,14 @@
   .minimap {
     top: calc(84px + env(safe-area-inset-top, 0px));
     bottom: auto;
-    width: 84px;
-    height: 118px;
+    width: 70px;
+    height: 137px;
   }
   .places {
     max-height: 40vh;
   }
   .zoom {
-    top: calc(190px + env(safe-area-inset-top, 0px));
+    top: calc(229px + env(safe-area-inset-top, 0px));
     bottom: auto;
     right: calc(14px + env(safe-area-inset-right, 0px));
     flex-direction: row;

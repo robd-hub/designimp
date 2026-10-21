@@ -95,7 +95,7 @@ export const NPCS: Npc[] = [
     legs: 0x2b2633,
     skin: 0x6b4a32,
     hat: 0xff5a3c,
-    path: [[-3.7, 8], [-3.7, 64], [3.7, 64], [3.7, 8]],
+    path: [[-3.7, 8], [-3.7, 124], [3.7, 124], [3.7, 8]],
     speed: 2.4,
     lines: [
       "88% of people won't come back after a bad experience on a website. Harsh, but fair.",

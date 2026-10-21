@@ -1,6 +1,7 @@
 import { PLACES, footprint } from "./places";
 
-export const BOUND = 76; // east, west and south edges of the map
+export const BOUND = 76; // east and west edges of the map
+export const SOUTH = 168; // the south road runs a long way down, past rows of shops and houses to Sincil Bank and RAF Scampton
 export const NORTH = -138; // the map runs further north, up the hill to the cathedral and castle
 
 // Small seeded random so the town is laid out the same on every visit.
@@ -21,6 +22,14 @@ export function streetHouses(p: { w: number; d: number }) {
     ),
   );
 }
+
+// The houses lining the south road between the railway and the side roads to Sincil Bank and
+// RAF Scampton, in short terraces either side with to-let plots between them. Each faces the road.
+export const HOUSE = { w: 5, d: 5, h: 3.4 };
+export const HOUSE_X = 12.5;
+export const HOUSES = [-1, 1].flatMap((side) =>
+  [58, 64, 70, 76, 98, 104, 110, 116].map((z, i) => ({ x: side * HOUSE_X, z, side, i })),
+);
 
 // Brayford in its own coordinates: the pool, the Fossdyke running off west to the edge of
 // the map, and the row of waterfront buildings along the far quay.
@@ -168,7 +177,7 @@ const boxes = PLACES.filter((p) => p.kind !== "tank" && p.kind !== "gate").flatM
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS, RAIL_FENCES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS, RAIL_FENCES);
 
 const onRoad = (x: number, z: number) =>
   Math.abs(x) < 7 ||
@@ -178,6 +187,7 @@ const onRoad = (x: number, z: number) =>
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
   [CLOSE, BAILGATE, ...STONEBOW_PIERS, ...FOOTPATHS].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
+  HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   PLACES.some((p) => {
     const f = footprint(p);
     const door = p.kind === "lot" ? 0 : 4; // keep the approach to each entrance clear
@@ -191,9 +201,9 @@ const nearBuilding = (x: number, z: number, pad: number) =>
 export const TREES: [number, number, number][] = (() => {
   const rand = seeded(11);
   const out: [number, number, number][] = [];
-  for (let tries = 0; out.length < 95 && tries < 4000; tries++) {
+  for (let tries = 0; out.length < 140 && tries < 6000; tries++) {
     const x = (rand() * 2 - 1) * (BOUND - 3),
-      z = NORTH + 3 + rand() * (BOUND - NORTH - 6);
+      z = NORTH + 3 + rand() * (SOUTH - NORTH - 6);
     if (onRoad(x, z) || nearBuilding(x, z, 3) || Math.hypot(x, z) < 10) continue;
     if (out.some(([ox, oz]) => Math.hypot(ox - x, oz - z) < 5)) continue;
     out.push([x, z, 0.85 + (out.length % 4) * 0.12]);
@@ -206,7 +216,7 @@ const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));
 // barrier: whether the level crossing counts as blocked while its barriers are down.
 export function blocked(x: number, z: number, barrier = true) {
   if (barrier && atBarrier(x, z)) return true;
-  if (Math.abs(x) > BOUND || z > BOUND || z < NORTH) return true;
+  if (Math.abs(x) > BOUND || z > SOUTH || z < NORTH) return true;
   if (Math.hypot(x, z) < 4.3) return true; // fountain
   for (const c of circles) if (Math.hypot(x - c.cx, z - c.cz) < c.r) return true;
   for (const b of boxes) if (x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1) return true;
