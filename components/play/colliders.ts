@@ -76,13 +76,16 @@ export const FOOTPATH_ROUTE: [number, number][] = [
 // Castle Square: a pedestrianised square at the top of Steep Hill, from the castle gate
 // across to the cathedral, with a row of farmers' market stalls along its north side.
 const hill = footprint(PLACES.find((p) => p.kind === "street")!);
-export const CLOSE = { x0: -27, x1: 34, z0: hill.z0 - 12, z1: hill.z0 + 3 };
+const cathedral = footprint(PLACES.find((p) => p.kind === "cathedral")!);
+export const CLOSE = { x0: -27, x1: cathedral.x0 + 1, z0: hill.z0 - 12, z1: hill.z0 + 3 };
 export const STALL = { w: 4, d: 2.4 };
 export const STALLS = [-7, -1, 5, 11].map((x) => ({ x, z: CLOSE.z0 + 2.5 }));
 
 // The Stonebow: the old city gate with the Guildhall above it, spanning the pedestrianised
 // High Street partway between the roundabout and Steep Hill. Only its two piers are solid.
-export const STONEBOW = { z: -19, open: 3.5, half: 8, d: 4 };
+const gate = PLACES.find((p) => p.kind === "gate")!;
+// It's modelled 16 wide and scaled down to the place's width, so it sits in proportion with the shops.
+export const STONEBOW = { z: gate.z, scale: gate.w / 16, open: (3.5 * gate.w) / 16, half: gate.w / 2, d: gate.d };
 const STONEBOW_PIERS = [-1, 1].map((s) => ({
   x0: s < 0 ? -STONEBOW.half : STONEBOW.open,
   x1: s < 0 ? -STONEBOW.open : STONEBOW.half,
@@ -93,12 +96,16 @@ const STONEBOW_PIERS = [-1, 1].map((s) => ({
 // Two cannons guarding the castle gate, on the right as you face it (in the castle's own coordinates).
 export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: (castle.z1 - castle.z0) / 2 + 2.6 }));
 
-const boxes = PLACES.filter((p) => p.kind !== "tank").flatMap((p) => {
+const boxes = PLACES.filter((p) => p.kind !== "tank" && p.kind !== "gate").flatMap((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
     // only the signboard at the back of the plot is solid
-    const zs = p.z + Math.cos(p.rot) * (-p.d / 2 + 1);
-    return [{ x0: p.x - 1.6, x1: p.x + 1.6, z0: zs - 0.6, z1: zs + 0.6 }];
+    const back = -p.d / 2 + 1,
+      side = Math.abs(Math.sin(p.rot)) > 0.5;
+    const xs = p.x + Math.sin(p.rot) * back,
+      zs = p.z + Math.cos(p.rot) * back,
+      [hx, hz] = side ? [0.6, 1.6] : [1.6, 0.6];
+    return [{ x0: xs - hx, x1: xs + hx, z0: zs - hz, z1: zs + hz }];
   }
   if (p.kind === "street") {
     // two rows of houses with a walkable lane between them

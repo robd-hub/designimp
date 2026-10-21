@@ -630,7 +630,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
@@ -644,7 +644,6 @@ export default function Town({ font }: { font: string }) {
       <Lamps />
       <Footpaths />
       <Market />
-      {signsReady && <Stonebow font={font} />}
       <Clouds reduce={reduce} />
       <Hunt reduce={reduce} />
       {night && <Ghost reduce={reduce} />}
