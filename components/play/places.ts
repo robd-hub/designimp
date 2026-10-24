@@ -616,7 +616,7 @@ export const PLACES: Place[] = [
     kicker: "Gateway on the High Street",
     nav: "Stonebow",
     x: 0,
-    z: -19,
+    z: -30,
     w: 11.2,
     d: 2.8,
     h: 7,
