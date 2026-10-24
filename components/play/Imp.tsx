@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { Part, geo, INK } from "./toon";
 import { game, usePlay, nearestPlace, nearestNpc } from "./store";
 import { npcPos } from "./npcs";
-import { atBarrier, blocked, overRailway } from "./colliders";
+import { atBarrier, blocked, crossings } from "./colliders";
 import { groundY, groundTilt } from "./terrain";
 
 const SKIN = 0xc8973a; // Design Imp gold
@@ -59,9 +59,9 @@ export default function Imp({ reduce }: { reduce: boolean }) {
     const pos = game.pos;
     if (!game.target) game.via = [];
     if (game.pendingNpc) {
-      // townsfolk keep walking, so keep chasing them until we're close, over the level crossing if need be
+      // townsfolk keep walking, so keep chasing them until we're close, over a bridge or the level crossing if need be
       const npc = npcPos.get(game.pendingNpc.id)!;
-      const hop = overRailway([pos.x, pos.z], [npc.x, npc.z]).find(([x, z]) => Math.hypot(x - pos.x, z - pos.z) > 0.5);
+      const hop = crossings([pos.x, pos.z], [npc.x, npc.z]).find(([x, z]) => Math.hypot(x - pos.x, z - pos.z) > 0.5);
       game.target = hop ? new THREE.Vector3(hop[0], 0, hop[1]) : npc.clone();
       if (npc.distanceTo(pos) < 1.8) startTalk(game.pendingNpc);
     }

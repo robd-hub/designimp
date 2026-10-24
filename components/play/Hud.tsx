@@ -207,7 +207,7 @@ export default function Hud() {
         !open && (
           <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
             <kbd>E</kbd>
-            <span>{near.kind === "lot" || near.kind === "tank" || near.kind === "gate" ? "Look at" : "Enter"} {near.name}</span>
+            <span>{["lot", "tank", "gate", "bridge", "arch", "oldhouse"].includes(near.kind ?? "shop") ? "Look at" : "Enter"} {near.name}</span>
           </button>
         )
       )}
@@ -243,14 +243,16 @@ export default function Hud() {
               </ul>
             )}
             {open.kind === "lot" && <PlayLeadForm lot={open.id} />}
-            {open.link.external ? (
+            {open.link?.external ? (
               <a className={s.cta} href={open.link.href} target="_blank" rel="noopener noreferrer">
                 {open.link.label} ↗
               </a>
             ) : (
-              <Link className={s.cta} href={open.link.href}>
-                {open.link.label} →
-              </Link>
+              open.link && (
+                <Link className={s.cta} href={open.link.href}>
+                  {open.link.label} →
+                </Link>
+              )
             )}
           </div>
         )}

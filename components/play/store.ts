@@ -3,7 +3,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PLACES, type Place } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
-import { overRailway, RAIL } from "./colliders";
+import { crossings, RAIL } from "./colliders";
 
 type PlayState = {
   ready: boolean;
@@ -177,7 +177,7 @@ export function walkTo(p: Place) {
   s.close();
   s.endTalk();
   const door = DOORS.get(p.id)!;
-  const route = overRailway([game.pos.x, game.pos.z], [door.x, door.z]).map(([x, z]) => new THREE.Vector3(x, 0, z));
+  const route = crossings([game.pos.x, game.pos.z], [door.x, door.z]).map(([x, z]) => new THREE.Vector3(x, 0, z));
   // Everything south of the railway lines the south road or sits down a side road off it: walk down the road
   // and turn off level with the door, rather than cutting across the shops and houses on the way.
   const from = route.at(-1) ?? game.pos;

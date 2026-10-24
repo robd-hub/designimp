@@ -5,8 +5,8 @@ import * as THREE from "three";
 import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-three/fiber";
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
-import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow } from "./Landmarks";
-import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, ROUNDABOUT, overRailway, seeded } from "./colliders";
+import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow, HighBridge, NewportArch, OldHouse, River } from "./Landmarks";
+import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, crossings, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy, walkRoute } from "./store";
@@ -651,7 +651,10 @@ function Footpaths() {
           raycast={() => null}
         />
       ))}
-      {Array.from({ length: Math.floor((run.z1 - run.z0) / 16) }, (_, i) => -12 - i * 16).map((z) => (
+      {/* lamps along the path, leaving out the one that would stand on the river bank by the footbridge */}
+      {Array.from({ length: Math.floor((run.z1 - run.z0) / 16) }, (_, i) => -12 - i * 16)
+        .filter((z) => Math.abs(z - RIVER.z) > RIVER.half + 2)
+        .map((z) => (
         <group key={z} position={[run.x1 + 0.8, groundY(z), z]}>
           <Part geometry={geo.cyl(0.08, 0.1, 2.6, 8)} color={0x2b2633} outline={0.03} position-y={1.3} />
           <Part geometry={geo.sphere(0.24)} color={LAMP} outline={0.04} position-y={2.7} />
@@ -830,7 +833,7 @@ export default function Town({ font }: { font: string }) {
     usePlay.getState().close();
     usePlay.getState().endTalk();
     const to = e.point.clone().setY(0);
-    walkRoute([...overRailway([game.pos.x, game.pos.z], [to.x, to.z]).map(([x, z]) => new THREE.Vector3(x, 0, z)), to]);
+    walkRoute([...crossings([game.pos.x, game.pos.z], [to.x, to.z]).map(([x, z]) => new THREE.Vector3(x, 0, z)), to]);
     game.pending = null;
     game.pendingNpc = null;
   };
@@ -859,10 +862,11 @@ export default function Town({ font }: { font: string }) {
       <Roundabout reduce={reduce} />
       <Cars reduce={reduce} />
       <Railway reduce={reduce} />
+      <River />
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
