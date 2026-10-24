@@ -4,7 +4,7 @@ export type PlaceItem = { title: string; detail: string };
 
 export type Place = {
   id: string;
-  // defaults to shop; tank is drawn by the fountain; lots open the mockup form
+  // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
   kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station";
   name: string; // shown on the building sign
   kicker: string;
@@ -540,7 +540,8 @@ export const PLACES: Place[] = [
     name: "Lincoln Tank Memorial",
     kicker: "Birthplace of the tank",
     nav: "Tank",
-    x: 0,
+    // on its roundabout out west, past the university, as the real one sits south-west of the Brayford
+    x: -62,
     z: 0,
     w: 6.4,
     d: 6.4,
@@ -548,7 +549,7 @@ export const PLACES: Place[] = [
     wall: 0x7a6a45,
     roof: 0x564a32,
     roofType: "flat",
-    rot: 0,
+    rot: Math.PI / 2, // approached from the east, coming out of town
     intro: [
       "The tank was invented here in Lincoln in 1915, by engineers at William Foster & Co. working with William Tritton.",
       "The real memorial stands on the roundabout at the start of Tritton Road, named after him, and shows the shape of those first tanks.",
