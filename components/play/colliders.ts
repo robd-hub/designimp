@@ -193,6 +193,26 @@ export const STATION = {
   }),
   bridge: { x0: stationPlace.x + 8, x1: stationPlace.x + 10 }, // the stair towers stand on the platforms' east ends
 };
+// Lincoln Central Bus Station, across the main road from the railway station: the concourse along the back,
+// a kerb under its canopy where the buses pull in, the lane past the bays, and a way in off the main road at
+// the west end and out at the east end, with a grassy island between them. Buses go round one way, west to east,
+// so their doors on the left open onto the kerb. bay is the lane's centre line, and stops where each bus waits.
+const busPlace = PLACES.find((p) => p.kind === "busstation")!;
+const concourse = footprint(busPlace);
+const BUS_X0 = concourse.x0 - 1.5,
+  BUS_X1 = concourse.x1 + 1.5;
+export const BUS_STATION = {
+  entry: concourse.x0 + 1,
+  exit: concourse.x1 - 1,
+  bay: concourse.z1 + 6.5,
+  stops: [concourse.x0 + 6, concourse.x0 + 16],
+  kerb: { x0: BUS_X0, x1: BUS_X1, z0: concourse.z1, z1: concourse.z1 + 4 },
+  tarmac: [
+    { x0: BUS_X0, x1: BUS_X1, z0: concourse.z1 + 4, z1: concourse.z1 + 9 },
+    { x0: concourse.x0 - 3, x1: concourse.x0 + 4.5, z0: concourse.z1 + 9, z1: -3 },
+    { x0: concourse.x1 - 4.5, x1: concourse.x1 + 3, z0: concourse.z1 + 9, z1: -3 },
+  ],
+};
 // Runs of fence along each side of the line, west to east.
 export const RAIL_FENCE_RUNS: [number, number][] = [
   [-BOUND, -RAIL.crossing],
@@ -285,7 +305,7 @@ const onRoad = (x: number, z: number) =>
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   PLACES.some((p) => {
