@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, streetHouses, toWorld } from "./colliders";
+import { AIRFIELD, AIRFIELD_ROAD, GREESTONE, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
 import { game, walkTo } from "./store";
 import s from "./play.module.css";
@@ -48,6 +48,9 @@ export default function Minimap() {
       <rect x={BAILGATE.x0} y={BAILGATE.z0} width={BAILGATE.x1 - BAILGATE.x0} height={BAILGATE.z1 - BAILGATE.z0} fill="#e8dcc2" />
       <rect x={CLOSE.x0} y={CLOSE.z0} width={CLOSE.x1 - CLOSE.x0} height={CLOSE.z1 - CLOSE.z0} fill="#e8dcc2" />
       <rect x={L} y={-3} width={W} height={6} fill="#6b6573" />
+      {GREESTONE.map((g, i) => (
+        <rect key={i} x={g.x0} y={g.z0} width={g.x1 - g.x0} height={g.z1 - g.z0} fill="#e8dcc2" pointerEvents="none" />
+      ))}
       <circle cx={ROUNDABOUT.x} cy={ROUNDABOUT.z} r={ROUNDABOUT.ring} fill="#6b6573" />
       <rect x={STADIUM_ROAD.x0} y={STADIUM_ROAD.z - 3} width={STADIUM_ROAD.x1 - STADIUM_ROAD.x0} height={6} fill="#6b6573" />
       <rect x={AIRFIELD_ROAD.x0} y={AIRFIELD_ROAD.z - 3} width={AIRFIELD_ROAD.x1 - AIRFIELD_ROAD.x0} height={6} fill="#6b6573" />

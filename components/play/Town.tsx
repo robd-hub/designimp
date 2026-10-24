@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-three/fiber";
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
-import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow, HighBridge, NewportArch, OldHouse, River } from "./Landmarks";
+import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow, HighBridge, NewportArch, OldHouse, Gallery, Ruins, River } from "./Landmarks";
 import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, crossings, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
@@ -866,7 +866,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
