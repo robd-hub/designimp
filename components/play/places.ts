@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -265,6 +265,28 @@ export const PLACES: Place[] = [
       "Wait on a platform and the next passenger train will pull in and stop for a few seconds before heading on.",
     ],
     link: { href: "https://www.nationalrail.co.uk/stations/lincoln/", label: "Live departures", external: true },
+  },
+  {
+    id: "bus-station",
+    kind: "busstation",
+    name: "Bus Station",
+    kicker: "Lincoln Central Bus Station",
+    nav: "Bus station",
+    // across the main road from the railway station and a little east, as the real one sits opposite Lincoln Central;
+    // the concourse is at the back, with the bays in front of it and a way in and out off the main road
+    x: 63,
+    z: -22,
+    w: 24,
+    d: 5,
+    h: 3.8,
+    wall: 0x2f8f5b,
+    roof: 0xf4f1ea,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "Lincoln's bus station sits just across the road from the railway station, so it's an easy change from train to bus.",
+      "Stand under the canopy and the buses will pull in to their bays, wait a few seconds, then head back out of town.",
+    ],
   },
   {
     id: "tolet-west",
