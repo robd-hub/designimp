@@ -661,11 +661,10 @@ export function HighBridge({ p, font }: { p: Place; font: string }) {
 
 // The River Witham between Brayford Pool and the east edge of the map: open water in stone banks
 // between the bridges, the parapet on the downstream side of High Bridge, and a little footbridge
-// where the footpath crosses. Everything here is on the flat below the hill.
+// wherever a footpath crosses. Everything here is on the flat below the hill.
 export function River() {
   const z = RIVER.z,
     wide = RIVER.half * 2;
-  const foot = RIVER.bridges[0];
   return (
     <group raycast={() => null}>
       {RIVER_RUNS.map(([x0, x1]) => (
@@ -674,21 +673,24 @@ export function River() {
           <mesh geometry={geo.box(x1 - x0, 0.12, wide)} material={toon(0x3aa6e8)} position-y={0.2} />
         </group>
       ))}
-      {/* the water runs on under the footbridge and the street */}
-      <mesh geometry={geo.box(foot.x1 - foot.x0, 0.12, wide)} material={toon(0x3aa6e8)} position={[foot.x, 0.2, z]} />
       {/* High Bridge's parapet on the east side of the street, and the river coming out from under it */}
       <Part geometry={geo.box(0.5, 1, wide + 1.2)} color={BRIDGE_STONE} outline={0.05} position={[RIVER.bridges[1].x1 + 0.2, 0.5, z]} />
       <Part geometry={geo.smile(RIVER.half + 0.15, 0.16)} color={0x9c8d6e} outline={0.03} position={[RIVER.bridges[1].x1 + 0.47, -0.65, z]} rotation={[0, Math.PI / 2, Math.PI]} scale={[1, 1, 0.4]} />
-      {/* the footbridge, humped a little over the water, with a rail along each side */}
-      <group position={[foot.x, 0, z]}>
-        <Part geometry={geo.box(foot.x1 - foot.x0 - 0.2, 0.25, wide + 1.6)} color={0x8a5a33} outline={0.04} position-y={0.4} />
-        {[-1, 1].flatMap((sx) => [
-          <Part key={`r${sx}`} geometry={geo.box(0.1, 0.1, wide + 1.6)} color={0x5a3a22} outline={0.02} position={[(sx * (foot.x1 - foot.x0 - 0.3)) / 2, 1.35, 0]} />,
-          ...[-1, 0, 1].map((k) => (
-            <Part key={`${sx}${k}`} geometry={geo.box(0.12, 1, 0.12)} color={0x5a3a22} outline={0.02} position={[(sx * (foot.x1 - foot.x0 - 0.3)) / 2, 0.85, k * (wide / 2 + 0.6)]} />
-          )),
-        ])}
-      </group>
+      {/* the footbridges, humped a little over the water that runs on under them, with a rail along each side */}
+      {RIVER.bridges
+        .filter((b) => b.foot)
+        .map((foot) => (
+          <group key={foot.x} position={[foot.x, 0, z]}>
+            <mesh geometry={geo.box(foot.x1 - foot.x0, 0.12, wide)} material={toon(0x3aa6e8)} position-y={0.2} />
+            <Part geometry={geo.box(foot.x1 - foot.x0 - 0.2, 0.25, wide + 1.6)} color={0x8a5a33} outline={0.04} position-y={0.4} />
+            {[-1, 1].flatMap((sx) => [
+              <Part key={`r${sx}`} geometry={geo.box(0.1, 0.1, wide + 1.6)} color={0x5a3a22} outline={0.02} position={[(sx * (foot.x1 - foot.x0 - 0.3)) / 2, 1.35, 0]} />,
+              ...[-1, 0, 1].map((k) => (
+                <Part key={`${sx}${k}`} geometry={geo.box(0.12, 1, 0.12)} color={0x5a3a22} outline={0.02} position={[(sx * (foot.x1 - foot.x0 - 0.3)) / 2, 0.85, k * (wide / 2 + 0.6)]} />
+              )),
+            ])}
+          </group>
+        ))}
     </group>
   );
 }
