@@ -60,6 +60,19 @@ export const geo = {
   // the lower half of a ring, for smiles
   smile: (r: number, t: number) => cached(`m${r},${t}`, () => new THREE.TorusGeometry(r, t, 6, 16, Math.PI).rotateZ(Math.PI)),
   cone: (r: number, h: number, s = 12) => cached(`k${r},${h},${s}`, () => new THREE.ConeGeometry(r, h, s)),
+  // a wall w wide and h tall with round-headed archways through it, extruded to depth d and centred on
+  // its foot; each opening is [centre x, span, height at which its round head springs]
+  arches: (w: number, h: number, d: number, openings: [number, number, number][]) =>
+    cached(`a${w},${h},${d},${openings.join(";")}`, () => {
+      const shape = new THREE.Shape().moveTo(-w / 2, 0);
+      for (const [x, span, spring] of [...openings].sort((a, b) => a[0] - b[0])) {
+        shape.lineTo(x - span / 2, 0).lineTo(x - span / 2, spring);
+        shape.absarc(x, spring, span / 2, Math.PI, 0, true);
+        shape.lineTo(x + span / 2, 0);
+      }
+      shape.lineTo(w / 2, 0).lineTo(w / 2, h).lineTo(-w / 2, h).closePath();
+      return new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false, curveSegments: 14 }).translate(0, 0, -d / 2);
+    }),
   // side profile of a WW1 rhomboid tank's track frame, extruded to track width
   tankSide: () =>
     cached("tank", () => {

@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string };
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -21,7 +21,7 @@ export type Place = {
   image?: { src: string; alt: string };
   intro: string[];
   items?: PlaceItem[];
-  link: { href: string; label: string; external?: boolean };
+  link?: { href: string; label: string; external?: boolean };
 };
 
 // What a plot's sign says once a visitor has typed their business name there.
@@ -617,7 +617,7 @@ export const PLACES: Place[] = [
     kicker: "Gateway on the High Street",
     nav: "Stonebow",
     x: 0,
-    z: -30,
+    z: -35,
     w: 11.2,
     d: 2.8,
     h: 7,
@@ -634,6 +634,92 @@ export const PLACES: Place[] = [
       label: "See it on Visit Lincoln",
       external: true,
     },
+  },
+  {
+    id: "high-bridge",
+    kind: "bridge",
+    name: "High Bridge",
+    kicker: "Shops on a Norman bridge",
+    nav: "High Bridge",
+    // the High Street crosses the Witham just south of the Stonebow, as in real Lincoln; the timber-framed
+    // shops stand on the west side of the bridge, facing the street, with the river running under them
+    x: -7.6,
+    z: -29.5,
+    w: 6,
+    d: 6,
+    h: 6.6,
+    wall: 0xf4ecd8,
+    roof: 0x5a4a3e,
+    roofType: "pitch",
+    rot: Math.PI / 2,
+    intro: [
+      "High Bridge carries Lincoln's High Street over the River Witham. It was built around 1160, and it's the oldest bridge in Britain that still has buildings standing on it.",
+      "The black-and-white timber-framed shops on its west side date from the 1500s. The dark, vaulted channel the river runs through underneath is known as the Glory Hole.",
+    ],
+  },
+  {
+    id: "newport-arch",
+    kind: "arch",
+    name: "Newport Arch",
+    kicker: "Roman gate at the top of Bailgate",
+    nav: "Newport Arch",
+    // the north end of Bailgate, where the Roman city's north gate still stands over the road
+    x: 0,
+    z: -128,
+    w: 14,
+    d: 3.2,
+    h: 8.6,
+    wall: 0xc4b393,
+    roof: 0xc4b393,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "Newport Arch was the north gate of Roman Lincoln, built in the third century AD at the top of what is now Bailgate.",
+      "It's the oldest arch in Britain that traffic still passes under, and the little side arch for people on foot has survived alongside it.",
+    ],
+  },
+  {
+    id: "jews-house",
+    kind: "oldhouse",
+    name: "Jew's House",
+    kicker: "A 12th-century home on Steep Hill",
+    nav: "Jew's House",
+    // in place of the first house on the east side of Steep Hill, at the bottom of the hill
+    // (Steep Hill runs from z -52 to -92 in seven plots a side)
+    x: 6.1,
+    z: -52 - 20 / 7,
+    w: 40 / 7,
+    d: 3.6,
+    h: 4.6,
+    wall: 0xcdb98f,
+    roof: 0x8a3b2e,
+    roofType: "pitch",
+    rot: -Math.PI / 2,
+    intro: [
+      "The Jew's House was built in stone in the middle of the 12th century, and it's one of the oldest houses in England that's still in use.",
+      "Look for the carved round arch over the front door, with the chimney rising from just above it. Lincoln had one of the largest Jewish communities in medieval England, until Edward I expelled the Jews from England in 1290.",
+    ],
+  },
+  {
+    id: "aarons-house",
+    kind: "oldhouse",
+    name: "Aaron the Jew's House",
+    kicker: "Another Norman house, further up",
+    nav: "Aaron's House",
+    // in place of the sixth house on the east side, just above the little square halfway up the hill
+    x: 6.1,
+    z: -52 - 20 / 7 - (5 * 40) / 7,
+    w: 40 / 7,
+    d: 3.6,
+    h: 4.6,
+    wall: 0xd6c49c,
+    roof: 0x8a3b2e,
+    roofType: "pitch",
+    rot: -Math.PI / 2,
+    intro: [
+      "Another stone house from the late 12th century, with round-arched Norman windows upstairs.",
+      "It's named after Aaron of Lincoln, a financier who was probably the richest man in England when he died in 1186, though nobody knows for sure that he lived here.",
+    ],
   },
   {
     id: "brayford",

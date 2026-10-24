@@ -15,12 +15,15 @@ export const STREET_ROW = 3.6; // depth of the house rows either side of Steep H
 export const STREET_HOUSES = 7;
 export const STREET_GAP = 4; // house left out on both sides: a little square halfway up the hill
 
+// The old stone houses that stand in the rows on Steep Hill, in place of an ordinary house each.
+const OLD_HOUSES = PLACES.filter((p) => p.kind === "oldhouse");
+
 // Steep Hill's houses, bottom of the hill first, in the street's own coordinates.
-export function streetHouses(p: { w: number; d: number }) {
+export function streetHouses(p: { x: number; z: number; w: number; d: number }) {
   const len = p.d / STREET_HOUSES;
   return [-1, 1].flatMap((side) =>
     Array.from({ length: STREET_HOUSES }, (_, i) => ({ side, i, len, x: side * (p.w / 2 - STREET_ROW / 2), z: p.d / 2 - len / 2 - i * len })).filter(
-      (h) => h.i !== STREET_GAP,
+      (h) => h.i !== STREET_GAP && !OLD_HOUSES.some((o) => Math.abs(o.x - p.x - h.x) < 0.5 && Math.abs(o.z - p.z - h.z) < 0.5),
     ),
   );
 }
@@ -90,6 +93,52 @@ export const FOOTPATH_ROUTE: [number, number][] = [
   [PATH_X, -5],
   [PATH_X, castlePlace.z],
 ];
+
+// The River Witham, flowing east out of Brayford Pool, under High Bridge on the High Street just
+// south of the Stonebow, and on across the town to the east edge of the map. bridges are where it can
+// be crossed: the footbridge on the footpath, and High Bridge, from the timber-framed shops on its
+// west side across the street to the parapet on its east side.
+const brayford = PLACES.find((p) => p.kind === "water")!;
+const highBridge = PLACES.find((p) => p.kind === "bridge")!;
+export const RIVER = {
+  z: highBridge.z,
+  half: 1.5,
+  x0: brayford.x + BRAYFORD.water.x1,
+  x1: EAST,
+  bridges: [
+    { x: PATH_X, x0: PATH_X - 1.2, x1: PATH_X + 1.2 },
+    { x: 0, x0: footprint(highBridge).x0, x1: 4.3 },
+  ],
+};
+const RIVER_BANKS = [RIVER.x0, ...RIVER.bridges.flatMap((b) => [b.x0, b.x1]), RIVER.x1];
+// The open water between the bridges, west to east.
+export const RIVER_RUNS = Array.from({ length: RIVER_BANKS.length / 2 }, (_, i) => [RIVER_BANKS[2 * i], RIVER_BANKS[2 * i + 1]] as [number, number]);
+const RIVER_BOXES = RIVER_RUNS.map(([x0, x1]) => ({ x0, x1, z0: RIVER.z - RIVER.half - 0.3, z1: RIVER.z + RIVER.half + 0.3 }));
+// Which side of the river z is on: -1 north, 1 south, 0 on a bridge.
+const riverSide = (z: number) => (z < RIVER.z - RIVER.half - 1 ? -1 : z > RIVER.z + RIVER.half + 1 ? 1 : 0);
+// Waypoints for a walk from one side of the river to the other, over whichever bridge is the shorter way round.
+export function overRiver([fx, fz]: [number, number], [tx, tz]: [number, number]) {
+  const a = riverSide(fz),
+    b = riverSide(tz);
+  const pts: [number, number][] = [];
+  if (a === b) return pts;
+  const bridge = RIVER.bridges.reduce((m, br) => (Math.abs(fx - br.x) + Math.abs(tx - br.x) < Math.abs(fx - m.x) + Math.abs(tx - m.x) ? br : m));
+  if (a) pts.push([bridge.x, RIVER.z + a * (RIVER.half + 1.5)]);
+  if (b) pts.push([bridge.x, RIVER.z + b * (RIVER.half + 1.5)]);
+  return pts;
+}
+
+// Newport Arch, the Roman north gate, over the top of Bailgate: a wide arch for the road and a little
+// one for people on foot on its east side. open is the half-width of the road arch, and postern the
+// little arch's span; only the stonework either side of them is solid.
+const arch = PLACES.find((p) => p.kind === "arch")!;
+export const NEWPORT = { z: arch.z, half: arch.w / 2, d: arch.d, open: 3.2, postern: [4.6, 6] as [number, number] };
+const NEWPORT_PIERS = ([[-NEWPORT.half, -NEWPORT.open], [NEWPORT.open, NEWPORT.postern[0]], [NEWPORT.postern[1], NEWPORT.half]] as const).map(([x0, x1]) => ({
+  x0: arch.x + x0,
+  x1: arch.x + x1,
+  z0: NEWPORT.z - NEWPORT.d / 2,
+  z1: NEWPORT.z + NEWPORT.d / 2,
+}));
 
 // Castle Square: a pedestrianised square at the top of Steep Hill, from the castle gate
 // across to the cathedral, with a row of farmers' market stalls along its north side, either side of the way into Bailgate.
@@ -166,6 +215,18 @@ export function overRailway([fx, fz]: [number, number], [tx, tz]: [number, numbe
   return pts;
 }
 
+// Waypoints for a walk across the river, the railway or both, in the order it comes to them.
+export function crossings(from: [number, number], to: [number, number]) {
+  const pts: [number, number][] = [];
+  let at = from;
+  for (const leg of to[1] > from[1] ? [overRiver, overRailway] : [overRailway, overRiver]) {
+    const p = leg(at, to);
+    pts.push(...p);
+    at = p.at(-1) ?? at;
+  }
+  return pts;
+}
+
 // The roundabout on the main road out west with the tank memorial in the middle, as at the start of
 // Tritton Road. island is the radius of the raised middle, ring the outer edge of the road round it,
 // and edge the outer edge of the pavement.
@@ -175,7 +236,7 @@ export const ROUNDABOUT = { x: tank.x, z: tank.z, island: 4.3, ring: 6.8, edge: 
 // Two cannons guarding the castle gate, on the right as you face it (in the castle's own coordinates).
 export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 }));
 
-const boxes = PLACES.filter((p) => p.kind !== "tank" && p.kind !== "gate").flatMap((p) => {
+const boxes = PLACES.filter((p) => p.kind !== "tank" && p.kind !== "gate" && p.kind !== "arch").flatMap((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
     // only the signboard at the back of the plot is solid
@@ -202,12 +263,13 @@ const boxes = PLACES.filter((p) => p.kind !== "tank" && p.kind !== "gate").flatM
     const walls = { x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 };
     return [walls, ...CANNONS.map((c) => toWorld(p, { x0: c.x - 0.7, x1: c.x + 0.7, z0: c.z - 1.3, z1: c.z + 1.3 }))];
   }
+  if (p.kind === "oldhouse") return [f]; // fills its plot in the row exactly, like the houses either side
   if (p.kind === "airfield") {
     // the runway and apron are walkable; only the hangar and the parked jet are solid
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS, RAIL_FENCES, STATION_BOXES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS, NEWPORT_PIERS, RIVER_BOXES, RAIL_FENCES, STATION_BOXES);
 
 const onRoad = (x: number, z: number) =>
   Math.abs(x) < 7 ||
@@ -215,7 +277,7 @@ const onRoad = (x: number, z: number) =>
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, ...STONEBOW_PIERS, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   PLACES.some((p) => {

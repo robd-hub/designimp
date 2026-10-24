@@ -17,12 +17,12 @@ export default function StreetList() {
           <div className={s.kicker}>{p.kicker}</div>
           <h2>{p.name}</h2>
           <p>{p.intro[0]}</p>
-          {p.link.external ? (
+          {p.link?.external ? (
             <a href={p.link.href} target="_blank" rel="noopener noreferrer">
               {p.link.label} ↗
             </a>
           ) : (
-            <Link href={p.link.href}>{p.link.label} →</Link>
+            p.link && <Link href={p.link.href}>{p.link.label} →</Link>
           )}
         </section>
       ))}
