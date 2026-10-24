@@ -101,7 +101,7 @@ export const STALL = { w: 4, d: 2.4 };
 export const STALLS = [-16, -10, 10, 16].map((x) => ({ x, z: CLOSE.z0 + 2.5 }));
 
 // The Stonebow: the old city gate with the Guildhall above it, spanning the pedestrianised
-// High Street partway between the roundabout and Steep Hill. Only its two piers are solid.
+// High Street partway between the main road and Steep Hill. Only its two piers are solid.
 const gate = PLACES.find((p) => p.kind === "gate")!;
 // It's modelled 16 wide and scaled down to the place's width, so it sits in proportion with the shops.
 export const STONEBOW = { z: gate.z, scale: gate.w / 16, open: (3.5 * gate.w) / 16, half: gate.w / 2, d: gate.d };
@@ -166,6 +166,12 @@ export function overRailway([fx, fz]: [number, number], [tx, tz]: [number, numbe
   return pts;
 }
 
+// The roundabout on the main road out west with the tank memorial in the middle, as at the start of
+// Tritton Road. island is the radius of the raised middle, ring the outer edge of the road round it,
+// and edge the outer edge of the pavement.
+const tank = PLACES.find((p) => p.kind === "tank")!;
+export const ROUNDABOUT = { x: tank.x, z: tank.z, island: 4.3, ring: 6.8, edge: 8.2 };
+
 // Two cannons guarding the castle gate, on the right as you face it (in the castle's own coordinates).
 export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 }));
 
@@ -228,7 +234,7 @@ export const TREES: [number, number, number][] = (() => {
   for (let tries = 0; out.length < 140 && tries < 6000; tries++) {
     const x = -BOUND + 3 + rand() * (BOUND + EAST - 6),
       z = NORTH + 3 + rand() * (SOUTH - NORTH - 6);
-    if (onRoad(x, z) || nearBuilding(x, z, 3) || Math.hypot(x, z) < 10) continue;
+    if (onRoad(x, z) || nearBuilding(x, z, 3) || Math.hypot(x - ROUNDABOUT.x, z - ROUNDABOUT.z) < ROUNDABOUT.edge + 2) continue;
     if (out.some(([ox, oz]) => Math.hypot(ox - x, oz - z) < 5)) continue;
     out.push([x, z, 0.85 + (out.length % 4) * 0.12]);
   }
@@ -241,7 +247,7 @@ const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));
 export function blocked(x: number, z: number, barrier = true) {
   if (barrier && atBarrier(x, z)) return true;
   if (x < -BOUND || x > EAST || z > SOUTH || z < NORTH) return true;
-  if (Math.hypot(x, z) < 4.3) return true; // fountain
+  if (Math.hypot(x - ROUNDABOUT.x, z - ROUNDABOUT.z) < ROUNDABOUT.island) return true;
   for (const c of circles) if (Math.hypot(x - c.cx, z - c.cz) < c.r) return true;
   for (const b of boxes) if (x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1) return true;
   return false;

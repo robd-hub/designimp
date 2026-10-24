@@ -184,6 +184,10 @@ export function walkTo(p: Place) {
   const sideRoad = door.z > RAIL.z + RAIL.fence && Math.abs(door.x) > 7 && Math.abs(from.z - door.z) > 4;
   if (sideRoad && Math.abs(from.x) > 7 && from.z > RAIL.z + RAIL.fence) route.push(new THREE.Vector3(0, 0, from.z));
   if (sideRoad) route.push(new THREE.Vector3(0, 0, door.z));
+  // The tank's roundabout is a long way out along the main road: step onto the road first and follow it,
+  // rather than cutting across the buildings beside it.
+  const alongMain = !sideRoad && Math.abs(door.z) < 7 && Math.abs(from.z) > 4.3 && Math.abs(from.x - door.x) > 12;
+  if (alongMain) route.push(new THREE.Vector3(from.x, 0, 0));
   walkRoute([...route, door.clone()]);
   game.pending = p;
   game.pendingNpc = null;

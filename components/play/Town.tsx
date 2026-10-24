@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow } from "./Landmarks";
-import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, overRailway, seeded } from "./colliders";
+import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, ROUNDABOUT, overRailway, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy, walkRoute } from "./store";
@@ -14,6 +14,7 @@ import Imp from "./Imp";
 import Hunt from "./Hunt";
 import Ghost from "./Ghost";
 import Railway from "./Railway";
+import Cars from "./Cars";
 import { Station } from "./Station";
 import { Crowd, Chant } from "./Matchday";
 
@@ -35,7 +36,8 @@ const AF_MID = (AIRFIELD_ROAD.x0 + AIRFIELD_ROAD.x1) / 2;
 
 function Roads() {
   const dashes: number[] = [];
-  for (let i = -BOUND; i <= EAST; i += 4) if (Math.abs(i) > 5) dashes.push(i);
+  // clear of the T junction and the roundabout
+  for (let i = -BOUND; i <= EAST; i += 4) if (Math.abs(i) > 5 && Math.abs(i - ROUNDABOUT.x) > ROUNDABOUT.edge + 1) dashes.push(i);
   // down the south road, clear of the level crossing and the junction with the side roads
   const nsDashes: number[] = [];
   for (let i = 8; i <= SOUTH; i += 4) if (Math.abs(i - STADIUM_ROAD.z) > 5 && Math.abs(i - RAIL.z) > RAIL.fence + 1) nsDashes.push(i);
@@ -46,7 +48,7 @@ function Roads() {
     <>
       <Strip w={8.6} d={NS_LEN} color={0xe8dcc2} z={NS_MID} y={0.03} />
       <Flat w={SIZE} d={8.6} color={0xe8dcc2} x={MID_X} y={0.01} />
-      {/* the road south of the roundabout; north of it the High Street is pedestrianised */}
+      {/* the road south from the T junction; north of it the High Street is pedestrianised */}
       <Strip w={6} d={SOUTH + 5} color={0x6b6573} z={(SOUTH + 5) / 2} y={0.04} />
       <Strip w={8.6} d={-6 - NS_START} color={PAVED} z={(NS_START - 6) / 2} y={0.045} />
       <Flat w={SIZE} d={6} color={0x6b6573} x={MID_X} />
@@ -69,6 +71,10 @@ function Roads() {
       {sbDashes.map((i) => (
         <Flat key={i} w={1.8} d={0.25} color={0xffd23f} x={i} z={STADIUM_ROAD.z} y={0.05} />
       ))}
+      {/* give way lines where the south road meets the main road */}
+      {[-2.5, -1.5, -0.5].flatMap((x) =>
+        [3.3, 3.75].map((z) => <Flat key={`${x},${z}`} w={0.6} d={0.2} color={0xf4f1ea} x={x} z={z} y={0.05} />),
+      )}
     </>
   );
 }
@@ -97,7 +103,8 @@ function Tank(props: Omit<ThreeElements["group"], "children">) {
 
 const TANK_PLACE = PLACES.find((p) => p.kind === "tank")!;
 
-function Fountain({ reduce }: { reduce: boolean }) {
+// The roundabout out west, with the tank on a fountain in the middle.
+function Roundabout({ reduce }: { reduce: boolean }) {
   const jets = useRef<THREE.Group>(null!);
   useFrame(({ clock }) => {
     if (reduce) return;
@@ -107,9 +114,13 @@ function Fountain({ reduce }: { reduce: boolean }) {
       j.scale.setScalar(1 + s * 0.08);
     });
   });
+  const { edge, ring } = ROUNDABOUT;
   return (
-    <>
-      <mesh geometry={geo.cyl(7, 7, 0.06, 40)} material={toon(0xe8dcc2)} position-y={0.04} receiveShadow />
+    <group position={[ROUNDABOUT.x, 0, ROUNDABOUT.z]}>
+      <mesh geometry={geo.cyl(edge, edge, 0.06, 48)} material={toon(0xe8dcc2)} position-y={0.045} receiveShadow />
+      {/* the main road carries on through the pavement to the ring */}
+      <mesh geometry={geo.box(edge * 2 + 0.2, 0.04, 6)} material={toon(0x6b6573)} position-y={0.06} receiveShadow />
+      <mesh geometry={geo.cyl(ring, ring, 0.06, 48)} material={toon(0x6b6573)} position-y={0.055} receiveShadow />
       <Part geometry={geo.cyl(3.6, 3.8, 0.8, 32)} color={0xd6cfe0} position-y={0.4} />
       <mesh geometry={geo.cyl(3.3, 3.3, 0.1, 32)} material={toon(0x4fc3ff)} position-y={0.78} />
       <Part geometry={geo.box(4.4, 0.5, 2.6)} color={0xd6cfe0} outline={0.06} position-y={0.95} />
@@ -119,11 +130,9 @@ function Fountain({ reduce }: { reduce: boolean }) {
           <Part key={a} geometry={geo.sphere(0.32)} color={0x9fe3ff} outline={0.04} shadow={false} position={[Math.cos(a) * 2.9, 1.15, Math.sin(a) * 2.9]} />
         ))}
       </group>
-    </>
+    </group>
   );
 }
-
-
 
 function Building({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, hex(p.wall), font), [p, font]);
@@ -565,7 +574,7 @@ function Tree({ x, z, s }: { x: number; z: number; s: number }) {
 }
 
 const LAMPS: [number, number][] = [[-5.5, -5.5], [5.5, -5.5], [-5.5, 5.5], [5.5, 5.5]];
-for (let i = 20; i < BOUND; i += 18) LAMPS.push([-i, -5.5], [-i, 5.5]);
+for (let i = 20; i < BOUND; i += 18) if (Math.abs(-i - ROUNDABOUT.x) > ROUNDABOUT.edge) LAMPS.push([-i, -5.5], [-i, 5.5]);
 for (let i = 20; i < EAST; i += 18) LAMPS.push([i, -5.5], [i, 5.5]);
 // down the south road, none on the level crossing or across the junction with the side roads
 for (let i = 20; i < SOUTH; i += 18) if (Math.abs(i - RAIL.z) > 5 && Math.abs(i - STADIUM_ROAD.z) > 5) LAMPS.push([5.5, i], [-5.5, i]);
@@ -847,7 +856,8 @@ export default function Town({ font }: { font: string }) {
       <Sun night={night} />
       <Strip w={SIZE} d={DEPTH} color={0x6fd36b} x={MID_X} z={MID_Z} onClick={onGround} />
       <Roads />
-      <Fountain reduce={reduce} />
+      <Roundabout reduce={reduce} />
+      <Cars reduce={reduce} />
       <Railway reduce={reduce} />
       {signsReady &&
         PLACES.map((p) => {

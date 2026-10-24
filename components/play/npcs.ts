@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { FOOTPATH_ROUTE } from "./colliders";
+import { FOOTPATH_ROUTE, ROUNDABOUT } from "./colliders";
 
 // Townsfolk who stroll the streets. Walk up to one and press E to chat.
 export type Npc = {
@@ -81,7 +81,7 @@ export const NPCS: Npc[] = [
     legs: 0x1a1320,
     skin: 0xf2d0b5,
     hair: 0xd6cfe0,
-    path: [[-8, -3.7], [-64, -3.7], [-64, 3.7], [-8, 3.7]],
+    path: [[-8, -3.7], [-52, -3.7], [-52, 3.7], [-8, 3.7]], // turning back short of the roundabout
     speed: 1.6,
     lines: [
       "Over half of visitors give up on a website if it takes more than 3 seconds to load. I'd give up too!",
@@ -111,7 +111,8 @@ export const NPCS: Npc[] = [
     hair: 0xc8973a,
     path: Array.from({ length: 12 }, (_, i) => {
       const a = (i / 12) * Math.PI * 2;
-      return [Math.cos(a) * 5.6, Math.sin(a) * 5.6] as [number, number];
+      // round the pavement on the outside of the tank's roundabout
+      return [ROUNDABOUT.x + Math.cos(a) * 7.5, ROUNDABOUT.z + Math.sin(a) * 7.5] as [number, number];
     }),
     speed: 1.4,
     lines: [
