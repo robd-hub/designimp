@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BUS_STATION, GREESTONE, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, streetHouses, toWorld } from "./colliders";
+import { AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
 import { game, walkTo } from "./store";
 import s from "./play.module.css";
@@ -44,11 +44,16 @@ export default function Minimap() {
         <rect key={pl.side} x={STATION.x0} y={pl.z0} width={STATION.x1 - STATION.x0} height={pl.z1 - pl.z0} fill="#e8dcc2" pointerEvents="none" />
       ))}
       <rect x={RIVER.x0} y={RIVER.z - RIVER.half} width={RIVER.x1 - RIVER.x0} height={RIVER.half * 2} fill="#3aa6e8" pointerEvents="none" />
+      {RIVER.bridges
+        .filter((b) => b.foot)
+        .map((b) => (
+          <rect key={b.x} x={b.x0} y={RIVER.z - RIVER.half - 0.8} width={b.x1 - b.x0} height={RIVER.half * 2 + 1.6} fill="#8a5a33" pointerEvents="none" />
+        ))}
       <rect x={-4.3} y={RISE.z0} width={8.6} height={-RISE.z0} fill="#d9ccb2" />
       <rect x={BAILGATE.x0} y={BAILGATE.z0} width={BAILGATE.x1 - BAILGATE.x0} height={BAILGATE.z1 - BAILGATE.z0} fill="#e8dcc2" />
       <rect x={CLOSE.x0} y={CLOSE.z0} width={CLOSE.x1 - CLOSE.x0} height={CLOSE.z1 - CLOSE.z0} fill="#e8dcc2" />
       <rect x={L} y={-3} width={W} height={6} fill="#6b6573" />
-      {GREESTONE.map((g, i) => (
+      {[...GREESTONE, ...EAST_FOOTPATH].map((g, i) => (
         <rect key={i} x={g.x0} y={g.z0} width={g.x1 - g.x0} height={g.z1 - g.z0} fill="#e8dcc2" pointerEvents="none" />
       ))}
       {[BUS_STATION.kerb, ...BUS_STATION.tarmac].map((r, i) => (

@@ -88,6 +88,13 @@ export const GREESTONE = [
   { x0: gallery.x0 - 2.5, x1: gallery.x0 - 0.5, z0: P.z1 - 0.2, z1: gallery.z1 + 2.6 },
   { x0: gallery.x0 - 2.5, x1: gallery.x1, z0: gallery.z1 + 0.6, z1: gallery.z1 + 2.6 },
 ];
+// From the foot of the stairs a path heads west along the gallery's front and turns south, down past the
+// bus station's west end and over the Witham on a footbridge to the main road.
+const EAST_PATH_X = gallery.x0 - 10;
+export const EAST_FOOTPATH = [
+  { x0: EAST_PATH_X - 1, x1: gallery.x0 - 2.5, z0: gallery.z1 + 0.6, z1: gallery.z1 + 2.6 },
+  { x0: EAST_PATH_X - 1, x1: EAST_PATH_X + 1, z0: gallery.z1 + 2.6, z1: -4.3 },
+];
 export const FOOTPATHS = [
   { x0: PATH_X - 1, x1: PATH_X + 1, z0: castlePlace.z - 1, z1: -4.3 },
   { x0: P.x0, x1: P.x1, z0: P.z0, z1: P.z0 + P.w },
@@ -95,6 +102,7 @@ export const FOOTPATHS = [
   { x0: P.x0, x1: P.x0 + P.w, z0: P.z0 + P.w, z1: P.z1 - P.w },
   { x0: P.x1 - P.w, x1: P.x1, z0: P.z0 + P.w, z1: P.z1 - P.w },
   ...GREESTONE,
+  ...EAST_FOOTPATH,
 ];
 // The walk along it, from the main road to the castle gate.
 export const FOOTPATH_ROUTE: [number, number][] = [
@@ -104,8 +112,9 @@ export const FOOTPATH_ROUTE: [number, number][] = [
 
 // The River Witham, flowing east out of Brayford Pool, under High Bridge on the High Street just
 // south of the Stonebow, and on across the town to the east edge of the map. bridges are where it can
-// be crossed: the footbridge on the footpath, and High Bridge, from the timber-framed shops on its
-// west side across the street to the parapet on its east side.
+// be crossed, west to east: the footbridge on the castle footpath, High Bridge, from the timber-framed
+// shops on its west side across the street to the parapet on its east side, and the footbridge on the
+// path down from the Greestone Stairs. foot marks the footbridges.
 const brayford = PLACES.find((p) => p.kind === "water")!;
 const highBridge = PLACES.find((p) => p.kind === "bridge")!;
 export const RIVER = {
@@ -114,8 +123,9 @@ export const RIVER = {
   x0: brayford.x + BRAYFORD.water.x1,
   x1: EAST,
   bridges: [
-    { x: PATH_X, x0: PATH_X - 1.2, x1: PATH_X + 1.2 },
-    { x: 0, x0: footprint(highBridge).x0, x1: 4.3 },
+    { x: PATH_X, x0: PATH_X - 1.2, x1: PATH_X + 1.2, foot: true },
+    { x: 0, x0: footprint(highBridge).x0, x1: 4.3, foot: false },
+    { x: EAST_PATH_X, x0: EAST_PATH_X - 1.2, x1: EAST_PATH_X + 1.2, foot: true },
   ],
 };
 const RIVER_BANKS = [RIVER.x0, ...RIVER.bridges.flatMap((b) => [b.x0, b.x1]), RIVER.x1];
