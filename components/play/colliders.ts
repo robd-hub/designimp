@@ -81,12 +81,20 @@ const PATH_X = castle.x1 + 1;
 const cathedral = footprint(PLACES.find((p) => p.kind === "cathedral")!);
 const PRECINCT = { x0: cathedral.x0 - 3, x1: cathedral.x1 + 3, z0: cathedral.z0 - 3, z1: cathedral.z1 + 3, w: 2.4 };
 const P = PRECINCT;
+// And the Greestone Stairs, from the south side of the precinct down the hill between the Bishop's
+// Old Palace and the Usher Gallery, turning along the gallery's front at the bottom.
+const gallery = footprint(PLACES.find((p) => p.kind === "gallery")!);
+export const GREESTONE = [
+  { x0: gallery.x0 - 2.5, x1: gallery.x0 - 0.5, z0: P.z1 - 0.2, z1: gallery.z1 + 2.6 },
+  { x0: gallery.x0 - 2.5, x1: gallery.x1, z0: gallery.z1 + 0.6, z1: gallery.z1 + 2.6 },
+];
 export const FOOTPATHS = [
   { x0: PATH_X - 1, x1: PATH_X + 1, z0: castlePlace.z - 1, z1: -4.3 },
   { x0: P.x0, x1: P.x1, z0: P.z0, z1: P.z0 + P.w },
   { x0: P.x0, x1: P.x1, z0: P.z1 - P.w, z1: P.z1 },
   { x0: P.x0, x1: P.x0 + P.w, z0: P.z0 + P.w, z1: P.z1 - P.w },
   { x0: P.x1 - P.w, x1: P.x1, z0: P.z0 + P.w, z1: P.z1 - P.w },
+  ...GREESTONE,
 ];
 // The walk along it, from the main road to the castle gate.
 export const FOOTPATH_ROUTE: [number, number][] = [

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, type ThreeElements } from "@react-three/fiber";
 import type { Place } from "./places";
@@ -782,6 +782,154 @@ export function OldHouse({ p, font }: { p: Place; font: string }) {
           <planeGeometry args={[1.8, 0.45]} />
           <meshBasicMaterial map={sign} toneMapped={false} />
         </mesh>
+      </group>
+    </group>
+  );
+}
+
+const INK_FRAME = 0x2b2633;
+
+// A framed picture for the front of the Usher Gallery, like an exhibition banner, showing one of the case study sites.
+function Banner({ src, w, h, ...g }: { src: string; w: number; h: number } & Omit<ThreeElements["group"], "children">) {
+  const map = useMemo(() => {
+    const t = new THREE.TextureLoader().load(src);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }, [src]);
+  useEffect(() => () => map.dispose(), [map]);
+  return (
+    <group {...g}>
+      <Part geometry={geo.box(w + 0.3, h + 0.3, 0.12)} color={INK_FRAME} outline={0.03} />
+      <mesh position-z={0.07}>
+        <planeGeometry args={[w, h]} />
+        <meshBasicMaterial map={map} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+// The Usher Gallery: a pale stone gallery on a podium, with a columned portico and a little copper dome
+// over the middle, and steps down the slope to the town. Banners either side of the door show the case studies.
+export function Gallery({ p, font }: { p: Place; font: string }) {
+  const sign = useMemo(() => signTexture(p.name, "#5b6b7a", font), [p, font]);
+  useEffect(() => () => sign.dispose(), [sign]);
+  const y = (dz: number) => groundY(p.z + dz) - groundY(p.z);
+  const half = p.d / 2,
+    back = -half,
+    face = 2; // the front wall; the portico and steps stand in front of it
+  const top = y(back),
+    low = y(half) - 0.3;
+  const porch = face + 1.4;
+  const steps = 5;
+  const banners = (p.items ?? []).filter((i) => i.image);
+  return (
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      {/* the podium, levelling the gallery on the slope */}
+      <Part geometry={geo.box(p.w, top - low, porch - back)} color={0xcfc3a8} outline={0.05} position={[0, (top + low) / 2, (porch + back) / 2]} />
+      {/* steps down from the portico to the street */}
+      {Array.from({ length: steps }, (_, i) => {
+        const z0 = porch + (i * (half - porch)) / steps,
+          z1 = porch + ((i + 1) * (half - porch)) / steps;
+        const h = top - (i * (top - y(half))) / steps;
+        return <Part key={i} geometry={geo.box(7 - i * 0.2, h - low, z1 - z0)} color={0xd9cfb6} outline={0.03} position={[0, (h + low) / 2, (z0 + z1) / 2]} />;
+      })}
+      <group position-y={top}>
+        <Part geometry={geo.box(p.w, p.h, face - back)} color={p.wall} outline={0.08} position={[0, p.h / 2, (face + back) / 2]} />
+        <Part geometry={geo.box(p.w + 0.4, 0.4, face - back + 0.4)} color={0xd2c6aa} outline={0.04} position={[0, p.h + 0.2, (face + back) / 2]} />
+        {/* pilasters along the front */}
+        {[-8.4, -3.6, 3.6, 8.4].map((x) => (
+          <Part key={x} geometry={geo.box(0.5, p.h - 0.4, 0.2)} color={0xd2c6aa} outline={0.03} position={[x, (p.h - 0.4) / 2, face + 0.1]} />
+        ))}
+        {banners.map((b, i) => (
+          <Banner key={b.title} src={b.image!} w={3.8} h={2.375} position={[(i ? 1 : -1) * 6, 3.4, face + 0.08]} />
+        ))}
+        {/* the portico: four columns under a pediment */}
+        {[-2.4, -0.8, 0.8, 2.4].map((x) => (
+          <Part key={x} geometry={geo.cyl(0.32, 0.36, p.h - 1.2, 12)} color={0xf1e9d6} outline={0.04} position={[x, (p.h - 1.2) / 2, porch - 0.5]} />
+        ))}
+        <Part geometry={geo.box(6.6, 1.2, porch - face + 0.3)} color={0xd2c6aa} outline={0.05} position={[0, p.h - 0.6, (porch + face) / 2]} />
+        <group position={[0, p.h, (porch + face) / 2]}>
+          <Part geometry={geo.cyl(1.9, 1.9, porch - face + 0.3, 3)} color={0xe6dcc6} outline={0.05} rotation-x={-Math.PI / 2} scale={[1.8, 1, 0.55]} position-y={0.5} />
+        </group>
+        <Part geometry={geo.box(1.6, 2.6, 0.1)} color={0x5a3a22} outline={0.03} position={[0, 1.3, face + 0.05]} />
+        <mesh position={[0, p.h - 0.6, porch + 0.17]}>
+          <planeGeometry args={[4.4, 1.1]} />
+          <meshBasicMaterial map={sign} toneMapped={false} />
+        </mesh>
+        {/* the raised middle with its copper dome */}
+        <Part geometry={geo.box(6, 1.8, 5)} color={p.wall} outline={0.06} position={[0, p.h + 0.9, -1.6]} />
+        <Part geometry={geo.cyl(1.9, 1.9, 0.6, 20)} color={0xd2c6aa} outline={0.04} position={[0, p.h + 2.1, -1.6]} />
+        <Part geometry={geo.dome(1.8)} color={p.roof} outline={0.05} position={[0, p.h + 2.4, -1.6]} />
+        <Part geometry={geo.sphere(0.25)} color={0xc8973a} outline={0.03} position={[0, p.h + 4.35, -1.6]} />
+      </group>
+    </group>
+  );
+}
+
+// The Bishop's Old Palace: ruined halls on a terrace cut into the hillside, the gatehouse tower still
+// standing with its roof on, and rows of vines on the lower terrace in front.
+export function Ruins({ p, font }: { p: Place; font: string }) {
+  const sign = useMemo(() => signTexture(p.name, "#5e4a2e", font), [p, font]);
+  useEffect(() => () => sign.dispose(), [sign]);
+  const y = (dz: number) => groundY(p.z + dz) - groundY(p.z);
+  const half = p.d / 2,
+    step = 0.5; // where the upper terrace drops to the vineyard
+  const upper = y(-half),
+    lower = y(step);
+  const dark = 0xa8966f;
+  // the broken tops of the hall's back wall
+  const jagged = useMemo(() => {
+    const rand = seeded(29);
+    return Array.from({ length: 10 }, (_, i) => ({ x: -7.5 + i + 0.5, h: 2.2 + rand() * (i > 6 ? 1.2 : 3.4) }));
+  }, []);
+  return (
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      {/* the two terraces, each with a retaining wall down its south side */}
+      <Part geometry={geo.box(p.w, upper - lower + 0.3, step + half)} color={dark} outline={0.05} position={[0, (upper + lower - 0.3) / 2, (step - half) / 2]} />
+      <Part geometry={geo.box(p.w, lower - y(half) + 0.3, half - step)} color={dark} outline={0.05} position={[0, (lower + y(half) - 0.3) / 2, (half + step) / 2]} />
+      <mesh geometry={geo.box(p.w - 0.4, 0.04, step + half - 0.4)} material={toon(0x7cc46a)} position={[0, upper + 0.02, (step - half) / 2]} receiveShadow />
+      <mesh geometry={geo.box(p.w - 0.4, 0.04, half - step - 0.4)} material={toon(0x8a6a48)} position={[0, lower + 0.02, (half + step) / 2]} receiveShadow />
+      <group position-y={upper}>
+        {/* the great hall's back wall, broken off at different heights */}
+        {jagged.map((j) => (
+          <Part key={j.x} geometry={geo.box(1, j.h, 0.7)} color={p.wall} outline={0.04} position={[j.x, j.h / 2, -4]} />
+        ))}
+        {/* its front wall, a row of tall window openings with a low run of broken wall at the east end */}
+        <Part geometry={geo.box(10, 1, 0.7)} color={p.wall} outline={0.04} position={[-2.5, 0.5, -0.6]} />
+        <Part geometry={geo.arches(7, 3.4, 0.7, [[-2.3, 1.1, 1.7], [0, 1.1, 1.7], [2.3, 1.1, 1.7]])} color={p.wall} outline={0.04} position={[-4, 1, -0.6]} />
+        <Part geometry={geo.box(3, 1.6, 0.7)} color={p.wall} outline={0.04} position={[1, 1.8, -0.6]} />
+        {/* the tall west gable, with its great window */}
+        <Part geometry={geo.arches(3.4, p.h, 0.7, [[0, 1.4, 3.6]])} color={p.wall} outline={0.05} position={[-7.5, 0, -2.3]} rotation-y={Math.PI / 2} />
+        {/* the gatehouse tower, restored and roofed */}
+        <group position={[6, 0, -2.4]}>
+          <Part geometry={geo.box(3.2, p.h + 1.5, 3.2)} color={0xbfa982} outline={0.07} position-y={(p.h + 1.5) / 2} />
+          {[-0.9, 0.9].map((x) => (
+            <Part key={x} geometry={geo.box(0.5, 1, 0.1)} color={WINDOW} outline={0.03} position={[x, p.h - 0.6, 1.65]} />
+          ))}
+          <Part geometry={geo.box(1.1, 1.9, 0.1)} color={0x5a3a22} outline={0.03} position={[0, 0.95, 1.65]} />
+          {[-1, 1].flatMap((s) =>
+            [-1.2, 0, 1.2].flatMap((t) => [
+              <Part key={`x${s}${t}`} geometry={geo.box(0.6, 0.6, 0.5)} color={0xbfa982} outline={0.03} position={[t, p.h + 1.8, s * 1.35]} />,
+              <Part key={`z${s}${t}`} geometry={geo.box(0.5, 0.6, 0.6)} color={0xbfa982} outline={0.03} position={[s * 1.35, p.h + 1.8, t]} />,
+            ]),
+          )}
+          <Part geometry={geo.cone(1.8, 1.4, 4)} color={0x5b6b7a} outline={0.04} position-y={p.h + 2.2} rotation-y={Math.PI / 4} />
+        </group>
+      </group>
+      {/* the sign, on the vineyard's retaining wall */}
+      <mesh position={[0, (lower + y(half)) / 2 - 0.1, half + 0.06]}>
+        <planeGeometry args={[4.4, 1.1]} />
+        <meshBasicMaterial map={sign} toneMapped={false} />
+      </mesh>
+      {/* the vineyard: rows of vines on posts, running along the terrace */}
+      <group position-y={lower}>
+        {[1.5, 3.3].flatMap((z) =>
+          Array.from({ length: 9 }, (_, i) => -8 + i * 2).map((x) => (
+            <group key={`${z}${x}`} position={[x, 0, z]}>
+              <mesh geometry={geo.cyl(0.05, 0.05, 1, 6)} material={toon(0x6b4a2e)} position-y={0.5} />
+              <Part geometry={geo.sphere(0.4, 10, 8)} color={0x4f9a3a} outline={0.03} position-y={0.85} scale={[1.7, 0.8, 0.6]} />
+            </group>
+          )),
+        )}
       </group>
     </group>
   );

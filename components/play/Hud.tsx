@@ -207,7 +207,7 @@ export default function Hud() {
         !open && (
           <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
             <kbd>E</kbd>
-            <span>{["lot", "tank", "gate", "bridge", "arch", "oldhouse"].includes(near.kind ?? "shop") ? "Look at" : "Enter"} {near.name}</span>
+            <span>{["lot", "tank", "gate", "bridge", "arch", "oldhouse", "ruins"].includes(near.kind ?? "shop") ? "Look at" : "Enter"} {near.name}</span>
           </button>
         )
       )}
@@ -236,8 +236,19 @@ export default function Hud() {
               <ul>
                 {open.items.map((i) => (
                   <li key={i.title}>
-                    <b>{i.title}</b>
-                    <span>{i.detail}</span>
+                    {i.href ? (
+                      // an exhibit: a picture of the site, linking to its case study
+                      <Link className={s.exhibit} href={i.href}>
+                        {i.image && <Image src={i.image} alt="" width={800} height={500} sizes="340px" />}
+                        <b>{i.title} →</b>
+                        <span>{i.detail}</span>
+                      </Link>
+                    ) : (
+                      <>
+                        <b>{i.title}</b>
+                        <span>{i.detail}</span>
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>

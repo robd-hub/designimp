@@ -1,11 +1,11 @@
 // Every building on Imp's High Street. Adding a client = adding an entry here.
 
-export type PlaceItem = { title: string; detail: string };
+export type PlaceItem = { title: string; detail: string; href?: string; image?: string };
 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -720,6 +720,63 @@ export const PLACES: Place[] = [
       "Another stone house from the late 12th century, with round-arched Norman windows upstairs.",
       "It's named after Aaron of Lincoln, a financier who was probably the richest man in England when he died in 1186, though nobody knows for sure that he lived here.",
     ],
+  },
+  {
+    id: "bishops-palace",
+    kind: "ruins",
+    name: "Bishop's Old Palace",
+    kicker: "Medieval ruins below the cathedral",
+    nav: "Bishop's Palace",
+    // on the hillside just south of the cathedral, its terraces stepping down the slope towards the town
+    x: 44,
+    z: -75,
+    w: 18,
+    d: 10,
+    h: 6,
+    wall: 0xc9b58f,
+    roof: 0x5e8a3a,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "The bishops of Lincoln started building their palace here in the 1150s, on the slope just below the cathedral. Their diocese was the biggest in England, stretching from the Humber to the Thames.",
+      "It was wrecked during the Civil War and never rebuilt. Today it's looked after by English Heritage, with a little vineyard on the terrace in front of the ruins.",
+    ],
+  },
+  {
+    id: "usher-gallery",
+    kind: "gallery",
+    name: "Usher Gallery",
+    kicker: "Art gallery · and my portfolio",
+    nav: "Usher Gallery",
+    // further down the hill, south-east of the Old Palace, looking out over the town as the real one looks over Temple Gardens
+    x: 66,
+    z: -60,
+    w: 18,
+    d: 10,
+    h: 6.5,
+    wall: 0xe6dcc6,
+    roof: 0x5f9a86,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "The Usher Gallery opened in 1927, built with money left to the city by James Ward Usher, a Lincoln jeweller, along with his collection of watches, miniatures and porcelain. Next door, The Collection is Lincolnshire's museum of archaeology.",
+      "On the banners out front, and in this wing, is a small exhibition of my own: websites I've built for small businesses.",
+    ],
+    items: [
+      {
+        title: "Ayuri Beauty",
+        detail: "A salon website with online booking, for a beauty salon in Manila.",
+        href: "/work/ayuri-beauty",
+        image: "/work/ayuri-beauty.jpg",
+      },
+      {
+        title: "WellSway Dance Studio",
+        detail: "Classes, prices and how to join, for a dance teacher here in Lincoln.",
+        href: "/work/wellsway",
+        image: "/work/wellswaydance.jpg",
+      },
+    ],
+    link: { href: "/#work", label: "See all my work" },
   },
   {
     id: "brayford",
