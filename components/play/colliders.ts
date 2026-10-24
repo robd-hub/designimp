@@ -101,7 +101,7 @@ export const STALL = { w: 4, d: 2.4 };
 export const STALLS = [-16, -10, 10, 16].map((x) => ({ x, z: CLOSE.z0 + 2.5 }));
 
 // The Stonebow: the old city gate with the Guildhall above it, spanning the pedestrianised
-// High Street partway between the roundabout and Steep Hill. Only its two piers are solid.
+// High Street just north of the Post and the Town Hall, partway up to Steep Hill. Only its two piers are solid.
 const gate = PLACES.find((p) => p.kind === "gate")!;
 // It's modelled 16 wide and scaled down to the place's width, so it sits in proportion with the shops.
 export const STONEBOW = { z: gate.z, scale: gate.w / 16, open: (3.5 * gate.w) / 16, half: gate.w / 2, d: gate.d };
