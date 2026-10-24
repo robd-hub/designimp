@@ -4,7 +4,7 @@ import { useFrame, type ThreeElements } from "@react-three/fiber";
 import type { Place } from "./places";
 import { Part, geo, toon, signTexture, WINDOW, LAMP, STONE, STONE_DARK } from "./toon";
 import { placeEvents } from "./store";
-import { AIRFIELD, BRAYFORD, CANNONS, STONEBOW, STREET_ROW, seeded, streetHouses } from "./colliders";
+import { AIRFIELD, BRAYFORD, CANNONS, NEWPORT, RIVER, RIVER_RUNS, STONEBOW, STREET_ROW, seeded, streetHouses } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 
 const CASTLE_STONE = 0xb8a98a;
@@ -570,6 +570,219 @@ export function Airfield({ p, font, reduce }: { p: Place; font: string; reduce: 
       {[AIRFIELD.drive.x0 - 0.4, AIRFIELD.drive.x1 + 0.4].map((x) => (
         <Part key={x} geometry={geo.box(0.5, 1.4, 0.5)} color={0xffffff} outline={0.04} position={[x, 0.7, p.d / 2 - 0.6]} />
       ))}
+    </group>
+  );
+}
+
+const TIMBER = 0x2b2633;
+const BRIDGE_STONE = 0xb8a98a;
+const TUNNEL = 0x1f2a33;
+
+// Black timber studs and rails over a plastered face len wide and h tall, centred on its foot.
+function Studs({ len, h, ...g }: { len: number; h: number } & Omit<ThreeElements["group"], "children">) {
+  const n = Math.round(len / 0.8);
+  return (
+    <group {...g}>
+      {Array.from({ length: n + 1 }, (_, i) => (
+        <Part key={i} geometry={geo.box(0.16, h, 0.08)} color={TIMBER} outline={0} position={[-len / 2 + (i * len) / n, h / 2, 0]} />
+      ))}
+      {[0.08, h / 2, h - 0.08].map((y) => (
+        <Part key={y} geometry={geo.box(len, 0.16, 0.08)} color={TIMBER} outline={0} position-y={y} />
+      ))}
+      {/* a pair of braces in the middle panel */}
+      {[-1, 1].map((s) => (
+        <Part key={s} geometry={geo.box(0.12, h * 0.62, 0.06)} color={TIMBER} outline={0} position={[s * 0.4, h * 0.25, 0.01]} rotation-z={s * 0.6} />
+      ))}
+    </group>
+  );
+}
+
+// High Bridge: the black-and-white timber-framed shops standing on the Norman bridge over the Witham,
+// on the west side of the High Street. The stone ground floor is the bridge itself, with the dark
+// channel the river runs through, the Glory Hole, opening on its back face; two jettied floors
+// and a pair of gables facing the street sit above. Its own +x runs upstream, along the street.
+export function HighBridge({ p, font }: { p: Place; font: string }) {
+  const sign = useMemo(() => signTexture(p.name, "#2b2633", font), [p, font]);
+  const ground = 2.6,
+    floor = 2;
+  const floors = [
+    { y: ground, s: p.w + 0.4 },
+    { y: ground + floor, s: p.w + 0.8 },
+  ];
+  const top = ground + 2 * floor;
+  const roof = floors[1].s;
+  const r = roof / 2 / 1.732; // circumradius of each gable's triangle, two side by side across the front
+  return (
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      {/* the bridge: stone ground floor, its arch over the river on the upstream (back) face */}
+      <Part geometry={geo.box(p.w, ground, p.d)} color={BRIDGE_STONE} outline={0.08} position-y={ground / 2} />
+      <group position-z={-p.d / 2 - 0.06}>
+        <Part geometry={geo.box(RIVER.half * 2, 0.9, 0.1)} color={TUNNEL} outline={0} position-y={0.45} />
+        <Part geometry={geo.cyl(RIVER.half, RIVER.half, 0.1, 18)} color={TUNNEL} outline={0} position-y={0.9} rotation-x={Math.PI / 2} />
+        <Part geometry={geo.smile(RIVER.half + 0.2, 0.18)} color={0x9c8d6e} outline={0.03} position-y={0.9} rotation-z={Math.PI} scale={[1, 1, 0.4]} />
+      </group>
+      {/* shopfront onto the street */}
+      <Part geometry={geo.box(1.2, 2, 0.2)} color={0x5a3a22} outline={0.05} position={[1.8, 1, p.d / 2 + 0.06]} />
+      <Part geometry={geo.box(2.6, 1.3, 0.2)} color={WINDOW} outline={0.05} position={[-1, 1.15, p.d / 2 + 0.06]} />
+      <mesh position={[0, 2.25, p.d / 2 + 0.17]}>
+        <planeGeometry args={[3.4, 0.85]} />
+        <meshBasicMaterial map={sign} toneMapped={false} />
+      </mesh>
+      {/* two jettied, timber-framed floors, each a little wider than the one below */}
+      {floors.map((f) => (
+        <group key={f.y} position-y={f.y}>
+          <Part geometry={geo.box(f.s, floor, f.s)} color={p.wall} outline={0.07} position-y={floor / 2} />
+          {[0, Math.PI / 2, Math.PI, -Math.PI / 2].map((a) => (
+            <group key={a} rotation-y={a}>
+              <Studs len={f.s} h={floor} position-z={f.s / 2 + 0.04} />
+              {[-1, 1].map((sx) => (
+                <Part key={sx} geometry={geo.box(1, 0.9, 0.1)} color={WINDOW} outline={0.03} position={[sx * f.s * 0.26, floor / 2 + 0.1, f.s / 2 + 0.09]} />
+              ))}
+            </group>
+          ))}
+        </group>
+      ))}
+      {/* a pair of gables facing the street */}
+      {[-1, 1].map((sx) => (
+        <Part
+          key={sx}
+          geometry={geo.cyl(r, r, roof + 0.3, 3)}
+          color={p.roof}
+          outline={0.06}
+          rotation-x={-Math.PI / 2}
+          scale={[1, 1, 0.75]}
+          position={[(sx * roof) / 4, top + 0.5 * r * 0.75, 0]}
+        />
+      ))}
+      <Part geometry={geo.box(0.7, 1.6, 0.7)} color={BRICK_DARK} outline={0.04} position={[0, top + 1.3, -1.6]} />
+    </group>
+  );
+}
+
+// The River Witham between Brayford Pool and the east edge of the map: open water in stone banks
+// between the bridges, the parapet on the downstream side of High Bridge, and a little footbridge
+// where the footpath crosses. Everything here is on the flat below the hill.
+export function River() {
+  const z = RIVER.z,
+    wide = RIVER.half * 2;
+  const foot = RIVER.bridges[0];
+  return (
+    <group raycast={() => null}>
+      {RIVER_RUNS.map(([x0, x1]) => (
+        <group key={x0} position={[(x0 + x1) / 2, 0, z]}>
+          <Part geometry={geo.box(x1 - x0, 0.3, wide + 0.8)} color={0x9c8d6e} outline={0.05} position-y={0.08} />
+          <mesh geometry={geo.box(x1 - x0, 0.12, wide)} material={toon(0x3aa6e8)} position-y={0.2} />
+        </group>
+      ))}
+      {/* the water runs on under the footbridge and the street */}
+      <mesh geometry={geo.box(foot.x1 - foot.x0, 0.12, wide)} material={toon(0x3aa6e8)} position={[foot.x, 0.2, z]} />
+      {/* High Bridge's parapet on the east side of the street, and the river coming out from under it */}
+      <Part geometry={geo.box(0.5, 1, wide + 1.2)} color={BRIDGE_STONE} outline={0.05} position={[RIVER.bridges[1].x1 + 0.2, 0.5, z]} />
+      <Part geometry={geo.smile(RIVER.half + 0.15, 0.16)} color={0x9c8d6e} outline={0.03} position={[RIVER.bridges[1].x1 + 0.47, -0.65, z]} rotation={[0, Math.PI / 2, Math.PI]} scale={[1, 1, 0.4]} />
+      {/* the footbridge, humped a little over the water, with a rail along each side */}
+      <group position={[foot.x, 0, z]}>
+        <Part geometry={geo.box(foot.x1 - foot.x0 - 0.2, 0.25, wide + 1.6)} color={0x8a5a33} outline={0.04} position-y={0.4} />
+        {[-1, 1].flatMap((sx) => [
+          <Part key={`r${sx}`} geometry={geo.box(0.1, 0.1, wide + 1.6)} color={0x5a3a22} outline={0.02} position={[(sx * (foot.x1 - foot.x0 - 0.3)) / 2, 1.35, 0]} />,
+          ...[-1, 0, 1].map((k) => (
+            <Part key={`${sx}${k}`} geometry={geo.box(0.12, 1, 0.12)} color={0x5a3a22} outline={0.02} position={[(sx * (foot.x1 - foot.x0 - 0.3)) / 2, 0.85, k * (wide / 2 + 0.6)]} />
+          )),
+        ])}
+      </group>
+    </group>
+  );
+}
+
+// Newport Arch, the Roman north gate of the city, still standing over the road at the top of Bailgate:
+// a big round arch for the road, the little arch for people on foot beside it on the east, and
+// a weathered, uneven top.
+export function NewportArch({ p, font }: { p: Place; font: string }) {
+  const sign = useMemo(() => signTexture(p.name, "#5b6b7a", font), [p, font]);
+  const spring = 3.6,
+    [pa, pb] = NEWPORT.postern;
+  const tops = useMemo(() => {
+    const r = seeded(17);
+    return Array.from({ length: 9 }, (_, i) => ({ x: -p.w / 2 + 0.8 + i * ((p.w - 1.6) / 8), h: 0.3 + r() * 0.7, w: 1 + r() * 0.6 }));
+  }, [p]);
+  return (
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      <Part
+        geometry={geo.arches(p.w, p.h, p.d, [
+          [0, NEWPORT.open * 2, spring],
+          [(pa + pb) / 2, pb - pa, 1.8],
+        ])}
+        color={p.wall}
+        outline={0.08}
+      />
+      {/* the ring of big stones round each arch, on both faces */}
+      {[-1, 1].flatMap((sz) => [
+        <Part key={`a${sz}`} geometry={geo.smile(NEWPORT.open + 0.35, 0.35)} color={STONE} outline={0.03} position={[0, spring, sz * (p.d / 2 + 0.04)]} rotation-z={Math.PI} scale={[1, 1, 0.25]} />,
+        <Part key={`b${sz}`} geometry={geo.smile((pb - pa) / 2 + 0.2, 0.2)} color={STONE} outline={0.03} position={[(pa + pb) / 2, 1.8, sz * (p.d / 2 + 0.04)]} rotation-z={Math.PI} scale={[1, 1, 0.3]} />,
+      ])}
+      {tops.map((t) => (
+        <Part key={t.x} geometry={geo.box(t.w, t.h, p.d - 0.4)} color={p.wall} outline={0.05} position={[t.x, p.h + t.h / 2, 0]} />
+      ))}
+      <mesh position={[0, p.h - 0.55, p.d / 2 + 0.03]}>
+        <planeGeometry args={[3.6, 0.9]} />
+        <meshBasicMaterial map={sign} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
+// One of Steep Hill's Norman stone houses, standing in the row in place of an ordinary house:
+// two storeys of stone on a plinth stepping down the hill, a round-arched doorway (with a chimney
+// rising from just above it on the Jew's House) and pairs of round-headed windows upstairs.
+export function OldHouse({ p, font }: { p: Place; font: string }) {
+  const sign = useMemo(() => signTexture(p.name, "#8a3b2e", font), [p, font]);
+  const y = (dz: number) => groundY(p.z + dz) - groundY(p.z);
+  const len = p.w - 0.2,
+    deep = p.d - 0.2;
+  // stand level with the uphill (north) end of the plot, like the houses either side
+  const top = y(-p.w / 2),
+    low = y(p.w / 2) - 0.3;
+  const front = deep / 2 + 0.06;
+  const chimney = p.id === "jews-house";
+  const door = chimney ? 0 : -len / 4;
+  const arched = (w: number, h: number, color: number, x: number, yy: number, key?: string) => (
+    <group key={key} position={[x, yy, front]}>
+      <Part geometry={geo.box(w, h - w / 2, 0.12)} color={color} outline={0.03} position-y={(h - w / 2) / 2} />
+      <Part geometry={geo.cyl(w / 2, w / 2, 0.12, 14)} color={color} outline={0.03} position-y={h - w / 2} rotation-x={Math.PI / 2} />
+    </group>
+  );
+  return (
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      <Part geometry={geo.box(len + 0.2, top - low + 0.01, p.d)} color={0x9c8d6e} outline={0.05} position-y={(top + low) / 2} />
+      <group position-y={top}>
+        <Part geometry={geo.box(len, p.h, deep)} color={p.wall} outline={0.07} position-y={p.h / 2} />
+        {/* a string course between the floors */}
+        <Part geometry={geo.box(len + 0.1, 0.18, deep + 0.1)} color={STONE_DARK} outline={0.03} position-y={2.3} />
+        <group>
+          {/* the doorway, under a carved arch */}
+          <Part geometry={geo.smile(0.78, 0.16)} color={STONE_DARK} outline={0.03} position={[door, 1.55, front + 0.04]} rotation-z={Math.PI} scale={[1, 1, 0.5]} />
+          {arched(1.3, 2.2, 0x5a3a22, door, 0)}
+          {/* pairs of round-headed windows upstairs */}
+          {[-len / 4 - 0.2, len / 4 + 0.2].flatMap((cx) => [-0.32, 0.32].map((dx) => arched(0.5, 1.1, WINDOW, cx + dx, 2.8, `${cx}${dx}`)))}
+          {!chimney && arched(0.5, 1, WINDOW, len / 4, 0.8)}
+        </group>
+        {chimney && (
+          <>
+            {/* the chimney breast rising from above the doorway arch, through the eaves */}
+            <Part geometry={geo.box(1, p.h - 2.2, 0.4)} color={STONE_DARK} outline={0.04} position={[0, 2.2 + (p.h - 2.2) / 2, front + 0.14]} />
+            <Part geometry={geo.box(0.8, 1.8, 0.8)} color={STONE_DARK} outline={0.04} position={[0, p.h + 0.9, deep / 2 - 0.3]} />
+          </>
+        )}
+        {/* the roof, its ridge running along the street */}
+        <group position-y={p.h}>
+          <group rotation-y={Math.PI / 2}>
+            <Part geometry={geo.cyl(2.3, 2.3, len + 0.2, 3)} color={p.roof} outline={0.06} rotation-x={-Math.PI / 2} scale={[1, 1, 0.5]} position-y={0.55} />
+          </group>
+        </group>
+        <mesh position={[chimney ? len / 4 + 0.35 : len / 4, 1.95, front + 0.09]}>
+          <planeGeometry args={[1.8, 0.45]} />
+          <meshBasicMaterial map={sign} toneMapped={false} />
+        </mesh>
+      </group>
     </group>
   );
 }
