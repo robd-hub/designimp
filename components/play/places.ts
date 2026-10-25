@@ -788,7 +788,7 @@ export const PLACES: Place[] = [
         image: "/work/wellswaydance.jpg",
       },
     ],
-    link: { href: "/#work", label: "See all my work" },
+    link: { href: "https://www.lincolnmuseum.com", label: "Visit the Usher Gallery", external: true },
   },
   {
     id: "brayford",
