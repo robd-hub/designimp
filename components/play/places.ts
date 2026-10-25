@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -286,6 +286,28 @@ export const PLACES: Place[] = [
     intro: [
       "Lincoln's bus station sits just across the road from the railway station, so it's an easy change from train to bus.",
       "Stand under the canopy and the buses will pull in to their bays, wait a few seconds, then head back out of town.",
+    ],
+  },
+  {
+    id: "corn-exchange",
+    kind: "exchange",
+    name: "Corn Exchange",
+    kicker: "Cornhill · Victorian market hall",
+    nav: "Cornhill",
+    // on the north side of Cornhill, south of the Witham and east of the High Street, its front facing south onto
+    // the square as the real one does, with the bus station just along Sincil Street to the east
+    x: 37,
+    z: -23.4,
+    w: 15,
+    d: 7,
+    h: 6.4,
+    wall: 0xb5523b,
+    roof: 0x5b6b7a,
+    roofType: "pitch",
+    rot: 0,
+    intro: [
+      "Cornhill is Lincoln's old market place, just south of High Bridge off the High Street. The Corn Exchange along its north side was built in 1879 for the city's corn traders: an Italianate hall of red brick with stone dressings, designed by Bellamy and Hardy.",
+      "Trade fell away in the farming depression at the end of the century, and the building went on to be a cinema, a skating rink and a bingo hall. A refurbishment finished in 2018 brought it back as shops and a restaurant, at the heart of the Cornhill Quarter.",
     ],
   },
   {

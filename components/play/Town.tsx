@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow, HighBridge, NewportArch, OldHouse, Gallery, Ruins, River } from "./Landmarks";
-import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
+import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, CORNHILL, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy, walkRoute } from "./store";
@@ -17,6 +17,7 @@ import Railway from "./Railway";
 import Cars from "./Cars";
 import { Station } from "./Station";
 import { BusStation } from "./BusStation";
+import { CornExchange } from "./CornExchange";
 import { Crowd, Chant } from "./Matchday";
 
 function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; color: number; x?: number; z?: number; y?: number }) {
@@ -61,6 +62,10 @@ function Roads() {
       <Flat w={AF_LEN} d={6} color={0x6b6573} x={AF_MID} z={AIRFIELD_ROAD.z} />
       {/* Castle Square, pedestrianised */}
       <Strip w={CLOSE.x1 - CLOSE.x0} d={CLOSE.z1 - CLOSE.z0} color={PAVED} x={(CLOSE.x0 + CLOSE.x1) / 2} z={(CLOSE.z0 + CLOSE.z1) / 2} y={0.035} />
+      {/* Cornhill, the old market place, with its way in off the main road and Sincil Street to the bus station */}
+      {CORNHILL.map((r, i) => (
+        <Flat key={i} w={r.x1 - r.x0} d={r.z1 - r.z0} color={PAVED} x={(r.x0 + r.x1) / 2} z={(r.z0 + r.z1) / 2} y={0.035 + i * 0.002} />
+      ))}
       {/* and Bailgate, north from the square */}
       <Strip w={BAILGATE.x1 - BAILGATE.x0} d={BAILGATE.z1 - BAILGATE.z0} color={PAVED} z={(BAILGATE.z0 + BAILGATE.z1) / 2} y={0.035} />
       {dashes.map((i) => (
@@ -585,6 +590,8 @@ for (let i = 20; i < EAST; i += 18) {
 for (let i = 20; i < SOUTH; i += 18) if (Math.abs(i - RAIL.z) > 5 && Math.abs(i - STADIUM_ROAD.z) > 5) LAMPS.push([5.5, i], [-5.5, i]);
 // up the High Street, along the shopfronts and clear of the river and the Stonebow
 for (const i of [-12, -24, -47]) LAMPS.push([HIGH_ST - 0.7, i], [0.7 - HIGH_ST, i]);
+// on Cornhill, in front of the shops and by the way in
+LAMPS.push([CORNHILL[0].x0 + 0.8, CORNHILL[0].z1 - 0.8], [CORNHILL[1].x1 - 0.8, -10]);
 
 // Paving slabs scattered over Castle Square, Bailgate and up the High Street.
 const SLABS = (() => {
@@ -592,7 +599,9 @@ const SLABS = (() => {
   const square = Array.from({ length: 90 }, () => [CLOSE.x0 + 1 + r() * (CLOSE.x1 - CLOSE.x0 - 2), CLOSE.z0 + 1 + r() * (CLOSE.z1 - CLOSE.z0 - 2)] as const);
   const street = Array.from({ length: 60 }, () => [(r() - 0.5) * (HIGH_ST * 2 - 1), NS_START + 1 + r() * (-8 - NS_START)] as const);
   const bailgate = Array.from({ length: 25 }, () => [(r() - 0.5) * 7, BAILGATE.z0 + 1 + r() * (BAILGATE.z1 - BAILGATE.z0 - 2)] as const);
-  return [...square, ...street, ...bailgate];
+  const c = CORNHILL[0];
+  const cornhill = Array.from({ length: 30 }, () => [c.x0 + 1 + r() * (c.x1 - c.x0 - 2), c.z0 + 1 + r() * (c.z1 - c.z0 - 2)] as const);
+  return [...square, ...street, ...bailgate, ...cornhill];
 })();
 
 // The farmers' market on Castle Square: striped stalls piled with fruit and veg.
@@ -605,7 +614,7 @@ function Market() {
         <mesh key={i} geometry={geo.box(1.1, 0.06, 0.8)} material={toon(0xc7b89a)} position={[x, groundY(z) + 0.05, z]} rotation-x={groundTilt(z)} raycast={() => null} />
       ))}
       {STALLS.map((s, i) => (
-        <group key={s.x} position={[s.x, groundY(s.z), s.z]}>
+        <group key={`${s.x},${s.z}`} position={[s.x, groundY(s.z), s.z]}>
           {[-1, 1].flatMap((sx) =>
             [-1, 1].map((sz) => (
               <Part key={`${sx}${sz}`} geometry={geo.box(0.12, 2.6, 0.12)} color={0x8a5a33} outline={0.03} position={[(sx * (STALL.w - 0.2)) / 2, 1.3, (sz * (STALL.d - 0.2)) / 2]} />
@@ -898,7 +907,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
