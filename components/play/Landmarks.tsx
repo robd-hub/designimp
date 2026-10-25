@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, type ThreeElements } from "@react-three/fiber";
 import type { Place } from "./places";
-import { Part, geo, toon, signTexture, WINDOW, LAMP, STONE, STONE_DARK } from "./toon";
+import { Part, geo, toon, signTexture, INK, WINDOW, LAMP, STONE, STONE_DARK } from "./toon";
 import { placeEvents } from "./store";
 import { AIRFIELD, BRAYFORD, CANNONS, NEWPORT, RIVER, RIVER_RUNS, STONEBOW, STREET_ROW, seeded, streetHouses } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
@@ -21,61 +21,94 @@ function Crenels({ len, y, ...g }: { len: number; y: number; position?: [number,
   );
 }
 
-// The Stonebow, simplified: a stone gateway over the High Street with the Guildhall on top,
-// corner turrets, and the old Mote Bell in a little cupola on the roof.
+// The Stonebow, simplified from its south front: a low segmental arch over the street between two
+// round buttresses with niches, two narrow walkway arches either side, the Guildhall's windows above
+// (four sashes on the left, three on the right, then a pair of mullioned windows each side), battlements,
+// a stepped gable with a clock over the middle, and the old Mote Bell in a little cupola on the roof.
 export function Stonebow({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, "#5b6b7a", font), [p, font]);
-  // drawn at full size here, then scaled down to fit (see STONEBOW)
-  const open = 3.5,
-    half = 8,
-    d = 4,
-    pier = half - open,
-    arch = 4.8,
-    top = 10;
+  const { half, d, arches } = STONEBOW;
+  const top = p.h,
+    mid = arches[0][1] / 2, // half the main arch's span
+    side = half - mid - 0.8; // length of each side range, out from the buttresses
   return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} scale={STONEBOW.scale} {...placeEvents(p)}>
-      {[-1, 1].map((sx) => (
-        <Part key={sx} geometry={geo.box(pier, arch + 0.6, d)} color={STONE} outline={0.08} position={[sx * (open + pier / 2), (arch + 0.6) / 2, 0]} />
-      ))}
-      {/* lintel over the archway, with a darker arch ring on each face */}
-      <Part geometry={geo.box(open * 2, 0.9, d)} color={STONE} outline={0.06} position-y={arch + 0.15} />
-      {[-1, 1].map((sz) => (
-        <Part key={sz} geometry={geo.box(open * 2 + 0.6, 0.35, 0.2)} color={STONE_DARK} outline={0.04} position={[0, arch - 0.2, sz * (d / 2 + 0.05)]} />
-      ))}
-      {/* the Guildhall upstairs */}
-      <Part geometry={geo.box(half * 2, top - arch - 0.6, d + 0.4)} color={0xe6dbc4} outline={0.08} position-y={(top + arch + 0.6) / 2} />
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      {/* paving carried out under the walkway arches */}
+      <mesh geometry={geo.box(half * 2 + 1, 0.05, d + 3)} material={toon(0xd9ccb2)} position-y={0.05} receiveShadow />
+      <Part geometry={geo.arches(half * 2, top, d, arches)} color={STONE} outline={0.08} />
+      {/* the roll-moulded ring round each arch, on both faces */}
       {[-1, 1].flatMap((sz) =>
-        [-5.2, -2.6, 0, 2.6, 5.2].map((x) => (
-          <Part key={`${sz}${x}`} geometry={geo.box(1, 1.5, 0.2)} color={WINDOW} outline={0.04} position={[x, 7.8, sz * (d / 2 + 0.22)]} />
+        arches.slice(1).map(([x, span, spring]) => (
+          <Part key={`${sz}${x}`} geometry={geo.smile(span / 2 + 0.12, 0.12)} color={STONE_DARK} outline={0.03} position={[x, spring, sz * (d / 2 + 0.04)]} rotation-z={Math.PI} scale={[1, 1, 0.4]} />
         )),
       )}
-      {/* battlements */}
-      {[-1, 1].map((sz) =>
-        Array.from({ length: 8 }, (_, i) => (
-          <Part key={`${sz}${i}`} geometry={geo.box(0.9, 0.7, 0.5)} color={STONE} outline={0.04} position={[-half + 1 + i * ((half * 2 - 2) / 7), top + 0.35, sz * (d / 2)]} />
-        )),
+      {[-1, 1].map((sz) => (
+        <Part key={sz} geometry={geo.box(mid * 2 + 0.3, 0.3, 0.2)} color={STONE_DARK} outline={0.03} position={[0, arches[0][2] + arches[0][3]! + 0.15, sz * (d / 2 + 0.05)]} />
+      ))}
+      {/* round buttresses either side of the main arch on the south front, each with a canopied niche */}
+      {[-1, 1].map((sx) => (
+        <group key={sx} position={[sx * (mid + 0.4), 0, d / 2]}>
+          <Part geometry={geo.cyl(0.45, 0.5, top + 0.5, 10)} color={STONE} outline={0.06} position-y={(top + 0.5) / 2} />
+          <Part geometry={geo.cone(0.5, 0.8, 10)} color={STONE_DARK} outline={0.04} position-y={top + 0.9} />
+          <Part geometry={geo.box(0.5, 0.9, 0.2)} color={0x6e6457} outline={0.03} position={[0, 4.6, 0.38]} />
+          <Part geometry={geo.cone(0.38, 0.45, 4)} color={STONE_DARK} outline={0.03} position={[0, 5.3, 0.36]} rotation-y={Math.PI / 4} scale={[1, 1, 0.5]} />
+        </group>
+      ))}
+      {/* over the main arch: the tablet (here, the sign) and a pair of two-light windows */}
+      {[-1, 1].flatMap((sz) =>
+        [-1.1, 1.1].flatMap((x) =>
+          [-0.26, 0.26].map((dx) => <Part key={`${sz}${x}${dx}`} geometry={geo.box(0.42, 1.1, 0.2)} color={WINDOW} outline={0.03} position={[x + dx, 6.1, sz * (d / 2 + 0.06)]} />),
+        ),
       )}
-      {/* turrets at the corners */}
-      {[-1, 1].flatMap((sx) =>
-        [-1, 1].map((sz) => (
-          <group key={`${sx}${sz}`} position={[sx * half, 0, sz * (d / 2)]}>
-            <Part geometry={geo.cyl(0.8, 0.9, top + 1.6, 8)} color={STONE_DARK} outline={0.06} position-y={(top + 1.6) / 2} />
-            <Part geometry={geo.cone(0.95, 1.4, 8)} color={STONE_DARK} outline={0.05} position-y={top + 2.3} />
+      {/* the side ranges: sashes on the lower floor (four left, three right), mullioned windows above */}
+      {[-1, 1].flatMap((sz) =>
+        [-1, 1].flatMap((sx) => {
+          const n = sx < 0 ? 4 : 3;
+          const sashes = Array.from({ length: n }, (_, i) => mid + 0.8 + ((i + 0.5) * side) / n);
+          return [
+            ...sashes.map((x) => <Part key={`s${sz}${sx}${x}`} geometry={geo.box(0.62, 1.05, 0.2)} color={WINDOW} outline={0.03} position={[sx * x, 4.3, sz * (d / 2 + 0.06)]} />),
+            ...[0.27, 0.73].flatMap((f) =>
+              [-0.34, 0.34].map((dx) => (
+                <Part key={`m${sz}${sx}${f}${dx}`} geometry={geo.box(0.6, 0.85, 0.2)} color={WINDOW} outline={0.03} position={[sx * (mid + 0.8 + f * side) + dx, 6.4, sz * (d / 2 + 0.06)]} />
+              )),
+            ),
+          ];
+        }),
+      )}
+      {/* battlements along the side ranges */}
+      {[-1, 1].flatMap((sz) =>
+        [-1, 1].flatMap((sx) =>
+          Array.from({ length: 4 }, (_, i) => (
+            <Part key={`${sz}${sx}${i}`} geometry={geo.box(0.7, 0.6, 0.45)} color={STONE} outline={0.04} position={[sx * (mid + 1.3 + (i * (side - 1)) / 3), top + 0.3, sz * (d / 2 - 0.2)]} />
+          )),
+        ),
+      )}
+      {/* the stepped gable with its clock, on both faces */}
+      {[-1, 1].map((sz) => (
+        <group key={sz} position-z={sz * (d / 2 - 0.25)}>
+          {[mid * 2, mid * 2 - 1.6, mid * 2 - 3.2].map((w, i) => (
+            <Part key={w} geometry={geo.box(w, 0.6, 0.5)} color={STONE} outline={0.05} position-y={top + 0.3 + i * 0.6} />
+          ))}
+          <group position={[0, top + 0.85, sz * 0.27]} rotation-y={sz < 0 ? Math.PI : 0}>
+            <Part geometry={geo.cyl(0.42, 0.42, 0.08, 20)} color={0xf4efe2} outline={0.03} rotation-x={Math.PI / 2} />
+            <mesh geometry={geo.box(0.06, 0.32, 0.04)} material={toon(INK)} position={[0, 0.13, 0.06]} />
+            <mesh geometry={geo.box(0.24, 0.06, 0.04)} material={toon(INK)} position={[0.1, 0, 0.06]} />
           </group>
-        )),
-      )}
-      {/* the Mote Bell */}
-      <group position-y={top}>
+        </group>
+      ))}
+      {/* the Mote Bell, raised on a little plinth so it shows over the gable */}
+      <Part geometry={geo.box(1.4, 1, 1.4)} color={STONE} outline={0.04} position-y={top + 0.5} />
+      <group position-y={top + 1}>
         {[-1, 1].flatMap((sx) =>
           [-1, 1].map((sz) => (
-            <Part key={`${sx}${sz}`} geometry={geo.box(0.2, 1.6, 0.2)} color={STONE_DARK} outline={0.03} position={[sx * 0.7, 0.8, sz * 0.7]} />
+            <Part key={`${sx}${sz}`} geometry={geo.box(0.15, 1.3, 0.15)} color={STONE_DARK} outline={0.03} position={[sx * 0.5, 0.65, sz * 0.5]} />
           )),
         )}
-        <Part geometry={geo.cone(1.3, 1.1, 4)} color={0x5b6b7a} outline={0.05} position-y={2.1} rotation-y={Math.PI / 4} />
-        <Part geometry={geo.cone(0.4, 0.6, 12)} color={0xc8973a} outline={0.03} position-y={1.1} />
+        <Part geometry={geo.cone(1, 0.9, 4)} color={0x5b6b7a} outline={0.05} position-y={1.75} rotation-y={Math.PI / 4} />
+        <Part geometry={geo.cone(0.32, 0.5, 12)} color={0xc8973a} outline={0.03} position-y={0.95} />
       </group>
-      <mesh position={[0, 6.4, d / 2 + 0.24]}>
-        <planeGeometry args={[4.4, 1.1]} />
+      <mesh position={[0, 4.75, d / 2 + 0.06]}>
+        <planeGeometry args={[3.4, 0.85]} />
         <meshBasicMaterial map={sign} toneMapped={false} />
       </mesh>
     </group>

@@ -168,13 +168,21 @@ export const STALL = { w: 4, d: 2.4 };
 export const STALLS = [-16, -10, 10, 16].map((x) => ({ x, z: CLOSE.z0 + 2.5 }));
 
 // The Stonebow: the old city gate with the Guildhall above it, spanning the pedestrianised
-// High Street just north of the Post and the Town Hall, partway up to Steep Hill. Only its two piers are solid.
+// High Street just north of the Post and the Town Hall, partway up to Steep Hill. As on the real
+// south front, a low segmental arch over the street is flanked by two narrow walkway arches either
+// side. Each arch is [centre x, span, height its head springs, rise of a segmental head]; only the
+// piers between them are solid.
 const gate = PLACES.find((p) => p.kind === "gate")!;
-// It's modelled 16 wide and scaled down to the place's width, so it sits in proportion with the shops.
-export const STONEBOW = { z: gate.z, scale: gate.w / 16, open: (3.5 * gate.w) / 16, half: gate.w / 2, d: gate.d };
-const STONEBOW_PIERS = [-1, 1].map((s) => ({
-  x0: s < 0 ? -STONEBOW.half : STONEBOW.open,
-  x1: s < 0 ? -STONEBOW.open : STONEBOW.half,
+export const STONEBOW = {
+  z: gate.z,
+  half: gate.w / 2,
+  d: gate.d,
+  arches: [[0, 5.2, 2.6, 1], ...[-1, 1].flatMap((s) => [[s * 4.4, 1.4, 2.1], [s * 6.2, 1.4, 2.1]])] as [number, number, number, number?][],
+};
+const stonebowEdges = [-STONEBOW.half, ...STONEBOW.arches.map(([x, span]) => [x - span / 2, x + span / 2]).sort((a, b) => a[0] - b[0]).flat(), STONEBOW.half];
+const STONEBOW_PIERS = Array.from({ length: stonebowEdges.length / 2 }, (_, i) => ({
+  x0: gate.x + stonebowEdges[2 * i],
+  x1: gate.x + stonebowEdges[2 * i + 1],
   z0: STONEBOW.z - STONEBOW.d / 2,
   z1: STONEBOW.z + STONEBOW.d / 2,
 }));
