@@ -12,7 +12,8 @@ const tmp = new THREE.Vector3();
 
 // Townsfolk who pass each other stop for a quick chat: they turn to face each other and take turns to
 // speak, each waving as they do, then walk on. A pair won't stop again until again seconds have passed.
-const CHAT = { near: 1.8, secs: 5, again: 25 };
+// Switched off for now (no stopping, waving or speech bubbles between townsfolk); set on: true to bring it back.
+const CHAT = { on: false, near: 1.8, secs: 5, again: 25 };
 const chats = new Map<string, { with: Npc; t0: number; first: boolean }>();
 const lastChat = new Map<string, number>();
 const pairKey = (a: Npc, b: Npc) => [a.id, b.id].sort().join();
@@ -41,7 +42,7 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
       lastChat.set(pairKey(npc, chat.with), now);
       chat = undefined;
     }
-    if (!chat && !talking) {
+    if (CHAT.on && !chat && !talking) {
       for (const o of NPCS) {
         if (o === npc || chats.has(o.id) || usePlay.getState().talk?.npc === o) continue;
         if (now - (lastChat.get(pairKey(npc, o)) ?? -Infinity) < CHAT.again || npcPos.get(o.id)!.distanceTo(pos) > CHAT.near) continue;
