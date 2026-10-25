@@ -732,6 +732,11 @@ export const PLACES: Place[] = [
       "Another stone house from the late 12th century, with round-arched Norman windows upstairs.",
       "It's named after Aaron of Lincoln, a financier who was probably the richest man in England when he died in 1186, though nobody knows for sure that he lived here.",
     ],
+    link: {
+      href: "https://www.visitlincoln.com/listing/medieval-norman-house/96697101/",
+      label: "See it on Visit Lincoln",
+      external: true,
+    },
   },
   {
     id: "bishops-palace",
