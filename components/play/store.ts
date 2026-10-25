@@ -66,6 +66,11 @@ function firstArrival() {
   }
 }
 
+// Sincil Bank: Saturdays are matchdays; ?matchday=1 previews one any day.
+export function isMatchday() {
+  return new Date().getDay() === 6 || new URLSearchParams(window.location.search).get("matchday") === "1";
+}
+
 function isNight() {
   const h = new Date().getHours();
   return h < 7 || h >= 19;

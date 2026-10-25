@@ -6,6 +6,7 @@ import { game, usePlay, nearestPlace, nearestNpc } from "./store";
 import { npcPos } from "./npcs";
 import { atBarrier, blocked, crossings } from "./colliders";
 import { groundY, groundTilt } from "./terrain";
+import { footstep, squeak } from "./sound";
 
 const SKIN = 0xd9a441; // Design Imp gold, a touch warmer
 const BELLY = 0xf3d48e;
@@ -45,6 +46,7 @@ export default function Imp({ reduce }: { reduce: boolean }) {
   const wave = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     waveUntil.current = now.current + WAVE_FOR;
+    squeak();
   };
 
   useFrame(({ camera, size, clock }, delta) => {
@@ -142,8 +144,12 @@ export default function Imp({ reduce }: { reduce: boolean }) {
         game.face += d * Math.min(1, dt * 12);
       }
     }
-    if (moving) walkT.current += dt * 11;
-    else walkT.current *= 0.85;
+    if (moving) {
+      // a footfall each time a foot comes down
+      const was = Math.floor(walkT.current / Math.PI);
+      walkT.current += dt * 11;
+      if (Math.floor(walkT.current / Math.PI) !== was) footstep();
+    } else walkT.current *= 0.85;
 
     const t = clock.elapsedTime;
     now.current = t;

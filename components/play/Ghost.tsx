@@ -1,8 +1,9 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { geo, INK } from "./toon";
 import { groundY } from "./terrain";
+import { AUDIO } from "./sound";
 
 // After dark a friendly ghost drifts round the top of Steep Hill, over the castle and past the cathedral.
 // Its loop runs from over the castle, across the square, to swoop past the cathedral's west front.
@@ -19,9 +20,11 @@ const next = new THREE.Vector3();
 export default function Ghost({ reduce }: { reduce: boolean }) {
   const g = useRef<THREE.Group>(null!);
   const hem = useRef<THREE.Group>(null!);
+  useEffect(() => () => void (AUDIO.ghost.on = false), []);
   useFrame(({ clock }) => {
     const t = reduce ? 2 : clock.elapsedTime * 0.25;
     at(t, g.current.position);
+    Object.assign(AUDIO.ghost, { on: true, x: g.current.position.x, z: g.current.position.z });
     at(t + 0.01, next);
     g.current.rotation.y = Math.atan2(next.x - g.current.position.x, next.z - g.current.position.z);
     if (reduce) return;

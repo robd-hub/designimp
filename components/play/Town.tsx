@@ -9,12 +9,13 @@ import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow, HighBridge, Ne
 import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, CORNHILL, STONEBOW_STREETS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
-import { game, usePlay, placeEvents, zoomBy, walkRoute } from "./store";
+import { game, usePlay, placeEvents, zoomBy, walkRoute, isMatchday } from "./store";
 import Imp from "./Imp";
 import Hunt from "./Hunt";
 import Ghost from "./Ghost";
 import Railway from "./Railway";
 import Cars from "./Cars";
+import Soundscape from "./Soundscape";
 import { Station } from "./Station";
 import { BusStation } from "./BusStation";
 import { CornExchange } from "./CornExchange";
@@ -465,10 +466,6 @@ function Lot({ p, font }: { p: Place; font: string }) {
 }
 
 // Sincil Bank, simplified: a pitch ringed by four red-and-white stands with floodlights.
-// Saturdays are matchdays; ?matchday=1 previews one any day.
-function isMatchday() {
-  return new Date().getDay() === 6 || new URLSearchParams(window.location.search).get("matchday") === "1";
-}
 
 function Stadium({ p, font, reduce }: { p: Place; font: string; reduce: boolean }) {
   const matchday = useMemo(() => isMatchday(), []);
@@ -932,6 +929,7 @@ export default function Town({ font }: { font: string }) {
       <Hunt reduce={reduce} />
       {night && <Ghost reduce={reduce} />}
       <Imp reduce={reduce} />
+      <Soundscape />
     </Canvas>
   );
 }
