@@ -287,6 +287,7 @@ export const PLACES: Place[] = [
       "Lincoln's bus station sits just across the road from the railway station, so it's an easy change from train to bus.",
       "Stand under the canopy and the buses will pull in to their bays, wait a few seconds, then head back out of town.",
     ],
+    link: { href: "https://lincolnbus.co.uk/bus-station", label: "See the bus station's page", external: true },
   },
   {
     id: "corn-exchange",
@@ -309,6 +310,7 @@ export const PLACES: Place[] = [
       "Cornhill is Lincoln's old market place, just south of High Bridge off the High Street. The Corn Exchange along its north side was built in 1879 for the city's corn traders: an Italianate hall of red brick with stone dressings, designed by Bellamy and Hardy.",
       "Trade fell away in the farming depression at the end of the century, and the building went on to be a cinema, a skating rink and a bingo hall. A refurbishment finished in 2018 brought it back as shops and a restaurant, at the heart of the Cornhill Quarter.",
     ],
+    link: { href: "https://www.cornhillquarter.co.uk/", label: "Visit the Cornhill Quarter", external: true },
   },
   {
     id: "tolet-west",
@@ -514,7 +516,7 @@ export const PLACES: Place[] = [
       "Legend says a pair of imps were blown into the cathedral and started causing mischief, until an angel turned one of them to stone. He's been sitting there for over 700 years.",
       "Look closely above the door. He's up there.",
     ],
-    link: { href: "/about", label: "Read the Design Imp story" },
+    link: { href: "https://lincolncathedral.com/", label: "Visit Lincoln Cathedral", external: true },
   },
   {
     id: "sincil-bank",
@@ -660,6 +662,7 @@ export const PLACES: Place[] = [
       "High Bridge carries Lincoln's High Street over the River Witham. It was built around 1160, and it's the oldest bridge in Britain that still has buildings standing on it.",
       "The black-and-white timber-framed shops on its west side date from the 1500s. The dark, vaulted channel the river runs through underneath is known as the Glory Hole.",
     ],
+    link: { href: "https://stokescoffee.com/pages/cafe-lincoln-high-bridge", label: "Visit Stokes High Bridge Café", external: true },
   },
   {
     id: "newport-arch",
@@ -703,6 +706,11 @@ export const PLACES: Place[] = [
       "The Jew's House was built in stone in the middle of the 12th century, and it's one of the oldest houses in England that's still in use.",
       "Look for the carved round arch over the front door, with the chimney rising from just above it. Lincoln had one of the largest Jewish communities in medieval England, until Edward I expelled the Jews from England in 1290.",
     ],
+    link: {
+      href: "https://www.visitlincoln.com/listing/jews-house/96699101/",
+      label: "See it on Visit Lincoln",
+      external: true,
+    },
   },
   {
     id: "aarons-house",
@@ -745,6 +753,11 @@ export const PLACES: Place[] = [
       "The bishops of Lincoln started building their palace here in the 1150s, on the slope just below the cathedral. Their diocese was the biggest in England, stretching from the Humber to the Thames.",
       "It was wrecked during the Civil War and never rebuilt. Today it's looked after by English Heritage, with a little vineyard on the terrace in front of the ruins.",
     ],
+    link: {
+      href: "https://www.english-heritage.org.uk/visit/places/lincoln-medieval-bishops-palace/",
+      label: "See it on English Heritage",
+      external: true,
+    },
   },
   {
     id: "usher-gallery",
@@ -780,7 +793,7 @@ export const PLACES: Place[] = [
         image: "/work/wellswaydance.jpg",
       },
     ],
-    link: { href: "/#work", label: "See all my work" },
+    link: { href: "https://www.lincolnmuseum.com", label: "Visit the Usher Gallery", external: true },
   },
   {
     id: "brayford",
