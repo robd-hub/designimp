@@ -753,6 +753,11 @@ export const PLACES: Place[] = [
       "The bishops of Lincoln started building their palace here in the 1150s, on the slope just below the cathedral. Their diocese was the biggest in England, stretching from the Humber to the Thames.",
       "It was wrecked during the Civil War and never rebuilt. Today it's looked after by English Heritage, with a little vineyard on the terrace in front of the ruins.",
     ],
+    link: {
+      href: "https://www.english-heritage.org.uk/visit/places/lincoln-medieval-bishops-palace/",
+      label: "See it on English Heritage",
+      external: true,
+    },
   },
   {
     id: "usher-gallery",
