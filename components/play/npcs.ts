@@ -47,8 +47,8 @@ export const NPCS: Npc[] = [
     ],
   },
   {
-    id: "priya",
-    name: "Priya",
+    id: "elizabeth",
+    name: "Elizabeth",
     shirt: 0xff5a3c,
     legs: 0x2b3a8c,
     skin: 0x9a6a4a,
