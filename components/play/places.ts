@@ -661,6 +661,7 @@ export const PLACES: Place[] = [
       "High Bridge carries Lincoln's High Street over the River Witham. It was built around 1160, and it's the oldest bridge in Britain that still has buildings standing on it.",
       "The black-and-white timber-framed shops on its west side date from the 1500s. The dark, vaulted channel the river runs through underneath is known as the Glory Hole.",
     ],
+    link: { href: "https://stokescoffee.com/pages/cafe-lincoln-high-bridge", label: "Visit Stokes High Bridge Café", external: true },
   },
   {
     id: "newport-arch",
