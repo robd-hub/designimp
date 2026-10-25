@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Part, geo, toon, INK, WINDOW, LAMP } from "./toon";
 import { BOUND, CROSSING, EAST, MID_X, RAIL, RAIL_FENCE_RUNS, STATION } from "./colliders";
+import { AUDIO } from "./sound";
 
 // The railway south of the Workshop and HQ. Passenger trains and long tanker trains take it in
 // turns to run across town, and the level crossing's barriers drop on the main road for each one.
@@ -271,6 +272,10 @@ export default function Railway({ reduce }: { reduce: boolean }) {
       }
     }
     CROSSING.closed = closed;
+    const t = AUDIO.train;
+    t.on = !reduce && s.wait <= 0;
+    [t.head, t.dir, t.v, t.run] = [s.head, run.dir, s.v, s.i];
+    [t.x0, t.x1] = [s.head, s.head - run.dir * train.len];
     for (const k of ["passenger", "tanker"] as const) {
       const g = trains.current[k];
       if (!g) continue;
@@ -283,6 +288,7 @@ export default function Railway({ reduce }: { reduce: boolean }) {
     s.arm += Math.sign(want - s.arm) * Math.min(Math.abs(want - s.arm), dt * (closed ? 1.1 : 0.9));
     arms.current.forEach((a) => a && (a.rotation.z = s.arm));
     const flashing = closed || s.arm < UP - 0.01;
+    AUDIO.crossing = flashing;
     const on = Math.floor(clock.elapsedTime * 2.4) % 2;
     FLASH.forEach((m, i) => m.color.setHex(flashing && i === on ? LAMP_ON : LAMP_OFF));
   });

@@ -6,6 +6,7 @@ import { BOUND, BUS_STATION, CROSSING, EAST, RAIL, ROUNDABOUT, SOUTH } from "./c
 import { groundY } from "./terrain";
 import { game } from "./store";
 import { npcPos } from "./npcs";
+import { AUDIO } from "./sound";
 
 // A few cars driving round town, on the left as in the UK: eastbound traffic keeps to the north half
 // of the main road and southbound traffic to the east half of the south road. Each drives its route,
@@ -189,6 +190,7 @@ export default function Cars({ reduce }: { reduce: boolean }) {
       if (c.wait > 0) {
         c.wait -= dt;
         if (g) g.visible = false;
+        if (AUDIO.cars[i]) AUDIO.cars[i].on = false;
         return;
       }
       if (c.dwell > 0) c.dwell -= dt;
@@ -237,8 +239,9 @@ export default function Cars({ reduce }: { reduce: boolean }) {
         c.stopped = false;
         c.bay = -1;
       }
-      if (!g) return;
       const at = pointAt(i, c.d, tmp.a);
+      AUDIO.cars[i] = { x: at.x, z: at.z, v: c.v, on: !reduce && inTown(at), bus: !!ROUTES[i].bus };
+      if (!g) return;
       const next = pointAt(i, c.d + 0.6, tmp.b);
       g.visible = inTown(at);
       g.position.set(at.x, groundY(at.z), at.z);
