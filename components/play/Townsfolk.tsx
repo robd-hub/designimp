@@ -1,13 +1,21 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { Part, geo, INK } from "./toon";
-import { NPCS, npcPos, type Npc } from "./npcs";
+import { NPCS, npcPos, chatLine, type Npc } from "./npcs";
 import { game, usePlay, walkToNpc } from "./store";
 import { groundY } from "./terrain";
 import { atBarrier } from "./colliders";
 
 const tmp = new THREE.Vector3();
+
+// Townsfolk who pass each other stop for a quick chat: they turn to face each other and take turns to
+// speak, each waving as they do, then walk on. A pair won't stop again until again seconds have passed.
+const CHAT = { near: 1.8, secs: 5, again: 25 };
+const chats = new Map<string, { with: Npc; t0: number; first: boolean }>();
+const lastChat = new Map<string, number>();
+const pairKey = (a: Npc, b: Npc) => [a.id, b.id].sort().join();
 
 function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
   const body = useRef<THREE.Group>(null!);
@@ -16,6 +24,8 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
   const armL = useRef<THREE.Group>(null!);
   const armR = useRef<THREE.Group>(null!);
   const st = useRef({ leg: 1, walkT: 0, face: 0 });
+  const [say, setSay] = useState<string | null>(null);
+  const saying = useRef<string | null>(null);
 
   useFrame(({ clock }, delta) => {
     const dt = Math.min(delta, 0.05);
@@ -24,8 +34,32 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
     const talking = usePlay.getState().talk?.npc === npc;
     let moving = false;
     let want = s.face;
+    const now = clock.elapsedTime;
+    let chat = chats.get(npc.id);
+    if (chat && now - chat.t0 > CHAT.secs) {
+      chats.delete(npc.id);
+      lastChat.set(pairKey(npc, chat.with), now);
+      chat = undefined;
+    }
+    if (!chat && !talking) {
+      for (const o of NPCS) {
+        if (o === npc || chats.has(o.id) || usePlay.getState().talk?.npc === o) continue;
+        if (now - (lastChat.get(pairKey(npc, o)) ?? -Infinity) < CHAT.again || npcPos.get(o.id)!.distanceTo(pos) > CHAT.near) continue;
+        chat = { with: o, t0: now, first: true };
+        chats.set(npc.id, chat);
+        chats.set(o.id, { with: npc, t0: now, first: false });
+        break;
+      }
+    }
+    // the first to speak has the first half of the chat, the other the second
+    const speaking = !talking && !!chat && now - chat.t0 < CHAT.secs / 2 === chat.first;
+    const line = speaking ? chatLine(npc, chat!.with, chat!.first) : null;
+    if (line !== saying.current) setSay((saying.current = line));
     if (talking) {
       want = Math.atan2(game.pos.x - pos.x, game.pos.z - pos.z);
+    } else if (chat) {
+      const o = npcPos.get(chat.with.id)!;
+      want = Math.atan2(o.x - pos.x, o.z - pos.z);
     } else {
       const [tx, tz] = npc.path[s.leg];
       tmp.set(tx - pos.x, 0, tz - pos.z);
@@ -52,8 +86,9 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
     legR.current.rotation.x = -sw;
     armL.current.rotation.x = -sw * 0.8;
     // wave hello while chatting
-    armR.current.rotation.x = talking ? Math.PI : sw * 0.8;
-    armR.current.rotation.z = talking && !reduce ? Math.sin(clock.elapsedTime * 8) * 0.35 : 0;
+    const wave = talking || speaking;
+    armR.current.rotation.x = wave ? Math.PI : sw * 0.8;
+    armR.current.rotation.z = wave && !reduce ? Math.sin(clock.elapsedTime * 8) * 0.35 : 0;
     body.current.position.set(pos.x, groundY(pos.z) + (moving ? Math.abs(Math.sin(s.walkT)) * 0.08 : 0), pos.z);
     body.current.rotation.y = s.face;
   });
@@ -86,7 +121,67 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
         </group>
       ))}
       <Head npc={npc} reduce={reduce} />
+      {npc.dog !== undefined && <Dog color={npc.dog} reduce={reduce} />}
+      {say && (
+        <Html position={[0, 3.4, 0]} center zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
+          <div className="max-w-[220px] w-max rounded-2xl border-2 border-[#1a1320] bg-white px-3 py-1.5 text-center text-xs font-semibold leading-snug text-[#1a1320] shadow-[0_3px_0_#1a1320]">
+            {say}
+          </div>
+        </Html>
+      )}
     </group>
+  );
+}
+
+// A fluffy little dog trotting at its owner's left side on a lead from her hand, in the owner's own
+// coordinates so it follows her round. Its tail wags all the time.
+const DOG = { x: -0.85, z: 0.55 };
+const HAND = new THREE.Vector3(-0.46, 0.73, 0);
+const COLLAR = new THREE.Vector3(DOG.x, 0.62, DOG.z + 0.3);
+const LEAD = (() => {
+  const d = COLLAR.clone().sub(HAND);
+  return {
+    len: d.length(),
+    at: HAND.clone().add(COLLAR).multiplyScalar(0.5),
+    q: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()),
+  };
+})();
+function Dog({ color, reduce }: { color: number; reduce: boolean }) {
+  const tail = useRef<THREE.Group>(null!);
+  useFrame(({ clock }) => {
+    if (!reduce) tail.current.rotation.z = Math.sin(clock.elapsedTime * 14) * 0.5;
+  });
+  return (
+    <>
+      <mesh geometry={geo.cyl(0.015, 0.015, LEAD.len, 4)} position={LEAD.at} quaternion={LEAD.q}>
+        <meshBasicMaterial color={0xe03a3e} />
+      </mesh>
+      <group position={[DOG.x, 0, DOG.z]}>
+        <Part geometry={geo.sphere(0.24)} color={color} outline={0.04} position-y={0.42} scale={[0.85, 0.8, 1.35]} />
+        {[-1, 1].flatMap((sx) =>
+          [-1, 1].map((sz) => <Part key={`${sx}${sz}`} geometry={geo.cyl(0.06, 0.06, 0.28, 6)} color={color} outline={0.03} position={[sx * 0.11, 0.14, sz * 0.18]} />),
+        )}
+        <group position={[0, 0.62, 0.32]}>
+          <Part geometry={geo.sphere(0.19)} color={color} outline={0.04} />
+          <Part geometry={geo.sphere(0.09)} color={color} outline={0.03} position={[0, -0.05, 0.17]} />
+          <mesh geometry={geo.sphere(0.04)} position={[0, -0.02, 0.26]}>
+            <meshBasicMaterial color={INK} />
+          </mesh>
+          {[-1, 1].map((sx) => (
+            <group key={sx}>
+              <mesh geometry={geo.sphere(0.03)} position={[sx * 0.08, 0.05, 0.16]}>
+                <meshBasicMaterial color={INK} />
+              </mesh>
+              {/* floppy curly ears */}
+              <Part geometry={geo.sphere(0.09)} color={color} outline={0.03} position={[sx * 0.17, -0.06, -0.02]} scale={[0.7, 1.4, 0.9]} />
+            </group>
+          ))}
+        </group>
+        <group ref={tail} position={[0, 0.52, -0.3]}>
+          <Part geometry={geo.sphere(0.08)} color={color} outline={0.03} position={[0, 0.08, -0.04]} scale={[1, 1.3, 1]} />
+        </group>
+      </group>
+    </>
   );
 }
 
@@ -99,7 +194,7 @@ const STYLE: Record<string, "long" | "bun" | "pony" | "bob" | "fringe"> = {
   bea: "bob",
 };
 // and anyone here wears sunglasses
-const SHADES = new Set(["elizabeth"]);
+const SHADES = new Set(["elizabeth", "alan"]);
 // Little white blossoms scattered over a dark top, as [angle round the body, height].
 const FLORAL = new Set(["elizabeth"]);
 const BLOSSOM = [
