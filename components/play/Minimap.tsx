@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, streetHouses, toWorld } from "./colliders";
+import { AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
 import { game, walkTo } from "./store";
 import s from "./play.module.css";
@@ -49,7 +49,7 @@ export default function Minimap() {
         .map((b) => (
           <rect key={b.x} x={b.x0} y={RIVER.z - RIVER.half - 0.8} width={b.x1 - b.x0} height={RIVER.half * 2 + 1.6} fill="#8a5a33" pointerEvents="none" />
         ))}
-      <rect x={-4.3} y={RISE.z0} width={8.6} height={-RISE.z0} fill="#d9ccb2" />
+      <rect x={-HIGH_ST} y={RISE.z0} width={HIGH_ST * 2} height={-RISE.z0} fill="#d9ccb2" />
       <rect x={BAILGATE.x0} y={BAILGATE.z0} width={BAILGATE.x1 - BAILGATE.x0} height={BAILGATE.z1 - BAILGATE.z0} fill="#e8dcc2" />
       <rect x={CLOSE.x0} y={CLOSE.z0} width={CLOSE.x1 - CLOSE.x0} height={CLOSE.z1 - CLOSE.z0} fill="#e8dcc2" />
       <rect x={L} y={-3} width={W} height={6} fill="#6b6573" />
@@ -93,6 +93,9 @@ export default function Minimap() {
           <rect key={`${p.id}${h.side}${h.i}`} x={p.x + h.x - STREET_ROW / 2} y={p.z + h.z - h.len / 2} width={STREET_ROW} height={h.len} fill={hex(p.roof)} pointerEvents="none" />
         )),
       )}
+      {SHOPFRONTS.map((h) => (
+        <rect key={`${h.x},${h.z}`} x={h.x - h.deep / 2} y={h.z - h.len / 2} width={h.deep} height={h.len} fill="#b5523b" pointerEvents="none" />
+      ))}
       {HOUSES.map((h) => (
         <rect key={`${h.side}${h.i}`} x={h.x - HOUSE.d / 2} y={h.z - HOUSE.w / 2} width={HOUSE.d} height={HOUSE.w} fill="#b5523b" pointerEvents="none" />
       ))}

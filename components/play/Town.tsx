@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow, HighBridge, NewportArch, OldHouse, Gallery, Ruins, River } from "./Landmarks";
-import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
+import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy, walkRoute } from "./store";
@@ -51,7 +51,7 @@ function Roads() {
       <Flat w={SIZE} d={8.6} color={0xe8dcc2} x={MID_X} y={0.01} />
       {/* the road south from the T junction; north of it the High Street is pedestrianised */}
       <Strip w={6} d={SOUTH + 5} color={0x6b6573} z={(SOUTH + 5) / 2} y={0.04} />
-      <Strip w={8.6} d={-6 - NS_START} color={PAVED} z={(NS_START - 6) / 2} y={0.045} />
+      <Strip w={HIGH_ST * 2} d={-4.3 - NS_START} color={PAVED} z={(NS_START - 4.3) / 2} y={0.045} />
       <Flat w={SIZE} d={6} color={0x6b6573} x={MID_X} />
       {/* the road east to Sincil Bank */}
       <Flat w={SB_LEN} d={8.6} color={0xe8dcc2} x={SB_MID} z={STADIUM_ROAD.z} y={0.01} />
@@ -583,13 +583,14 @@ for (let i = 20; i < EAST; i += 18) {
 }
 // down the south road, none on the level crossing or across the junction with the side roads
 for (let i = 20; i < SOUTH; i += 18) if (Math.abs(i - RAIL.z) > 5 && Math.abs(i - STADIUM_ROAD.z) > 5) LAMPS.push([5.5, i], [-5.5, i]);
-for (let i = -27; i > NS_START; i -= 16) LAMPS.push([5.5, i], [-5.5, i]); // up the High Street
+// up the High Street, along the shopfronts and clear of the river and the Stonebow
+for (const i of [-12, -24, -47]) LAMPS.push([HIGH_ST - 0.7, i], [0.7 - HIGH_ST, i]);
 
 // Paving slabs scattered over Castle Square, Bailgate and up the High Street.
 const SLABS = (() => {
   const r = seeded(23);
   const square = Array.from({ length: 90 }, () => [CLOSE.x0 + 1 + r() * (CLOSE.x1 - CLOSE.x0 - 2), CLOSE.z0 + 1 + r() * (CLOSE.z1 - CLOSE.z0 - 2)] as const);
-  const street = Array.from({ length: 40 }, () => [(r() - 0.5) * 7, NS_START + 1 + r() * (-8 - NS_START)] as const);
+  const street = Array.from({ length: 60 }, () => [(r() - 0.5) * (HIGH_ST * 2 - 1), NS_START + 1 + r() * (-8 - NS_START)] as const);
   const bailgate = Array.from({ length: 25 }, () => [(r() - 0.5) * 7, BAILGATE.z0 + 1 + r() * (BAILGATE.z1 - BAILGATE.z0 - 2)] as const);
   return [...square, ...street, ...bailgate];
 })();
@@ -691,6 +692,32 @@ function Houses() {
               [1.1, 2.75],
             ].map(([x, y]) => (
               <Part key={`${x}${y}`} geometry={geo.box(1, 0.9, 0.2)} color={WINDOW} outline={0.04} position={[x, y, d / 2 + 0.05]} />
+            ))}
+          </group>
+        );
+      })}
+    </>
+  );
+}
+
+// The shopfronts along the High Street and Bailgate: two storeys over a shop window, a coloured
+// fascia board over it, and the door to one side, front onto the street.
+function Shopfronts() {
+  return (
+    <>
+      {SHOPFRONTS.map((o) => {
+        const h = 4.6 + (o.k % 3) * 0.6,
+          w = o.len - 0.15,
+          d = o.deep;
+        return (
+          <group key={`${o.x},${o.z}`} position={[o.x, groundY(o.z), o.z]} rotation-y={(-o.side * Math.PI) / 2}>
+            <Part geometry={geo.box(w, h, d)} color={HOUSE_WALLS[o.k % HOUSE_WALLS.length]} outline={0.07} position-y={h / 2} />
+            <Ridge r={d / 1.6} len={w + 0.2} color={HOUSE_ROOFS[o.k % HOUSE_ROOFS.length]} position-y={h + (d / 1.6) * 0.275} rotation-y={Math.PI / 2} />
+            <Part geometry={geo.box(w - 0.4, 0.5, 0.25)} color={AWNINGS[o.k % AWNINGS.length]} outline={0.04} position={[0, 2.35, d / 2 + 0.1]} />
+            <Part geometry={geo.box(w * 0.5, 1.4, 0.2)} color={WINDOW} outline={0.04} position={[-w * 0.15, 1.15, d / 2 + 0.05]} />
+            <Part geometry={geo.box(0.9, 1.8, 0.2)} color={DOORS[o.k % DOORS.length]} outline={0.05} position={[w / 2 - 0.85, 0.9, d / 2 + 0.05]} />
+            {[-1, 1].map((x) => (
+              <Part key={x} geometry={geo.box(0.9, 0.9, 0.2)} color={WINDOW} outline={0.04} position={[(x * w) / 4, h - 1.2, d / 2 + 0.05]} />
             ))}
           </group>
         );
@@ -883,6 +910,7 @@ export default function Town({ font }: { font: string }) {
       ))}
       <Townsfolk reduce={reduce} />
       <Houses />
+      <Shopfronts />
       <Lamps />
       <Footpaths />
       <Market />
