@@ -706,6 +706,11 @@ export const PLACES: Place[] = [
       "The Jew's House was built in stone in the middle of the 12th century, and it's one of the oldest houses in England that's still in use.",
       "Look for the carved round arch over the front door, with the chimney rising from just above it. Lincoln had one of the largest Jewish communities in medieval England, until Edward I expelled the Jews from England in 1290.",
     ],
+    link: {
+      href: "https://www.visitlincoln.com/listing/jews-house/96699101/",
+      label: "See it on Visit Lincoln",
+      external: true,
+    },
   },
   {
     id: "aarons-house",
