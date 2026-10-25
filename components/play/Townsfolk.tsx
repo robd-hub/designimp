@@ -73,6 +73,12 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
       ))}
       <Part geometry={geo.cyl(0.36, 0.46, 0.75)} color={npc.shirt} outline={0.06} position={[0, 1, 0]} />
       <Part geometry={geo.sphere(0.46)} color={npc.shirt} outline={0.06} position={[0, 0.64, 0]} scale={[1, 0.4, 1]} />
+      {FLORAL.has(npc.id) &&
+        BLOSSOM.map(([a, y], i) => (
+          <mesh key={i} geometry={geo.sphere(0.04)} position={[Math.sin(a) * (0.47 - (y - 0.7) * 0.13), y, Math.cos(a) * (0.47 - (y - 0.7) * 0.13)]} scale={[1, 1, 0.4]} rotation-y={a}>
+            <meshBasicMaterial color={0xffffff} />
+          </mesh>
+        ))}
       {[-0.46, 0.46].map((x, i) => (
         <group key={x} ref={i ? armR : armL} position={[x, 1.28, 0]}>
           <Part geometry={geo.cyl(0.09, 0.1, 0.5, 8)} color={npc.shirt} outline={0.04} position={[0, -0.25, 0]} />
@@ -85,13 +91,21 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
 }
 
 // Hair styles; anyone in a hat keeps it on.
-const STYLE: Record<string, "long" | "bun" | "pony" | "bob"> = {
+const STYLE: Record<string, "long" | "bun" | "pony" | "bob" | "fringe"> = {
   christine: "long",
   justyna: "bun",
-  elizabeth: "pony",
+  elizabeth: "fringe",
   elsie: "bun",
   bea: "bob",
 };
+// and anyone here wears sunglasses
+const SHADES = new Set(["elizabeth"]);
+// Little white blossoms scattered over a dark top, as [angle round the body, height].
+const FLORAL = new Set(["elizabeth"]);
+const BLOSSOM = [
+  [-0.9, 0.8], [-0.3, 0.75], [0.35, 0.82], [0.95, 0.76], [-0.6, 1.05], [0.05, 1.02], [0.65, 1.08],
+  [-0.95, 1.25], [-0.25, 1.28], [0.4, 1.24], [1.0, 1.22], [2.2, 1], [-2.2, 1.1], [3.1, 0.9], [2.7, 1.25], [-2.7, 0.8],
+] as const;
 const BLUSH = 0xff8fa3;
 const HY = 2.05; // head centre
 
@@ -126,6 +140,17 @@ function Head({ npc, reduce }: { npc: Npc; reduce: boolean }) {
       <mesh geometry={geo.smile(0.09, 0.025)} position={[0, HY - 0.16, 0.66]}>
         <meshBasicMaterial color={INK} />
       </mesh>
+      {SHADES.has(npc.id) &&
+        [-1, 1].map((sx) => (
+          <mesh key={sx} geometry={geo.sphere(0.17)} position={[sx * 0.25, HY + 0.05, 0.64]} scale={[1.25, 0.85, 0.35]} rotation-z={sx * 0.2}>
+            <meshBasicMaterial color={INK} />
+          </mesh>
+        ))}
+      {SHADES.has(npc.id) && (
+        <mesh geometry={geo.box(0.2, 0.05, 0.05)} position={[0, HY + 0.1, 0.69]}>
+          <meshBasicMaterial color={INK} />
+        </mesh>
+      )}
       {npc.hat !== undefined ? (
         <>
           <Part geometry={geo.dome(0.73)} color={npc.hat} outline={0.05} position-y={HY + 0.08} />
@@ -148,6 +173,16 @@ function Hair({ color, style }: { color: number; style?: string }) {
         <>
           <Part geometry={geo.sphere(0.24)} color={color} outline={0.05} position={[0, HY + 0.25, -0.78]} />
           <Part geometry={geo.cone(0.2, 0.7, 10)} color={color} outline={0.04} position={[0, HY - 0.2, -0.85]} rotation-x={Math.PI} />
+        </>
+      )}
+      {style === "fringe" && (
+        <>
+          {/* shoulder-length at the back and sides, with a fringe across the forehead */}
+          <Part geometry={geo.cyl(0.56, 0.62, 0.8, 16)} color={color} outline={0.05} position={[0, HY - 0.3, -0.36]} />
+          {[-1, 1].map((sx) => (
+            <Part key={sx} geometry={geo.sphere(0.28)} color={color} outline={0.05} position={[sx * 0.64, HY - 0.28, -0.12]} scale={[0.55, 1.5, 0.9]} />
+          ))}
+          <Part geometry={geo.sphere(0.5)} color={color} outline={0.04} position={[0, HY + 0.46, 0.3]} scale={[1.2, 0.3, 0.75]} />
         </>
       )}
       {style === "bob" &&
