@@ -516,7 +516,7 @@ export const PLACES: Place[] = [
       "Legend says a pair of imps were blown into the cathedral and started causing mischief, until an angel turned one of them to stone. He's been sitting there for over 700 years.",
       "Look closely above the door. He's up there.",
     ],
-    link: { href: "/about", label: "Read the Design Imp story" },
+    link: { href: "https://lincolncathedral.com/", label: "Visit Lincoln Cathedral", external: true },
   },
   {
     id: "sincil-bank",
