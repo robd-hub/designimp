@@ -10,6 +10,7 @@ export type Npc = {
   skin: number;
   hat?: number;
   hair?: number;
+  dog?: number; // walks a dog of this colour on a lead
   path: [number, number][]; // walked as a loop
   speed: number;
   lines: string[];
@@ -19,10 +20,10 @@ export const NPCS: Npc[] = [
   {
     id: "christine",
     name: "Christine",
-    shirt: 0xff6fa8,
+    shirt: 0x1d1c20,
     legs: 0x1a1320,
     skin: 0xd9a37a,
-    hair: 0x1a1320,
+    hair: 0x2a1c18,
     path: [[-19, -6], [-16.8, -6]],
     speed: 0.9,
     lines: [
@@ -53,11 +54,27 @@ export const NPCS: Npc[] = [
     legs: 0x2b3a8c,
     skin: 0xf2d0b5,
     hair: 0xe3c37e,
+    dog: 0x8a5a3c, // a brown cavapoo
     path: [[3.7, -8], [3.7, -90], [-3.7, -90], [-3.7, -8]],
     speed: 2.2,
     lines: [
       "Morning! Have you been up to the cathedral yet? Keep walking north.",
       "They say there's a little stone imp hiding up there. I've never spotted him.",
+    ],
+  },
+  {
+    id: "alan",
+    name: "Alan",
+    shirt: 0x1c2340,
+    legs: 0xd9d3c3,
+    skin: 0xf2d0b5,
+    hat: 0xc9c4b2,
+    // Elizabeth's loop the other way round, so the two of them keep meeting for a chat
+    path: [[3.7, -90], [3.7, -8], [-3.7, -8], [-3.7, -90]],
+    speed: 2.2,
+    lines: [
+      "Afternoon! Lovely day for a stroll up the High Street.",
+      "Mind how you go on Steep Hill. It's called that for a reason.",
     ],
   },
   {
@@ -157,6 +174,7 @@ export const NPCS: Npc[] = [
     legs: 0x1a1320,
     skin: 0xffc39e,
     hat: 0x8a5a33,
+    dog: 0xf4efe4,
     path: [...FOOTPATH_ROUTE.slice().reverse(), ...FOOTPATH_ROUTE.slice(1, -1)],
     speed: 1.3,
     lines: [
@@ -165,6 +183,17 @@ export const NPCS: Npc[] = [
     ],
   },
 ];
+
+// What townsfolk say when they stop to chat with each other, by speaker then listener. Anyone else
+// just says hello.
+const CHATS: Record<string, Record<string, string>> = {
+  elizabeth: { alan: "There you are, Alan! Shall we stop for a coffee at High Bridge?" },
+  alan: { elizabeth: "Go on then, Elizabeth. I'll get the cakes." },
+  frank: { maya: "Morning, Maya! Mind the hill, it's steeper than it looks." },
+  maya: { frank: "Thanks, Frank! Say hello to the swans for me." },
+};
+export const chatLine = (from: Npc, to: Npc, first: boolean) =>
+  CHATS[from.id]?.[to.id] ?? (first ? `Morning, ${to.name}!` : `Hello, ${to.name}! Lovely day for a walk.`);
 
 // Live positions, written every frame by each townsperson.
 export const npcPos = new Map(NPCS.map((n) => [n.id, new THREE.Vector3(n.path[0][0], 0, n.path[0][1])]));
