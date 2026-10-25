@@ -198,8 +198,9 @@ export const STALLS = [
 // A run can also have its own centre line, cx, for the row along the west side of Cornhill.
 export const SHOPFRONT = { deep: 5, bailgate: 4 };
 const SHOP_RUNS: [number, number, number, number, number, number?][] = [
-  [-1, HIGH_ST, -44, -33, 3], // north of High Bridge's timber-framed shops
-  [1, HIGH_ST, -44, -32, 3],
+  // north of the Stonebow; south of it the side streets run off either way
+  [-1, HIGH_ST, -44, -39.8, 1],
+  [1, HIGH_ST, -44, -39.8, 1],
   ...[-1, 1].map((side) => [side, BAILGATE.x1, NEWPORT.z + NEWPORT.d / 2 + 0.6, CLOSE.z0, 4] as [number, number, number, number, number]),
   [-1, 5, CORNHILL[0].z0, CORNHILL[0].z1, 3, CORNHILL[0].x0 + 5], // backing onto the Town Hall, fronts onto the square
 ];
@@ -228,6 +229,15 @@ const STONEBOW_PIERS = Array.from({ length: stonebowEdges.length / 2 }, (_, i) =
   z0: STONEBOW.z - STONEBOW.d / 2,
   z1: STONEBOW.z + STONEBOW.d / 2,
 }));
+
+// The paved side streets off the High Street at the Stonebow's south front, as in real Lincoln:
+// Guildhall Street west to the Brayford's east quay, and Saltergate east along the north bank of the
+// Witham towards Waterside, as far as the footbridge over to Cornhill.
+const sideZ = { z0: STONEBOW.z + STONEBOW.d / 2 + 0.2, z1: RIVER.z - RIVER.half - 1.2 };
+export const STONEBOW_STREETS = [
+  { x0: brayford.x + BRAYFORD.water.x1 + 0.4, x1: -HIGH_ST, ...sideZ },
+  { x0: HIGH_ST, x1: EAST_PATH_X + 1, ...sideZ },
+];
 
 // The railway: two tracks running east to west across the town, south of the Workshop and HQ,
 // fenced off on both sides. It crosses the main road at a level crossing, as the real line crosses
@@ -366,7 +376,7 @@ const onRoad = (x: number, z: number) =>
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
