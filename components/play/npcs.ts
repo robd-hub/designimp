@@ -21,9 +21,9 @@ export const NPCS: Npc[] = [
     id: "christine",
     name: "Christine",
     shirt: 0x1d1c20,
-    legs: 0x1a1320,
+    legs: 0xd9a37a, // bare legs under a white polka-dot skirt
     skin: 0xd9a37a,
-    hair: 0x2a1c18,
+    hair: 0x33211a,
     path: [[-19, -6], [-16.8, -6]],
     speed: 0.9,
     lines: [

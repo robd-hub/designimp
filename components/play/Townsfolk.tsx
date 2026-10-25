@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
-import { Part, geo, INK } from "./toon";
+import { Part, geo, INK, toon } from "./toon";
 import { NPCS, npcPos, chatLine, type Npc } from "./npcs";
 import { game, usePlay, walkToNpc } from "./store";
 import { groundY } from "./terrain";
@@ -25,6 +25,7 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
   const armR = useRef<THREE.Group>(null!);
   const st = useRef({ leg: 1, walkT: 0, face: 0 });
   const [say, setSay] = useState<string | null>(null);
+  const skirt = SKIRT[npc.id];
   const saying = useRef<string | null>(null);
 
   useFrame(({ clock }, delta) => {
@@ -114,9 +115,21 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
             <meshBasicMaterial color={0xffffff} />
           </mesh>
         ))}
+      {skirt !== undefined && (
+        <>
+          {/* a V neckline, and a little A-line mini skirt with polka dots */}
+          <mesh geometry={geo.cone(0.16, 0.36, 3)} material={toon(npc.skin)} position={[0, 1.2, 0.38]} rotation={[Math.PI - 0.13, 0, 0]} scale={[1, 1, 0.15]} />
+          <Part geometry={geo.cyl(0.44, 0.53, 0.5)} color={skirt} outline={0.05} position={[0, 0.72, 0]} />
+          {DOTS.map(([a, y], i) => (
+            <mesh key={i} geometry={geo.sphere(0.035, 8, 6)} position={[Math.sin(a) * (0.545 - (y - 0.47) * 0.18), y, Math.cos(a) * (0.545 - (y - 0.47) * 0.18)]} scale={[1, 1, 0.4]} rotation-y={a}>
+              <meshBasicMaterial color={0x1f2a4a} />
+            </mesh>
+          ))}
+        </>
+      )}
       {[-0.46, 0.46].map((x, i) => (
         <group key={x} ref={i ? armR : armL} position={[x, 1.28, 0]}>
-          <Part geometry={geo.cyl(0.09, 0.1, 0.5, 8)} color={npc.shirt} outline={0.04} position={[0, -0.25, 0]} />
+          <Part geometry={geo.cyl(0.09, 0.1, 0.5, 8)} color={SLEEVELESS.has(npc.id) ? npc.skin : npc.shirt} outline={0.04} position={[0, -0.25, 0]} />
           <Part geometry={geo.sphere(0.12)} color={npc.skin} outline={0.03} position={[0, -0.55, 0]} />
         </group>
       ))}
@@ -186,8 +199,8 @@ function Dog({ color, reduce }: { color: number; reduce: boolean }) {
 }
 
 // Hair styles; anyone in a hat keeps it on.
-const STYLE: Record<string, "long" | "bun" | "pony" | "bob" | "fringe"> = {
-  christine: "long",
+const STYLE: Record<string, "long" | "straight" | "bun" | "pony" | "bob" | "fringe"> = {
+  christine: "straight",
   justyna: "bun",
   elizabeth: "fringe",
   elsie: "bun",
@@ -201,6 +214,11 @@ const BLOSSOM = [
   [-0.9, 0.8], [-0.3, 0.75], [0.35, 0.82], [0.95, 0.76], [-0.6, 1.05], [0.05, 1.02], [0.65, 1.08],
   [-0.95, 1.25], [-0.25, 1.28], [0.4, 1.24], [1.0, 1.22], [2.2, 1], [-2.2, 1.1], [3.1, 0.9], [2.7, 1.25], [-2.7, 0.8],
 ] as const;
+// Who goes bare-armed, and who wears a skirt (of this colour, with navy polka dots) over bare legs.
+const SLEEVELESS = new Set(["christine"]);
+const SKIRT: Record<string, number> = { christine: 0xf6f3ec };
+// polka dots in staggered rows round the skirt, as [angle round the body, height]
+const DOTS = [0.55, 0.72, 0.89].flatMap((y, row) => Array.from({ length: 11 }, (_, i) => [((i + (row % 2) / 2) / 11) * Math.PI * 2, y] as const));
 const BLUSH = 0xff8fa3;
 const HY = 2.05; // head centre
 
@@ -263,6 +281,15 @@ function Hair({ color, style }: { color: number; style?: string }) {
     <>
       <Part geometry={geo.dome(0.74)} color={color} outline={0.05} position={[0, HY + 0.02, -0.04]} rotation-x={-0.3} />
       {style === "long" && <Part geometry={geo.cyl(0.55, 0.62, 1, 16)} color={color} outline={0.05} position={[0, HY - 0.35, -0.28]} />}
+      {style === "straight" && (
+        <>
+          {/* long and straight, worn down past the shoulders, with a lock falling in front of each one */}
+          <Part geometry={geo.cyl(0.56, 0.6, 1.25, 16)} color={color} outline={0.05} position={[0, HY - 0.47, -0.3]} scale={[1, 1, 0.8]} />
+          {[-1, 1].map((sx) => (
+            <Part key={sx} geometry={geo.sphere(0.13)} color={color} outline={0.04} position={[sx * 0.5, HY - 0.62, 0.14]} scale={[0.75, 3.4, 0.8]} rotation-z={sx * 0.1} />
+          ))}
+        </>
+      )}
       {style === "bun" && <Part geometry={geo.sphere(0.28)} color={color} outline={0.05} position={[0, HY + 0.78, -0.12]} />}
       {style === "pony" && (
         <>
