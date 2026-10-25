@@ -51,8 +51,8 @@ export const NPCS: Npc[] = [
     name: "Elizabeth",
     shirt: 0xff5a3c,
     legs: 0x2b3a8c,
-    skin: 0x9a6a4a,
-    hair: 0x1a1320,
+    skin: 0xf2d0b5,
+    hair: 0x6b4a2e,
     path: [[3.7, -8], [3.7, -90], [-3.7, -90], [-3.7, -8]],
     speed: 2.2,
     lines: [
