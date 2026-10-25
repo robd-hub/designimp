@@ -169,21 +169,44 @@ export const CLOSE = { x0: castle.x1 - 1, x1: cathedral.x0 + 1, z0: hill.z0 - 12
 // Bailgate, pedestrianised too, running north from the square between the castle and the cathedral.
 export const BAILGATE = { x0: -4.3, x1: 4.3, z0: NORTH + 3, z1: CLOSE.z0 + 0.5 };
 export const STALL = { w: 4, d: 2.4 };
-export const STALLS = [-16, -10, 10, 16].map((x) => ({ x, z: CLOSE.z0 + 2.5 }));
+
+// Cornhill: Lincoln's old market place, south of High Bridge on the east side of the High Street, between the
+// river and the railway. The Corn Exchange stands along its north side, its front facing south onto the square.
+// The square runs from the shops at its west end across to the footpath down from the Greestone Stairs; a way in
+// runs south to the main road between WellSway and the plot opposite the station, and Sincil Street east to the
+// bus station's kerb.
+const exchange = footprint(PLACES.find((p) => p.kind === "exchange")!);
+const busKerb = footprint(PLACES.find((p) => p.kind === "busstation")!).x0 - 1.5; // the west end of the kerb under the canopy
+export const CORNHILL = [
+  { x0: 19.8, x1: 46, z0: exchange.z0 + 0.3, z1: -15.8 },
+  { x0: 19.8, x1: 30.4, z0: -15.8, z1: -4.3 },
+  { x0: 46, x1: busKerb, z0: exchange.z1 + 0.4, z1: -15.8 },
+];
+export const inCornhill = (x: number, z: number) => CORNHILL.some((r) => x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1);
+// The way in off the main road, for walks to the Corn Exchange from outside the square.
+export const CORNHILL_WAY = (CORNHILL[1].x0 + CORNHILL[1].x1) / 2;
+
+export const STALLS = [
+  ...[-16, -10, 10, 16].map((x) => ({ x, z: CLOSE.z0 + 2.5 })),
+  // and two more on Cornhill, west of the Corn Exchange
+  ...[22.2, 26.6].map((x) => ({ x, z: exchange.z0 + 3.4 })),
+];
 
 // Plain shopfronts lining the High Street either side of the Stonebow, and both sides of Bailgate up to
 // Newport Arch, so the old streets read as streets. Each run is [side, front, z0, z1, shops]: front is how
 // far its frontage stands from the centre line, and the run is split into shops of equal length.
+// A run can also have its own centre line, cx, for the row along the west side of Cornhill.
 export const SHOPFRONT = { deep: 5, bailgate: 4 };
-const SHOP_RUNS: [number, number, number, number, number][] = [
+const SHOP_RUNS: [number, number, number, number, number, number?][] = [
   [-1, HIGH_ST, -44, -33, 3], // north of High Bridge's timber-framed shops
   [1, HIGH_ST, -44, -32, 3],
   ...[-1, 1].map((side) => [side, BAILGATE.x1, NEWPORT.z + NEWPORT.d / 2 + 0.6, CLOSE.z0, 4] as [number, number, number, number, number]),
+  [-1, 5, CORNHILL[0].z0, CORNHILL[0].z1, 3, CORNHILL[0].x0 + 5], // backing onto the Town Hall, fronts onto the square
 ];
-export const SHOPFRONTS = SHOP_RUNS.flatMap(([side, front, z0, z1, n], r) => {
+export const SHOPFRONTS = SHOP_RUNS.flatMap(([side, front, z0, z1, n, cx = 0], r) => {
   const len = (z1 - z0) / n,
     deep = front === HIGH_ST ? SHOPFRONT.deep : SHOPFRONT.bailgate;
-  return Array.from({ length: n }, (_, i) => ({ side, x: side * (front + deep / 2), z: z0 + len * (i + 0.5), len, deep, k: r * 2 + i }));
+  return Array.from({ length: n }, (_, i) => ({ side, x: cx + side * (front + deep / 2), z: z0 + len * (i + 0.5), len, deep, k: r * 2 + i }));
 });
 
 // The Stonebow: the old city gate with the Guildhall above it, spanning the pedestrianised
@@ -343,7 +366,7 @@ const onRoad = (x: number, z: number) =>
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, HIGH_STREET, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||

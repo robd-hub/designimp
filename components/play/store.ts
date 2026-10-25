@@ -3,7 +3,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PLACES, type Place } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
-import { crossings, RAIL } from "./colliders";
+import { crossings, inCornhill, CORNHILL_WAY, RAIL } from "./colliders";
 
 type PlayState = {
   ready: boolean;
@@ -188,6 +188,11 @@ export function walkTo(p: Place) {
   // rather than cutting across the buildings beside it.
   const alongMain = !sideRoad && Math.abs(door.z) < 7 && Math.abs(from.z) > 4.3 && Math.abs(from.x - door.x) > 12;
   if (alongMain) route.push(new THREE.Vector3(from.x, 0, 0));
+  // Cornhill is closed in by the shops round it: come in off the main road, unless already on the square.
+  if (inCornhill(door.x, door.z) && !inCornhill(from.x, from.z)) {
+    if (from.z < -4.3) route.push(new THREE.Vector3(from.x, 0, 0));
+    route.push(new THREE.Vector3(CORNHILL_WAY, 0, 0), new THREE.Vector3(CORNHILL_WAY, 0, -12));
+  }
   walkRoute([...route, door.clone()]);
   game.pending = p;
   game.pendingNpc = null;
