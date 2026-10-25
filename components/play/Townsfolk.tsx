@@ -88,7 +88,7 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
 const STYLE: Record<string, "long" | "bun" | "pony" | "bob"> = {
   christine: "long",
   justyna: "bun",
-  priya: "pony",
+  elizabeth: "pony",
   elsie: "bun",
   bea: "bob",
 };
