@@ -106,12 +106,12 @@ export const NPCS: Npc[] = [
     ],
   },
   {
-    id: "sam",
-    name: "Sam",
-    shirt: 0xffb627,
+    id: "steve",
+    name: "Steve",
+    shirt: 0xa9c4e0, // a light blue Oxford shirt
     legs: 0x2b2633,
-    skin: 0x6b4a32,
-    hat: 0xff5a3c,
+    skin: 0xf2d0b5,
+    hair: 0x3a2a20,
     path: [[-3.7, 8], [-3.7, 124], [3.7, 124], [3.7, 8]],
     speed: 2.4,
     lines: [
