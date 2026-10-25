@@ -36,6 +36,10 @@ export const HOUSES = [-1, 1].flatMap((side) =>
   [58, 64, 70, 76, 98, 104, 110, 116].map((z, i) => ({ x: side * HOUSE_X, z, side, i })),
 );
 
+// The paved High Street, from the main road to the foot of Steep Hill: half its width, as wide as the
+// Stonebow, so the shopfronts either side and the gate's walkway arches all open onto it.
+export const HIGH_ST = 7.6;
+
 // Brayford in its own coordinates: the pool, the Fossdyke running off west to the edge of
 // the map, and the row of waterfront buildings along the far quay.
 export const BRAYFORD = {
@@ -166,6 +170,21 @@ export const CLOSE = { x0: castle.x1 - 1, x1: cathedral.x0 + 1, z0: hill.z0 - 12
 export const BAILGATE = { x0: -4.3, x1: 4.3, z0: NORTH + 3, z1: CLOSE.z0 + 0.5 };
 export const STALL = { w: 4, d: 2.4 };
 export const STALLS = [-16, -10, 10, 16].map((x) => ({ x, z: CLOSE.z0 + 2.5 }));
+
+// Plain shopfronts lining the High Street either side of the Stonebow, and both sides of Bailgate up to
+// Newport Arch, so the old streets read as streets. Each run is [side, front, z0, z1, shops]: front is how
+// far its frontage stands from the centre line, and the run is split into shops of equal length.
+export const SHOPFRONT = { deep: 5, bailgate: 4 };
+const SHOP_RUNS: [number, number, number, number, number][] = [
+  [-1, HIGH_ST, -44, -33, 3], // north of High Bridge's timber-framed shops
+  [1, HIGH_ST, -44, -32, 3],
+  ...[-1, 1].map((side) => [side, BAILGATE.x1, NEWPORT.z + NEWPORT.d / 2 + 0.6, CLOSE.z0, 4] as [number, number, number, number, number]),
+];
+export const SHOPFRONTS = SHOP_RUNS.flatMap(([side, front, z0, z1, n], r) => {
+  const len = (z1 - z0) / n,
+    deep = front === HIGH_ST ? SHOPFRONT.deep : SHOPFRONT.bailgate;
+  return Array.from({ length: n }, (_, i) => ({ side, x: side * (front + deep / 2), z: z0 + len * (i + 0.5), len, deep, k: r * 2 + i }));
+});
 
 // The Stonebow: the old city gate with the Guildhall above it, spanning the pedestrianised
 // High Street just north of the Post and the Town Hall, partway up to Steep Hill. As on the real
@@ -315,17 +334,19 @@ const boxes = PLACES.filter((p) => p.kind !== "tank" && p.kind !== "gate" && p.k
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS, NEWPORT_PIERS, RIVER_BOXES, RAIL_FENCES, STATION_BOXES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS, NEWPORT_PIERS, RIVER_BOXES, RAIL_FENCES, STATION_BOXES);
 
+const HIGH_STREET = { x0: -HIGH_ST, x1: HIGH_ST, z0: hill.z1, z1: -4.3 };
 const onRoad = (x: number, z: number) =>
   Math.abs(x) < 7 ||
   (Math.abs(z) < 7 && x > -BOUND && x < EAST) ||
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, HIGH_STREET, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
+  SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
   PLACES.some((p) => {
     const f = footprint(p);
     const door = p.kind === "lot" ? 0 : 4; // keep the approach to each entrance clear
