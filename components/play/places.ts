@@ -287,6 +287,7 @@ export const PLACES: Place[] = [
       "Lincoln's bus station sits just across the road from the railway station, so it's an easy change from train to bus.",
       "Stand under the canopy and the buses will pull in to their bays, wait a few seconds, then head back out of town.",
     ],
+    link: { href: "https://lincolnbus.co.uk/bus-station", label: "See the bus station's page", external: true },
   },
   {
     id: "corn-exchange",
