@@ -309,6 +309,7 @@ export const PLACES: Place[] = [
       "Cornhill is Lincoln's old market place, just south of High Bridge off the High Street. The Corn Exchange along its north side was built in 1879 for the city's corn traders: an Italianate hall of red brick with stone dressings, designed by Bellamy and Hardy.",
       "Trade fell away in the farming depression at the end of the century, and the building went on to be a cinema, a skating rink and a bingo hall. A refurbishment finished in 2018 brought it back as shops and a restaurant, at the heart of the Cornhill Quarter.",
     ],
+    link: { href: "https://www.cornhillquarter.co.uk/", label: "Visit the Cornhill Quarter", external: true },
   },
   {
     id: "tolet-west",
