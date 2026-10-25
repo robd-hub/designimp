@@ -715,9 +715,9 @@ export const PLACES: Place[] = [
   {
     id: "aarons-house",
     kind: "oldhouse",
-    name: "Aaron the Jew's House",
-    kicker: "Another Norman house, further up",
-    nav: "Aaron's House",
+    name: "Norman House",
+    kicker: "Another 12th-century stone house, further up",
+    nav: "Norman House",
     // in place of the sixth house on the east side, just above the little square halfway up the hill
     x: 6.1,
     z: -52 - 20 / 7 - (5 * 40) / 7,
@@ -730,7 +730,7 @@ export const PLACES: Place[] = [
     rot: -Math.PI / 2,
     intro: [
       "Another stone house from the late 12th century, with round-arched Norman windows upstairs.",
-      "It's named after Aaron of Lincoln, a financier who was probably the richest man in England when he died in 1186, though nobody knows for sure that he lived here.",
+      "It's also known as Aaron the Jew's House, after Aaron of Lincoln, a financier who was probably the richest man in England when he died in 1186, though nobody knows for sure that he lived here.",
     ],
     link: {
       href: "https://www.visitlincoln.com/listing/medieval-norman-house/96697101/",
