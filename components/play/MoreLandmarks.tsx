@@ -69,34 +69,6 @@ function useRoof(span: number, rise: number, len: number) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Bailgate: the cobbled street itself. Round markers in the setts down its west side show where the
-// columns of the Roman forum's colonnade stood, with a little plaque about them at the Castle Square end.
-const ROUNDEL_X = -2.6;
-export function Lane({ p, font }: Props) {
-  const sign = useSign("Roman columns", "#5e4a2e", font);
-  const y = lift(p);
-  const list = useMemo(() => {
-    const out: Inst[] = [];
-    for (let dz = -p.d / 2 + 1; dz <= p.d / 2 - 2; dz += 3) out.push({ at: [ROUNDEL_X, y(dz) + 0.1, dz], rot: [groundTilt(p.z + dz), 0, 0] });
-    return out;
-  }, [p]); // eslint-disable-line react-hooks/exhaustive-deps
-  const inner = useMemo(() => list.map((r) => ({ ...r, at: [r.at[0], r.at[1] + 0.02, r.at[2]] as V3 })), [list]);
-  const front = p.d / 2 - 0.6;
-  return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
-      <Many geometry={geo.cyl(0.55, 0.55, 0.04, 18)} color={0x6e6658} list={list} />
-      <Many geometry={geo.cyl(0.36, 0.36, 0.04, 18)} color={STONE} list={inner} />
-      {/* the plaque, on a short post at the edge of the street */}
-      <group position={[ROUNDEL_X - 1.2, y(front), front]}>
-        <mesh geometry={geo.cyl(0.07, 0.07, 1, 6)} material={toon(INK)} position-y={0.5} />
-        <Part geometry={geo.box(1.6, 0.5, 0.08)} color={0x2b2633} outline={0.03} position={[0, 1.1, 0]} rotation-x={-0.35} />
-        <Sign map={sign} w={1.45} h={0.36} position={[0, 1.115, 0.045]} rotation-x={-0.35} />
-      </group>
-    </group>
-  );
-}
-
-// ---------------------------------------------------------------------------------------------
 // Ellis Mill: a tarred brick tower mill with a white ogee cap, four sails facing the door and a
 // fantail behind keeping them to the wind. The sails turn slowly, unless motion is reduced.
 const TAR = 0x34302e;
@@ -302,47 +274,6 @@ export function Venue({ p, font }: Props) {
       <mesh geometry={geo.box(3, 2.6, 0.06)} material={toon(WINDOW)} position={[0, 1.4, front + 0.82]} />
       <mesh geometry={geo.box(0.06, 2.6, 0.08)} material={toon(INK)} position={[0, 1.4, front + 0.84]} />
       <Sign map={sign} w={4} h={1} position={[0, p.h - 0.85, front + 0.04]} />
-    </group>
-  );
-}
-
-// ---------------------------------------------------------------------------------------------
-// The International Bomber Command Centre: the Memorial Spire, two tapering weathering-steel blades
-// with a slim gap between them, turned to look north to the cathedral, ringed by the Walls of Names.
-// Kept plain and quiet.
-const CORTEN = 0x8a4b2c;
-const NAMES = 0x4a4f55;
-export function Memorial({ p, font }: Props) {
-  const sign = useSign("International Bomber\nCommand Centre", "#3a2a20", font);
-  const SPIRE = { z: -1.2 };
-  const walls = useMemo(() => {
-    const out: Inst[] = [];
-    for (const r of [4.4, 5.9]) {
-      const step = 1.35 / r;
-      for (let a = Math.PI / 4 + step / 2; a < 2 * Math.PI - Math.PI / 4; a += step)
-        out.push({ at: [Math.sin(a) * r, 0.7, SPIRE.z + Math.cos(a) * r], rot: [0, a, 0] });
-    }
-    return out;
-  }, [SPIRE.z]);
-  return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
-      <mesh geometry={geo.box(p.w, 0.06, p.d)} material={toon(0x6fbf5f)} position-y={0.03} receiveShadow />
-      <mesh geometry={geo.cyl(6.9, 6.9, 0.08, 40)} material={toon(0xd9d4c8)} position={[0, 0.07, SPIRE.z]} receiveShadow />
-      {/* the path in from the north, between the open ends of the walls */}
-      <mesh geometry={geo.box(2.2, 0.08, p.d / 2 - SPIRE.z - 4)} material={toon(0xd9d4c8)} position={[0, 0.07, (p.d / 2 + SPIRE.z + 4) / 2]} receiveShadow />
-      <Many geometry={geo.box(1.25, 1.4, 0.16)} color={NAMES} list={walls} />
-      {/* the spire on its plinth */}
-      <group position={[0, 0, SPIRE.z]}>
-        <Part geometry={geo.box(3.2, 0.4, 1.4)} color={0x9a948a} outline={0.04} position-y={0.2} />
-        {[-1, 1].map((s) => (
-          <Part key={s} geometry={geo.cyl(0.04, 1, p.h, 4)} color={CORTEN} outline={0.05} position={[s * 0.82, 0.4 + p.h / 2, 0]} rotation-z={s * 0.035} scale={[1, 1, 0.16]} />
-        ))}
-      </group>
-      {/* the name, low on a stone wall at the entrance */}
-      <group position={[4.2, 0, p.d / 2 - 0.6]}>
-        <Part geometry={geo.box(4.2, 0.9, 0.5)} color={0x9a948a} outline={0.04} position-y={0.45} />
-        <Sign map={sign} w={3.6} h={0.8} position={[0, 0.48, 0.26]} />
-      </group>
     </group>
   );
 }

@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "lane" | "mill" | "park" | "venue" | "memorial" | "market";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "venue" | "market";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -956,28 +956,6 @@ export const PLACES: Place[] = [
     link: { href: "https://www.raf.mod.uk/display-teams/red-arrows/", label: "Meet the Red Arrows", external: true },
   },
   {
-    id: "bailgate",
-    kind: "lane",
-    name: "Bailgate",
-    kicker: "From Castle Square to Newport Arch",
-    nav: "Bailgate",
-    // the cobbled street itself, between its two rows of shops: nothing solid, just the Roman markers in the setts
-    x: 0,
-    z: -141,
-    w: 8.6,
-    d: 20,
-    h: 0,
-    wall: 0xb9ad9a,
-    roof: 0xb9ad9a,
-    roofType: "flat",
-    rot: 0,
-    intro: [
-      "Bailgate runs north from Castle Square to Newport Arch along the line of the Roman city's main street, and today it's full of independent shops, tea rooms and pubs.",
-      "Look down as you walk: round markers set into the road show where the columns of a Roman colonnade once stood.",
-    ],
-    link: { href: "https://www.visitlincoln.com/explore/areas-of-lincoln/bailgate/", label: "See it on Visit Lincoln", external: true },
-  },
-  {
     id: "ellis-mill",
     kind: "mill",
     name: "Ellis Mill",
@@ -1042,28 +1020,6 @@ export const PLACES: Place[] = [
       "It's the biggest live music venue in Lincolnshire, so plenty of big names have played here.",
     ],
     link: { href: "https://www.engineshed.co.uk/", label: "See what's on", external: true },
-  },
-  {
-    id: "ibcc",
-    kind: "memorial",
-    name: "International Bomber Command Centre",
-    kicker: "On Canwick Hill",
-    nav: "Bomber Command Centre",
-    // south of the city across the valley, its spire turned north to face the cathedral
-    x: 60,
-    z: 91,
-    w: 16,
-    d: 14,
-    h: 16,
-    wall: 0x8a4b2c,
-    roof: 0x8a4b2c,
-    roofType: "flat",
-    rot: Math.PI,
-    intro: [
-      "The International Bomber Command Centre on Canwick Hill remembers the men and women who served and supported RAF Bomber Command in the Second World War, and those who lost their lives.",
-      "Its steel Memorial Spire looks across the city to the cathedral, a landmark for crews flying from Lincolnshire. Around it, the Walls of Names list those who died.",
-    ],
-    link: { href: "https://internationalbcc.co.uk/", label: "Visit internationalbcc.co.uk", external: true },
   },
   {
     id: "christmas-market",

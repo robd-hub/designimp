@@ -105,8 +105,8 @@ export const EAST_FOOTPATH = [
   { x0: EAST_PATH_X - 1, x1: EAST_PATH_X + 1, z0: gallery.z1 + 2.6, z1: -4.3 },
 ];
 // Paths out to the landmarks beyond the streets: Mill Road, north off Castle Square clear of the castle's cannons
-// and west along the ridge behind its walls to Ellis Mill; Monks Road, east from the Greestone path to the Arboretum's
-// gates; and Canwick Road, east off the south road between the cottages, out to the Bomber Command Centre.
+// and west along the ridge behind its walls to Ellis Mill; and Monks Road, east from the Greestone path to the
+// Arboretum's gates.
 const doorAt = (id: string) => {
   const p = PLACES.find((q) => q.id === id)!;
   const off = p.d / 2 + 1.8;
@@ -114,14 +114,12 @@ const doorAt = (id: string) => {
 };
 const MILL_DOOR = doorAt("ellis-mill"),
   ARBORETUM_DOOR = doorAt("arboretum"),
-  IBCC_DOOR = doorAt("ibcc"),
   MARKET_DOOR = doorAt("christmas-market");
 const MILL_X = PATH_X + 5;
 export const LANDMARK_PATHS = [
   { x0: MILL_X - 1, x1: MILL_X + 1, z0: MILL_DOOR.z - 1, z1: castlePlace.z - 4 }, // Castle Square's north edge
   { x0: MILL_DOOR.x - 1, x1: MILL_X - 1, z0: MILL_DOOR.z - 1, z1: MILL_DOOR.z + 1 },
   { x0: EAST_PATH_X + 1, x1: ARBORETUM_DOOR.x + 1, z0: ARBORETUM_DOOR.z - 1, z1: ARBORETUM_DOOR.z + 1 },
-  { x0: 4.3, x1: IBCC_DOOR.x + 1, z0: IBCC_DOOR.z - 1, z1: IBCC_DOOR.z + 1 },
 ];
 // Going to one of them (or the Christmas market) from Go to: join its path at the nearest of these points and follow it in.
 export const APPROACH: Record<string, [number, number][]> = {
@@ -407,8 +405,8 @@ export const ROUNDABOUT = { x: tank.x, z: tank.z, island: 4.3, ring: 6.8, edge: 
 // Two cannons guarding the castle gate, on the right as you face it (in the castle's own coordinates).
 export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 }));
 
-// Bailgate's place is the street itself, and the seasonal market adds its own stalls while it's in town (Town.tsx).
-const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "lane", "market"].includes(p.kind ?? "shop")).flatMap((p) => {
+// The seasonal market adds its own stalls while it's in town (Town.tsx).
+const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market"].includes(p.kind ?? "shop")).flatMap((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
     // only the signboard at the back of the plot is solid

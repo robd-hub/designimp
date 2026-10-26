@@ -22,7 +22,7 @@ import { CornExchange } from "./CornExchange";
 import { Waterside } from "./Waterside";
 import Wharf from "./Wharf";
 import Bailgate, { Pub } from "./Bailgate";
-import { Lane, Mill, Park, Venue, Memorial, Market as XmasMarket } from "./MoreLandmarks";
+import { Mill, Park, Venue, Market as XmasMarket } from "./MoreLandmarks";
 import { Crowd, Chant } from "./Matchday";
 import { TaxiRank } from "./Taxi";
 import { Weather, useSky } from "./Weather";
@@ -1048,7 +1048,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank" || !inSeason(p, xmas)) return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, lane: Lane, mill: Mill, park: Park, venue: Venue, memorial: Memorial, market: XmasMarket }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, venue: Venue, market: XmasMarket }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
