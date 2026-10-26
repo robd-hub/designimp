@@ -63,12 +63,6 @@ function loadShop(): PlayState["shop"] {
   }
 }
 
-function saveShop(shop: PlayState["shop"]) {
-  try {
-    localStorage.setItem(SHOP_KEY, JSON.stringify(shop));
-  } catch {}
-}
-
 // Greet first-time arrivals, not someone sent straight to a building by link.
 function firstArrival() {
   try {
@@ -88,6 +82,12 @@ export function isMatchday() {
 function isNight() {
   const h = new Date().getHours();
   return h < 7 || h >= 19;
+}
+
+function saveShop(shop: PlayState["shop"]) {
+  try {
+    localStorage.setItem(SHOP_KEY, JSON.stringify(shop));
+  } catch {}
 }
 
 // Per-frame values live outside React state so movement never re-renders.
@@ -229,6 +229,12 @@ export function walkTo(p: Place) {
   game.pendingNpc = null;
 }
 
+// Walk to each point in turn.
+export function walkRoute([first, ...rest]: THREE.Vector3[]) {
+  game.target = first;
+  game.via = rest;
+}
+
 // Taxi: a short ride with the screen faded out, then out at the door and straight in. Anything
 // closer than this is quicker on foot.
 const TAXI_MIN = 14;
@@ -255,12 +261,6 @@ export function taxiTo(p: Place) {
     usePlay.setState({ ride: null });
     usePlay.getState().openPlace(p);
   }, RIDE_MS);
-}
-
-// Walk to each point in turn.
-export function walkRoute([first, ...rest]: THREE.Vector3[]) {
-  game.target = first;
-  game.via = rest;
 }
 
 export function walkToNpc(n: Npc) {
