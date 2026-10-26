@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PLACES, hex, shopSign, type Place } from "./places";
-import { usePlay, walkTo, zoomBy, keepHover, leaveCard } from "./store";
+import { usePlay, walkTo, zoomBy, keepHover, leaveCard, autoWalking } from "./store";
 import { HIDDEN } from "./hidden";
 import PlayLeadForm from "./PlayLeadForm";
 import Minimap from "./Minimap";
@@ -45,6 +45,26 @@ export default function Hud() {
   const { welcome, setWelcome } = usePlay();
   const { on: sound, toggle: toggleSound } = useSound();
   const greet = welcome && ready && !open && !talk;
+  // "Walk up to a door" nudge, for an E pressed with nothing in reach
+  const [nudge, setNudge] = useState(false);
+  const nudgeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // The hello steps aside by itself after a few seconds, so it never sits over the street for long.
+  useEffect(() => {
+    if (!greet) return;
+    const t = setTimeout(() => setWelcome(false), 8000);
+    return () => clearTimeout(t);
+  }, [greet, setWelcome]);
+
+  // Fold the Go to list away on a click or tap anywhere else.
+  useEffect(() => {
+    if (!navOpen) return;
+    const away = (e: PointerEvent) => {
+      if (!navRef.current?.contains(e.target as Node)) setNavOpen(false);
+    };
+    window.addEventListener("pointerdown", away);
+    return () => window.removeEventListener("pointerdown", away);
+  }, [navOpen]);
 
   // Keep the joystick sitting just above the Go to box, however tall it gets.
   useEffect(() => {
@@ -70,11 +90,18 @@ export default function Hud() {
         st.setBadge(false);
         st.close();
         st.endTalk();
+        setNavOpen(false);
       }
       if (e.key.toLowerCase() !== "e" || st.open || e.repeat) return;
       if (st.talk) st.nextLine();
+      else if (autoWalking()) return; // on the way somewhere: don't go into whatever we're passing
       else if (st.nearNpc) st.startTalk(st.nearNpc);
       else if (st.near) st.openPlace(st.near);
+      else {
+        setNudge(true);
+        clearTimeout(nudgeTimer.current);
+        nudgeTimer.current = setTimeout(() => setNudge(false), 2000);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -112,7 +139,13 @@ export default function Hud() {
           Go to {navOpen ? "▴" : "▾"}
         </button>
         {navOpen && PLACES.map((p) => (
-          <button key={p.id} onClick={() => walkTo(p)}>
+          <button
+            key={p.id}
+            onClick={() => {
+              setNavOpen(false);
+              walkTo(p);
+            }}
+          >
             <i style={{ background: hex(p.wall) }} />
             {p.nav ?? (p.kicker.startsWith("Case study") ? p.name : p.kicker)}
           </button>
@@ -212,13 +245,17 @@ export default function Hud() {
           <kbd>E</kbd>
           <span>Talk to {nearNpc.name}</span>
         </button>
+      ) : near && !open ? (
+        <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
+          <kbd>E</kbd>
+          <span>{["lot", "tank", "gate", "bridge", "arch", "oldhouse", "ruins"].includes(near.kind ?? "shop") ? "Look at" : "Enter"} {near.name}</span>
+        </button>
       ) : (
-        near &&
+        nudge &&
         !open && (
-          <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
-            <kbd>E</kbd>
-            <span>{["lot", "tank", "gate", "bridge", "arch", "oldhouse", "ruins"].includes(near.kind ?? "shop") ? "Look at" : "Enter"} {near.name}</span>
-          </button>
+          <div className={`${s.card} ${s.nudge}`} role="status">
+            Walk up to a door to go in
+          </div>
         )
       )}
       <aside

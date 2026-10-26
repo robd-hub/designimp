@@ -2,7 +2,7 @@ import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { Part, geo, toon, INK, STONE } from "./toon";
-import { game, usePlay, nearestPlace, nearestNpc } from "./store";
+import { game, usePlay, nearestPlace, nearestNpc, autoWalking, DOORS } from "./store";
 import { npcPos } from "./npcs";
 import { atBarrier, blocked, crossings } from "./colliders";
 import { groundY, groundTilt } from "./terrain";
@@ -128,8 +128,11 @@ export default function Imp({ reduce }: { reduce: boolean }) {
           return !hit(pos.x + (vx * c - vz * s) * sp, pos.z + (vx * s + vz * c) * sp);
         });
         if (step === undefined) {
+          // Stuck: if that's already at the door we were heading for, go in anyway.
+          const p = game.pending;
           game.target = null;
           game.pending = null;
+          if (p && DOORS.get(p.id)!.distanceTo(pos) < 3.2) openPlace(p);
         } else {
           const c = Math.cos(step),
             s = Math.sin(step);
@@ -153,7 +156,8 @@ export default function Imp({ reduce }: { reduce: boolean }) {
 
     const t = clock.elapsedTime;
     now.current = t;
-    const { welcome } = usePlay.getState();
+    const { welcome, setWelcome } = usePlay.getState();
+    if (welcome && moving) setWelcome(false); // off exploring: the hello has done its job
     // wave hello on the welcome card and on arriving at a door
     if (open && !wasOpen.current) waveUntil.current = t + WAVE_FOR;
     wasOpen.current = !!open;
@@ -192,8 +196,10 @@ export default function Imp({ reduce }: { reduce: boolean }) {
     blob.current.rotation.x = -Math.PI / 2 + groundTilt(pos.z);
 
     if (talk && npcPos.get(talk.npc.id)!.distanceTo(pos) > 4) endTalk();
-    const nn = open ? null : nearestNpc();
-    const n = open || nn ? null : nearestPlace();
+    // no "Enter …" prompts for places passed on the way somewhere
+    const busy = open || autoWalking();
+    const nn = busy ? null : nearestNpc();
+    const n = busy || nn ? null : nearestPlace();
     if (n !== near || nn !== nearNpc) setNear(n, nn);
 
     body.current.visible = blob.current.visible = !street;

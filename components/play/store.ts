@@ -55,12 +55,12 @@ function loadShop(): PlayState["shop"] {
   }
 }
 
-// Greet first-time arrivals, not someone sent straight to a building by link.
+// Greet first-time arrivals, not someone sent straight to a building by link. Once the hello has been
+// dismissed it stays dismissed on return visits too.
+const WELCOME_KEY = "imp-welcome";
 function firstArrival() {
   try {
-    const seen = sessionStorage.getItem("imp-welcome");
-    sessionStorage.setItem("imp-welcome", "1");
-    return !seen && !new URLSearchParams(window.location.search).has("place");
+    return !localStorage.getItem(WELCOME_KEY) && !new URLSearchParams(window.location.search).has("place");
   } catch {
     return false;
   }
@@ -147,7 +147,14 @@ export const usePlay = create<PlayState>((set) => ({
   found: [],
   hydrate: () => set({ night: isNight(), found: loadFound(), shop: loadShop(), welcome: firstArrival() }),
   welcome: false,
-  setWelcome: (welcome) => set({ welcome }),
+  setWelcome: (welcome) => {
+    if (!welcome) {
+      try {
+        localStorage.setItem(WELCOME_KEY, "1");
+      } catch {}
+    }
+    set({ welcome });
+  },
   shop: null,
   setShop: (name, lot) => {
     const shop = name.trim() ? { name, lot } : null;
@@ -201,6 +208,11 @@ export function walkTo(p: Place) {
   walkRoute([...route, door.clone()]);
   game.pending = p;
   game.pendingNpc = null;
+}
+
+// On the way somewhere picked from Go to, a building or a townsperson: E shouldn't go into whatever we pass.
+export function autoWalking() {
+  return !!(game.pending || game.pendingNpc);
 }
 
 // Walk to each point in turn.
