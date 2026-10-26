@@ -2,11 +2,11 @@ import { useLayoutEffect, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Part, geo, toon, INK, WINDOW, LAMP } from "./toon";
-import { BOUND, CROSSING, EAST, MID_X, RAIL, RAIL_FENCE_RUNS, STATION } from "./colliders";
+import { BOUND, CROSSING, EAST, MID_X, RAIL, RAIL_FENCE_RUNS, STATION, WHARF_CROSSING } from "./colliders";
 import { AUDIO } from "./sound";
 
 // The railway south of the Workshop and HQ. Passenger trains and long tanker trains take it in
-// turns to run across town, and the level crossing's barriers drop on the main road for each one.
+// turns to run across town, and the barriers drop for each one at the level crossings on the main road and on Brayford Wharf East.
 
 const LEN = BOUND + EAST + 10; // track runs right across the map
 const END = EAST + 24; // trains appear and disappear this far east and west, off the edge of town
@@ -57,10 +57,10 @@ function Repeat({ geometry, color, at }: { geometry: THREE.BufferGeometry; color
 }
 
 const tracks = [-1, 1].map((s) => RAIL.z + s * RAIL.gap);
-// no sleepers showing through the road and pavements at the crossing
+// no sleepers showing through the road and pavements at the crossing, or the paving of the one on Brayford Wharf East
 const SLEEPERS = tracks.flatMap((z) =>
   Array.from({ length: Math.floor(LEN / 1.2) }, (_, i) => MID_X - LEN / 2 + 0.6 + i * 1.2)
-    .filter((x) => Math.abs(x) > 4.6)
+    .filter((x) => Math.abs(x) > 4.6 && Math.abs(x - WHARF_CROSSING.x) > WHARF_CROSSING.half + 0.3)
     .map((x) => [x, 0.06, z] as [number, number, number]),
 );
 // fences run out from the crossing and stop at the station's platforms
@@ -107,24 +107,32 @@ function Track() {
 // Red lamps that flash in turn while a train is coming. Shared by both sides of the crossing.
 const LAMP_ON = 0xff3b2a,
   LAMP_OFF = 0x4a2226;
-const FLASH = [new THREE.MeshBasicMaterial({ color: LAMP_OFF }), new THREE.MeshBasicMaterial({ color: LAMP_OFF })];
+const flash = () => [new THREE.MeshBasicMaterial({ color: LAMP_OFF }), new THREE.MeshBasicMaterial({ color: LAMP_OFF })];
+// the High Street's lamps, and the ones on the Brayford Wharf East crossing, which flash for their own trains
+const FLASH = flash(),
+  FLASH_WHARF = flash();
+const CROSSINGS = [
+  { x: 0, half: RAIL.crossing, lamps: FLASH },
+  { x: WHARF_CROSSING.x, half: WHARF_CROSSING.half, lamps: FLASH_WHARF },
+];
 
-// One barrier on each side of the road, its post at the kerb and the arm spanning the road
-// and both pavements. side is -1 for the north barrier, 1 for the south one.
-function Barrier({ side, arm }: { side: -1 | 1; arm: (g: THREE.Group | null) => void }) {
-  const len = 9.6;
+// One barrier on each side of the crossing, its post at the kerb and the arm spanning the road
+// and both pavements, or the footpath. side is -1 for the north barrier, 1 for the south one.
+function Barrier({ side, arm, x, half, lamps }: { side: -1 | 1; arm: (g: THREE.Group | null) => void; x: number; half: number; lamps: THREE.MeshBasicMaterial[] }) {
+  const len = half * 2 + 0.4;
   const z = RAIL.z + side * (RAIL.fence + 0.1);
+  const stripes = Array.from({ length: Math.floor(len / 2) }, (_, k) => 1.6 + k * 2);
   return (
     // the north post is on the east kerb, the south one on the west, so each arm swings down across the road
-    <group position={[-side * 5.1, 0, z]} rotation-y={side < 0 ? Math.PI : 0}>
+    <group position={[x - side * (half + 0.5), 0, z]} rotation-y={side < 0 ? Math.PI : 0}>
       <Part geometry={geo.box(0.5, 1.4, 0.5)} color={0xe8e1d0} outline={0.05} position-y={0.7} />
       <group ref={arm} position-y={1.15} rotation-z={UP}>
         <Part geometry={geo.box(len, 0.2, 0.16)} color={0xffffff} outline={0.04} position-x={len / 2 + 0.2} />
-        {[1.6, 3.6, 5.6, 7.6].map((x) => (
+        {stripes.map((x) => (
           <mesh key={x} geometry={geo.box(0.8, 0.22, 0.18)} material={toon(0xe03a3e)} position-x={x + 0.2} />
         ))}
-        {[3, 6, 9].map((x, i) => (
-          <mesh key={x} geometry={geo.sphere(0.12)} material={FLASH[i % 2]} position={[x, 0.16, 0]} />
+        {[3, 6, 9].filter((x) => x < len).map((x, i) => (
+          <mesh key={x} geometry={geo.sphere(0.12)} material={lamps[i % 2]} position={[x, 0.16, 0]} />
         ))}
       </group>
       {/* the twin flashing lights, facing traffic coming towards the crossing */}
@@ -132,7 +140,7 @@ function Barrier({ side, arm }: { side: -1 | 1; arm: (g: THREE.Group | null) => 
         <Part geometry={geo.cyl(0.08, 0.08, 2.6, 8)} color={DARK} outline={0.03} position-y={1.3} />
         <Part geometry={geo.box(1.4, 0.55, 0.1)} color={INK} outline={0.03} position-y={2.6} />
         {[-0.4, 0.4].map((x, i) => (
-          <mesh key={x} geometry={geo.sphere(0.2)} material={FLASH[i]} position={[x, 2.6, -0.1]} scale={[1, 1, 0.5]} />
+          <mesh key={x} geometry={geo.sphere(0.2)} material={lamps[i]} position={[x, 2.6, -0.1]} scale={[1, 1, 0.5]} />
         ))}
         <Part geometry={geo.box(0.9, 0.3, 0.06)} color={YELLOW} outline={0.02} position-y={2.1} />
       </group>
@@ -224,17 +232,18 @@ function Tanker() {
 
 export default function Railway({ reduce }: { reduce: boolean }) {
   const trains = useRef<Record<Kind, THREE.Group | null>>({ passenger: null, tanker: null });
-  const arms = useRef<(THREE.Group | null)[]>([]);
+  const arms = useRef<(THREE.Group | null)[][]>(CROSSINGS.map(() => []));
   // the first train sets off a few seconds after the town loads
   // v is the train's speed; called and dwell track a passenger train's stop at the station.
-  const st = useRef({ i: 0, head: -SCHEDULE[0].dir * END, wait: 3, arm: UP, v: TRAINS[SCHEDULE[0].kind].speed, called: false, dwell: 0 });
+  const st = useRef({ i: 0, head: -SCHEDULE[0].dir * END, wait: 3, arms: CROSSINGS.map(() => UP), v: TRAINS[SCHEDULE[0].kind].speed, called: false, dwell: 0 });
 
   useFrame(({ clock }, delta) => {
     const dt = Math.min(delta, 0.05);
     const s = st.current;
     const run = SCHEDULE[s.i % SCHEDULE.length];
     const train = TRAINS[run.kind];
-    let closed = false;
+    // whether each crossing's barriers are down, the High Street's first
+    const closed = CROSSINGS.map(() => false);
     if (reduce) {
       // no trains with reduced motion, so the barriers stay up
     } else if (s.wait > 0) {
@@ -258,12 +267,14 @@ export default function Railway({ reduce }: { reduce: boolean }) {
         s.v = Math.min(train.speed, s.v + BRAKE * dt);
         s.head += run.dir * s.v * dt;
       }
-      const ahead = -run.dir * s.head; // how far the front still has to go to reach the crossing
-      const tail = run.dir * (s.head - run.dir * train.len); // how far the back is past it
-      closed = ahead < train.speed * WARN_S && tail < RAIL.crossing + 1;
-      // a train calling at the station before it reaches the crossing keeps the road open until it's nearly ready to go
-      if (stops && -run.dir * stopAt > 0 && (!s.called || s.dwell > SHUT_S)) closed = false;
-      if (tail > END) {
+      CROSSINGS.forEach((c, k) => {
+        const ahead = run.dir * (c.x - s.head); // how far the front still has to go to reach the crossing
+        const tail = run.dir * (s.head - run.dir * train.len - c.x); // how far the back is past it
+        closed[k] = ahead < train.speed * WARN_S && tail < c.half + 1;
+        // a train calling at the station before it reaches the crossing keeps it open until it's nearly ready to go
+        if (stops && run.dir * (c.x - stopAt) > 0 && (!s.called || s.dwell > SHUT_S)) closed[k] = false;
+      });
+      if (run.dir * (s.head - run.dir * train.len) > END) {
         s.i++;
         s.wait = GAP_S;
         s.head = -SCHEDULE[s.i % SCHEDULE.length].dir * END;
@@ -271,7 +282,7 @@ export default function Railway({ reduce }: { reduce: boolean }) {
         s.called = false;
       }
     }
-    CROSSING.closed = closed;
+    [CROSSING.closed, CROSSING.wharf] = closed;
     const t = AUDIO.train;
     t.on = !reduce && s.wait <= 0;
     [t.head, t.dir, t.v, t.run] = [s.head, run.dir, s.v, s.i];
@@ -284,21 +295,23 @@ export default function Railway({ reduce }: { reduce: boolean }) {
       g.rotation.y = run.dir > 0 ? 0 : Math.PI;
     }
     // arms take about a second and a half to swing down, and a little longer to rise
-    const want = closed ? 0 : UP;
-    s.arm += Math.sign(want - s.arm) * Math.min(Math.abs(want - s.arm), dt * (closed ? 1.1 : 0.9));
-    arms.current.forEach((a) => a && (a.rotation.z = s.arm));
-    const flashing = closed || s.arm < UP - 0.01;
-    AUDIO.crossing = flashing;
     const on = Math.floor(clock.elapsedTime * 2.4) % 2;
-    FLASH.forEach((m, i) => m.color.setHex(flashing && i === on ? LAMP_ON : LAMP_OFF));
+    CROSSINGS.forEach((c, k) => {
+      const want = closed[k] ? 0 : UP;
+      s.arms[k] += Math.sign(want - s.arms[k]) * Math.min(Math.abs(want - s.arms[k]), dt * (closed[k] ? 1.1 : 0.9));
+      arms.current[k].forEach((a) => a && (a.rotation.z = s.arms[k]));
+      const flashing = closed[k] || s.arms[k] < UP - 0.01;
+      if (!k) AUDIO.crossing = flashing;
+      c.lamps.forEach((m, i) => m.color.setHex(flashing && i === on ? LAMP_ON : LAMP_OFF));
+    });
   });
 
   return (
     <>
       <Track />
-      {([-1, 1] as const).map((side, i) => (
-        <Barrier key={side} side={side} arm={(g) => void (arms.current[i] = g)} />
-      ))}
+      {CROSSINGS.flatMap((c, k) =>
+        ([-1, 1] as const).map((side, i) => <Barrier key={`${k}${side}`} side={side} x={c.x} half={c.half} lamps={c.lamps} arm={(g) => void (arms.current[k][i] = g)} />),
+      )}
       <group ref={(g) => void (trains.current.passenger = g)} visible={false}>
         <Passenger />
       </group>
