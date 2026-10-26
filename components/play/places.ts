@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "lane" | "mill" | "park" | "venue" | "memorial" | "market";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "lane" | "mill" | "park" | "venue" | "memorial" | "market" | "gatehouse" | "yard";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -584,6 +584,49 @@ export const PLACES: Place[] = [
     link: { href: "https://lincolncathedral.com/", label: "Visit Lincoln Cathedral", external: true },
   },
   {
+    id: "exchequer-gate",
+    kind: "gatehouse",
+    name: "Exchequer Gate",
+    kicker: "The way into Minster Yard",
+    nav: "Exchequer Gate",
+    // the stone gatehouse across the east end of Castle Square, its arch opening onto the cathedral's west front
+    x: 31.4,
+    z: -123,
+    w: 14,
+    d: 2.8,
+    h: 7,
+    wall: 0xcbbd9f,
+    roof: 0x8a7d66,
+    roofType: "flat",
+    rot: -Math.PI / 2,
+    intro: [
+      "The Exchequer Gate is the 14th-century stone gatehouse between Castle Square and the cathedral. It was one of the gates in the wall round the cathedral close, now called Minster Yard.",
+      "Step through its arch and the cathedral's west front fills the view.",
+    ],
+  },
+  {
+    id: "minster-yard",
+    kind: "yard",
+    name: "Minster Yard",
+    kicker: "The cathedral close",
+    nav: "Minster Yard",
+    // a row of old houses along the north side of the close, looking across the lawn and the path to the cathedral
+    x: 76,
+    z: -149.5,
+    w: 32,
+    d: 4,
+    h: 4.5,
+    wall: 0xe0d2b4,
+    roof: 0x6e4a3a,
+    roofType: "pitch",
+    rot: 0,
+    intro: [
+      "Minster Yard is the close around Lincoln Cathedral: lawns and paths with old houses looking onto them, once shut in by a wall with gates like the Exchequer Gate.",
+      "Follow the path right round to see the cathedral from every side.",
+    ],
+    link: { href: "https://lincolncathedral.com/", label: "Visit Lincoln Cathedral", external: true },
+  },
+  {
     id: "sincil-bank",
     kind: "stadium",
     name: "Sincil Bank",
@@ -1073,9 +1116,9 @@ export const PLACES: Place[] = [
     kicker: "December in uphill Lincoln",
     nav: "Christmas Market",
     // a row of wooden chalets along the north side of Castle Square, facing into it
-    x: 25.5,
+    x: 23.8,
     z: -128,
-    w: 13.6,
+    w: 10.2,
     d: 2.6,
     h: 2.6,
     wall: 0x8a5a32,

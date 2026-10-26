@@ -7,7 +7,7 @@ import type { Place } from "./places";
 import { footprint } from "./places";
 import { Part, geo, toon, signTexture, INK, WINDOW, LAMP, STONE, STONE_DARK } from "./toon";
 import { placeEvents } from "./store";
-import { EXTRA_BOXES, BAILGATE, seeded } from "./colliders";
+import { EXTRA_BOXES, BAILGATE, EXCHEQUER, seeded } from "./colliders";
 import { groundY, groundTilt, Strip } from "./terrain";
 
 type V3 = [number, number, number];
@@ -358,9 +358,9 @@ export function Market({ p, font }: Props) {
   const sign = useSign("Christmas Market", "#a01a24", font);
   const roof = useRoof(2.9, 1, 3.4);
   const y = lift(p);
-  const n = 4,
+  const n = Math.round(p.w / 3.4),
     gap = p.w / n;
-  const xs = useMemo(() => Array.from({ length: n }, (_, i) => -p.w / 2 + gap * (i + 0.5)), [p.w, gap]);
+  const xs = useMemo(() => Array.from({ length: n }, (_, i) => -p.w / 2 + gap * (i + 0.5)), [p.w, gap, n]);
   const TREE = { x: 0, z: -3.8 };
   // solid while it's in town: the row of chalets and the tree behind
   useEffect(() => {
@@ -406,8 +406,8 @@ export function Market({ p, font }: Props) {
           </group>
         ))}
         <Many geometry={geo.sphere(0.07, 6, 4)} color={LAMP} list={lights} glow />
-        <Sign map={sign} w={3.4} h={0.85} position={[xs[1] + gap / 2, y(0) + 3.6, 0.3]} />
-        <mesh geometry={geo.box(0.1, 1.2, 0.1)} material={toon(INK)} position={[xs[1] + gap / 2, y(0) + 2.9, 0.25]} />
+        <Sign map={sign} w={3.4} h={0.85} position={[0, y(0) + 3.9, 0.3]} />
+        <mesh geometry={geo.box(0.1, 1.4, 0.1)} material={toon(INK)} position={[0, y(0) + 3.1, 0.25]} />
         {/* the tree */}
         <group position={[TREE.x, y(Math.cos(p.rot) * TREE.z), TREE.z]}>
           <mesh geometry={geo.cyl(0.3, 0.4, 1.2, 8)} material={toon(0x6b4a2e)} position-y={0.6} />
@@ -442,4 +442,97 @@ function Festoons({ wy }: { wy: number }) {
     return out;
   }, [wy]);
   return <Many geometry={geo.sphere(0.11, 8, 6)} color={LAMP} list={bulbs} glow />;
+}
+
+// ---------------------------------------------------------------------------------------------
+// The Exchequer Gate: a battlemented stone gatehouse across the east end of Castle Square, its arch
+// framing the cathedral's west front, with the low wall round the close running off it north and south.
+const GATE_STONE = 0xcbbd9f;
+const GATE_DARK = 0x3a3530;
+export function Gatehouse({ p, font }: Props) {
+  const sign = useSign(p.name, "#5e4a2e", font);
+  const y = lift(p);
+  const span = EXCHEQUER.open * 2,
+    spring = 3.4,
+    drop = Math.min(0, y(-p.w / 2), y(p.w / 2));
+  // local x runs along the gate (world z, downhill to the south), local z out of its west face
+  const merlons = useMemo(() => {
+    const out: Inst[] = [];
+    for (let x = -p.w / 2 + 0.4; x <= p.w / 2 - 0.3; x += 1.3) for (const z of [-p.d / 2 + 0.2, p.d / 2 - 0.2]) out.push({ at: [x, p.h + 0.3, z] });
+    return out;
+  }, [p.w, p.d, p.h]);
+  const slits = useMemo(() => [-4.4, -2.8, 2.8, 4.4].flatMap((x) => [-1, 1].map((s) => ({ at: [x, 4.9, s * (p.d / 2 + 0.02)] as V3 }))), [p.d]);
+  // the close wall, a short course at a time so it follows the slope
+  const wall = useMemo(() => {
+    const f = footprint(p);
+    const out: Inst[] = [];
+    for (const [z0, z1] of [
+      [EXCHEQUER.wall.z0, f.z0],
+      [f.z1, EXCHEQUER.wall.z1],
+    ])
+      for (let z = z0 + 0.5; z < z1; z += 1) out.push({ at: [EXCHEQUER.x, groundY(z) - groundY(p.z) + 0.85, z] });
+    return out;
+  }, [p]);
+  const coping = useMemo(() => wall.map((w) => ({ at: [w.at[0], w.at[1] + 0.95, w.at[2]] as V3 })), [wall]);
+  return (
+    <>
+      <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+        {/* the gatehouse sits on the slope's top: a plinth carries it down where the ground falls away to the south */}
+        <Part geometry={geo.box(p.w, 0.35 - drop, p.d + 0.2)} color={STONE_DARK} outline={0.04} position-y={0.05 - (0.35 - drop) / 2} />
+        <Part geometry={geo.arches(p.w, p.h, p.d, [[0, span, spring]])} color={GATE_STONE} outline={0.05} />
+        {/* string course and battlements */}
+        <Part geometry={geo.box(p.w + 0.2, 0.25, p.d + 0.2)} color={STONE_DARK} outline={0.03} position-y={p.h - 0.1} />
+        <Many geometry={geo.box(0.7, 0.6, 0.4)} color={GATE_STONE} list={merlons} />
+        {/* a hood over the arch and narrow windows to either side */}
+        {[-1, 1].map((s) => (
+          <mesh key={s} geometry={geo.box(span + 0.8, 0.22, 0.12)} material={toon(STONE_DARK)} position={[0, spring + span / 2 + 0.35, s * (p.d / 2 + 0.06)]} />
+        ))}
+        <Many geometry={geo.box(0.35, 1.1, 0.06)} color={GATE_DARK} list={slits} />
+        {/* the name, on a plaque by the arch on the square side */}
+        <Part geometry={geo.box(3.2, 0.7, 0.08)} color={0x2b2633} outline={0.03} position={[-4.2, 2.2, p.d / 2 + 0.05]} />
+        <Sign map={sign} w={3} h={0.6} position={[-4.2, 2.2, p.d / 2 + 0.1]} />
+      </group>
+      <Many geometry={geo.box(0.6, 1.7, 1.02)} color={STONE_DARK} list={wall} />
+      <Many geometry={geo.box(0.8, 0.2, 1.02)} color={GATE_STONE} list={coping} />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
+// Minster Yard: a terrace of old houses along the north side of the cathedral close, looking across the lawn
+// and the path round the cathedral. The path and the trees on the lawns are drawn with the rest of the town.
+const YARD_WALLS = [0xe0d2b4, 0xc98f6e, 0xe8e0cf, 0xd8c3a0, 0xb8735a];
+const YARD_HEIGHTS = [4.6, 5.4, 4.2, 5.8, 4.8];
+const YARD_DOORS = [0x2f4a3a, 0x1f2a4a, 0x7a1f3d, 0x2b2633, 0x2f4a3a];
+export function Yard({ p, font }: Props) {
+  const sign = useSign(p.name, "#2b2633", font);
+  const n = YARD_WALLS.length,
+    each = p.w / n;
+  const roof = useRoof(p.d + 0.4, 1.7, each + 0.1);
+  const front = p.d / 2;
+  const houses = useMemo(() => YARD_WALLS.map((wall, i) => ({ x: -p.w / 2 + each * (i + 0.5), h: YARD_HEIGHTS[i], wall, door: YARD_DOORS[i] })), [p.w, each]);
+  const windows = useMemo(
+    () =>
+      houses.flatMap(({ x, h }, i) => [
+        ...(i % 2 ? [0.4, 2] : [-0.2, 1.8]).map((dx) => ({ at: [x + dx, 1.5, front + 0.03] as V3 })),
+        ...[-1.8, 0, 1.8].map((dx) => ({ at: [x + dx, h - 1.3, front + 0.03] as V3 })),
+      ]),
+    [houses, front],
+  );
+  return (
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      {houses.map(({ x, h, wall, door }, i) => (
+        <group key={x} position-x={x}>
+          <Part geometry={geo.box(each, h, p.d)} color={wall} outline={0.04} position-y={h / 2} />
+          <Part geometry={roof} color={p.roof} outline={0.04} position-y={h} />
+          <Part geometry={geo.box(0.6, 1.3, 0.6)} color={0x8a5a44} outline={0.03} position={[i % 2 ? -2 : 2.2, h + 1.2, -0.7]} />
+          <Part geometry={geo.box(0.9, 1.7, 0.1)} color={door} outline={0.03} position={[i % 2 ? -1.6 : -1.9, 0.85, front + 0.03]} />
+        </group>
+      ))}
+      <Many geometry={geo.box(0.8, 1, 0.06)} color={WINDOW} list={windows} />
+      {/* the name, on the end house */}
+      <Part geometry={geo.box(3.2, 0.7, 0.08)} color={0xfff8e7} outline={0.03} position={[houses[0].x - 0.2, 3.1, front + 0.06]} />
+      <Sign map={sign} w={3} h={0.6} position={[houses[0].x - 0.2, 3.1, front + 0.11]} />
+    </group>
+  );
 }

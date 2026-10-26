@@ -260,7 +260,7 @@ export default function Hud() {
       ) : near && !open ? (
         <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
           <kbd>E</kbd>
-          <span>{["lot", "tank", "gate", "bridge", "arch", "oldhouse", "ruins", "lane", "mill", "memorial"].includes(near.kind ?? "shop") ? "Look at" : "Enter"} {near.name}</span>
+          <span>{["lot", "tank", "gate", "bridge", "arch", "oldhouse", "ruins", "lane", "mill", "memorial", "gatehouse", "yard"].includes(near.kind ?? "shop") ? "Look at" : "Enter"} {near.name}</span>
         </button>
       ) : (
         nudge &&
