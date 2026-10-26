@@ -345,7 +345,7 @@ function Cathedral({ p, font }: { p: Place; font: string }) {
   useEffect(() => () => sign.dispose(), [sign]);
   const front = p.d / 2,
     back = -p.d / 2;
-  const SCREEN = { w: 19, h: 15 };
+  const SCREEN = { w: 21.5, h: 15 };
   const cross = back + 30; // main crossing, under the central tower, with the long choir east of it
   const east = back + 13; // east transept, with the Angel Choir beyond it
   const chapter = { x: -9.6, z: east - 2.15, r: 2.3 };
@@ -357,7 +357,7 @@ function Cathedral({ p, font }: { p: Place; font: string }) {
       <Arm z0={back} z1={cross - 2.5} />
       <Transept z={cross} span={p.w - 2} d={5} h={NAVE_H - 0.5} rose />
       <Transept z={east} span={18} d={3.5} h={NAVE_H - 1.5} />
-      <Tower x={0} z={cross} w={7.4} h={31} belfry={7} />
+      <Tower x={0} z={cross} w={7.4} h={37} belfry={8} />
       {/* the square east end with its great window */}
       <group position-z={back - 0.02} rotation-y={Math.PI}>
         <Lancet w={1.2} h={5} position={[-1.5, 2.6, 0]} />
@@ -392,7 +392,7 @@ function Cathedral({ p, font }: { p: Place; font: string }) {
       </group>
       {/* the two west towers, rising behind the screen */}
       {[-1, 1].map((s) => (
-        <Tower key={s} x={s * 4.4} z={front - 3.6} w={3.8} h={25} belfry={6} />
+        <Tower key={s} x={s * 4.6} z={front - 3.6} w={3.8} h={31} belfry={7} />
       ))}
       {/* the west front: a broad screen with three great recessed arches, a band of arcading and a turret at each end */}
       <Part geometry={geo.box(SCREEN.w, SCREEN.h, 2)} color={STONE} outline={0.09} position={[0, SCREEN.h / 2, front - 1]} />

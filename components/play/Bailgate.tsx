@@ -6,7 +6,6 @@ import { BAILGATE, CLOSE, SHOPFRONTS } from "./colliders";
 import { groundY, groundTilt } from "./terrain";
 import { placeEvents, usePlay } from "./store";
 import { NamePlate } from "./Wharf";
-import { Studs } from "./Landmarks";
 
 const TIMBER = 0x3a2a20;
 const IRON = 0x2b2633;
@@ -262,55 +261,61 @@ export default function Bailgate({ font }: { font: string }) {
   );
 }
 
-// The Magna Carta: a black-and-white timber-framed pub on the corner at the top of Steep Hill, like the shops on
-// High Bridge: a plastered ground floor with a painted pub frontage, a jettied, timber-framed upper floor and a
-// pair of gables at each end. Its front door opens onto Castle Square; its back looks down the hill, so the camera
-// coming up Steep Hill sees a painted frontage and the name there too.
+// The Magna Carta: a red-brick Georgian pub on the corner at the top of Steep Hill, as in real Lincoln: three
+// storeys under a slate roof, bay windows on the first floor, and a black-and-white painted pub frontage with white
+// pilasters on the ground floor. Its front door opens onto Castle Square; its back looks down the hill, so the
+// camera coming up Steep Hill sees a painted frontage and the name there too.
 export function Pub({ p, font }: { p: Place; font: string }) {
   const night = usePlay((s) => s.night);
-  const fascia = useSign(p.name, "#c8973a", font);
-  const hanging = useSign("The Magna\nCarta", "#1f4d3a", font);
-  const front = 0x1f4d3a;
+  const fascia = useSign(p.name.replace(/^The /, "").toUpperCase(), "#1a1320", font);
+  const hanging = useSign("The Magna\nCarta", "#1a1320", font);
+  const front = 0x1a1320;
   // the ground climbs to the north (the front), so the floor sits at the square's level on a plinth
   const y = (dz: number) => groundY(p.z + dz * Math.cos(p.rot)) - groundY(p.z);
   const floor = Math.max(y(p.d / 2), y(-p.d / 2)),
     low = Math.min(y(p.d / 2), y(-p.d / 2)) - 0.3;
   const w = p.w,
     d = p.d,
+    h = p.h,
     f = d / 2;
-  const upper = 2.2,
-    uw = w + 0.5, // the jettied upper floor oversails the ground floor all round
-    ud = d + 0.5,
-    top = GROUND + upper;
-  const r = uw / 2 / 1.732; // circumradius of each gable's triangle, two side by side across each end
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <Part geometry={geo.box(w + 0.2, floor - low, d + 0.2)} color={0xb3a68a} outline={0.05} position-y={(floor + low) / 2} />
       <group position-y={floor}>
-        <Part geometry={geo.box(w, GROUND, d)} color={p.wall} outline={0.08} position-y={GROUND / 2} />
-        <group position-y={GROUND}>
-          <Part geometry={geo.box(uw, upper, ud)} color={p.wall} outline={0.07} position-y={upper / 2} />
-          {[0, Math.PI / 2, Math.PI, -Math.PI / 2].map((a) => {
-            const len = a === 0 || a === Math.PI ? uw : ud;
-            return (
-              <group key={a} rotation-y={a}>
-                <Studs len={len} h={upper} position-z={(a === 0 || a === Math.PI ? ud : uw) / 2 + 0.04} />
-                {(len > 7 ? [-0.32, -0.11, 0.11, 0.32] : [-0.26, 0.26]).map((k) => (
-                  <Part key={k} geometry={geo.box(0.9, 0.85, 0.1)} color={WINDOW} outline={0.03} position={[k * len, upper / 2 + 0.1, (a === 0 || a === Math.PI ? ud : uw) / 2 + 0.09]} />
+        <Part geometry={geo.box(w, h, d)} color={p.wall} outline={0.08} position-y={h / 2} />
+        <Part geometry={geo.box(w + 0.15, 0.2, d + 0.15)} color={0x1a1320} outline={0.03} position-y={GROUND + 0.1} />
+        <Part geometry={geo.box(w + 0.2, 0.18, d + 0.2)} color={SASH} outline={0.03} position-y={h - 0.09} />
+        <group position-y={h + (d / 1.6) * 0.275} rotation-y={Math.PI / 2}>
+          <Part geometry={geo.cyl(d / 1.6, d / 1.6, w + 0.3, 3)} color={p.roof} outline={0.07} rotation-x={-Math.PI / 2} scale={[1, 1, 0.55]} />
+        </group>
+        {[-1, 1].map((s) => (
+          <Part key={s} geometry={geo.box(0.8, 1.8, 1)} color={0x9a4a34} outline={0.04} position={[s * (w / 2 - 0.3), h + 1.7, 0]} />
+        ))}
+        {/* the first floor's bay windows and the sash windows above, on both faces */}
+        {[0, Math.PI].map((r) => (
+          <group key={r} rotation-y={r}>
+            {[-1, 1].map((s) => (
+              <group key={s} position={[s * 2.2, GROUND + 1.3, f + 0.25]}>
+                <Part geometry={geo.box(1.7, 1.5, 0.5)} color={front} outline={0.04} />
+                <Part geometry={geo.box(1.4, 1.2, 0.52)} color={WINDOW} outline={0} />
+                {[-0.35, 0.35].map((x) => (
+                  <Part key={x} geometry={geo.box(0.06, 1.2, 0.56)} color={front} outline={0} position-x={x} />
                 ))}
               </group>
-            );
-          })}
-        </group>
-        {/* a pair of gables at each end, their ridges running back from the square */}
-        {[-1, 1].map((sx) => (
-          <Part key={sx} geometry={geo.cyl(r, r, ud + 0.3, 3)} color={p.roof} outline={0.06} rotation-x={-Math.PI / 2} scale={[1, 1, 0.75]} position={[(sx * uw) / 4, top + 0.5 * r * 0.75, 0]} />
+            ))}
+            {[-2.2, 0, 2.2].map((x) => (
+              <Sash key={x} x={x} y={h - 1.1} z={f + 0.04} w={0.75} h={1} />
+            ))}
+            <Sash x={0} y={GROUND + 1.3} z={f + 0.04} w={0.75} h={1.1} />
+          </group>
         ))}
-        <Part geometry={geo.box(0.7, 1.6, 0.7)} color={0x9a5a44} outline={0.04} position={[0, top + 1.3, 0]} />
         {/* the same painted frontage on both faces: the door onto the square and the windows down the hill */}
         {[0, Math.PI].map((r) => (
           <group key={r} rotation-y={r}>
             <Part geometry={geo.box(w - 0.4, GROUND - 0.2, 0.12)} color={front} outline={0.04} position={[0, (GROUND - 0.2) / 2, f + 0.06]} />
+            {[-3.6, -0.75, 0.75, 3.6].map((x) => (
+              <Part key={x} geometry={geo.box(0.22, GROUND - 0.2, 0.18)} color={SASH} outline={0.02} position={[x, (GROUND - 0.2) / 2, f + 0.1]} />
+            ))}
             {[-1, 1].map((s) => (
               <Part key={s} geometry={geo.box(2.1, 1.4, 0.12)} color={WINDOW} outline={0.03} position={[s * 2.3, 1.2, f + 0.12]} />
             ))}
@@ -337,10 +342,12 @@ export function Pub({ p, font }: { p: Place; font: string }) {
         <group position={[w / 2 + 0.02, 0, 0]} rotation-y={Math.PI / 2}>
           {[-1.4, 1.4].map((x) => (
             <group key={x}>
+              <Sash x={x} y={GROUND + 1.3} z={0} />
+              <Sash x={x} y={p.h - 1.1} z={0} />
               <Part geometry={geo.box(1.1, 1.2, 0.12)} color={WINDOW} outline={0.03} position={[x, 1.3, 0.04]} />
             </group>
           ))}
-          <HangingSign sign={hanging} color={0xfff1d6} x={-2.4} y={2.75} z={0} />
+          <HangingSign sign={hanging} color={0x1a1320} x={-2.4} y={3.75} z={0} />
         </group>
         {/* benches out on the square either side of the door */}
         {[-1, 1].map((s) => (
