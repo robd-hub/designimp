@@ -12,7 +12,7 @@ export default function StreetList() {
         Your browser can&apos;t show the 3D town, so here is the street as a list. You can also see{" "}
         <Link href="/#work">all of Design Imp&apos;s work</Link>.
       </p>
-      {PLACES.filter((p) => p.kind !== "lot").map((p) => (
+      {PLACES.filter((p) => p.kind !== "lot" && !p.season).map((p) => (
         <section key={p.id} className={s.card}>
           <div className={s.kicker}>{p.kicker}</div>
           <h2>{p.name}</h2>

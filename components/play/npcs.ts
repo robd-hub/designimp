@@ -145,7 +145,7 @@ export const NPCS: Npc[] = [
     legs: 0x4a3a2a,
     skin: 0xf2d0b5,
     hat: 0x1a1320,
-    path: [[18, -123], [32, -123]],
+    path: [[18, -123], [34.4, -123]], // through the Exchequer Gate to the west front and back
     speed: 1.2,
     lines: [
       "Lovely, isn't she? Building started on this cathedral over 900 years ago.",

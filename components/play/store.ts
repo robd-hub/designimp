@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
-import { PLACES, type Place } from "./places";
+import { PLACES, inSeason, isXmas, type Place } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
-import { crossings, inCornhill, CORNHILL_WAY, RAIL } from "./colliders";
+import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH, yardWay } from "./colliders";
 import { cleanName, cleanType, cleanColour, type ShopType } from "./shop";
 
 type PlayState = {
@@ -20,6 +20,7 @@ type PlayState = {
   openPlace: (p: Place) => void;
   close: () => void;
   night: boolean;
+  xmas: boolean; // December: the Christmas market is in town
   toggleNight: () => void;
   street: boolean; // first-person "street view"
   toggleStreet: () => void;
@@ -147,6 +148,7 @@ export const usePlay = create<PlayState>((set) => ({
   },
   // set on mount (not during server render) so the HUD hydrates cleanly
   night: false,
+  xmas: false,
   toggleNight: () => set(({ night }) => ({ night: !night })),
   street: false,
   toggleStreet: () =>
@@ -159,7 +161,7 @@ export const usePlay = create<PlayState>((set) => ({
       return { street: !street };
     }),
   found: [],
-  hydrate: () => set({ night: isNight(), found: loadFound(), shop: loadShop(), welcome: firstArrival() }),
+  hydrate: () => set({ night: isNight(), xmas: isXmas(), found: loadFound(), shop: loadShop(), welcome: firstArrival() }),
   welcome: false,
   setWelcome: (welcome) => {
     if (!welcome) {
@@ -207,6 +209,24 @@ export function doorOf(p: Place) {
 
 export const DOORS = new Map(PLACES.map((p) => [p.id, doorOf(p)]));
 
+// If the Imp is out on a landmark's own path (Mill Road, Monks Road, the market's way across Castle Square),
+// the points that lead back along it to where it leaves the road, nearest first.
+function leaveApproach(to: string): [number, number][] {
+  const at = game.pos;
+  for (const [id, way] of Object.entries(APPROACH)) {
+    if (id === to) continue;
+    const d = DOORS.get(id)!;
+    const pts: [number, number][] = [...way, [d.x, d.z]];
+    for (let i = pts.length - 2; i > 0; i--) {
+      const [[ax, az], [bx, bz]] = [pts[i], pts[i + 1]];
+      const len = Math.hypot(bx - ax, bz - az) || 1;
+      const t = Math.max(0, Math.min(1, ((at.x - ax) * (bx - ax) + (at.z - az) * (bz - az)) / (len * len)));
+      if (Math.hypot(at.x - (ax + t * (bx - ax)), at.z - (az + t * (bz - az))) < 2.5) return pts.slice(0, i + 1).reverse();
+    }
+  }
+  return [];
+}
+
 export function walkTo(p: Place) {
   const s = usePlay.getState();
   if (!s.ready) return s.openPlace(p); // no 3D scene: just open the panel
@@ -215,7 +235,32 @@ export function walkTo(p: Place) {
   if (s.taxi && door.distanceTo(game.pos) > TAXI_MIN) return taxiTo(p);
   s.close();
   s.endTalk();
-  const route = crossings([game.pos.x, game.pos.z], [door.x, door.z]).map(([x, z]) => new THREE.Vector3(x, 0, z));
+  // Setting off from out along one of those paths: walk back down it to the road before going anywhere else.
+  const out = leaveApproach(p.id);
+  // Minster Yard is walled off from Castle Square: in and out through the Exchequer Gate, and round the cathedral inside.
+  const yard = yardWay(out.at(-1) ?? [game.pos.x, game.pos.z], [door.x, door.z]);
+  out.push(...yard.lead);
+  const start: [number, number] = out.at(-1) ?? [game.pos.x, game.pos.z];
+  const back = out.map(([x, z]) => new THREE.Vector3(x, 0, z));
+  // Landmarks out beyond the streets have a path of their own: join it at its nearest point and follow it in.
+  const way = APPROACH[p.id];
+  if (way) {
+    const near = way.reduce((m, [x, z], i) => (Math.hypot(x - start[0], z - start[1]) < Math.hypot(way[m][0] - start[0], way[m][1] - start[1]) ? i : m), 0);
+    const pts = way.slice(near);
+    const route = [...crossings(start, pts[0]), ...pts].map(([x, z]) => new THREE.Vector3(x, 0, z));
+    walkRoute([...back, ...route, door.clone()]);
+    game.pending = p;
+    game.pendingNpc = null;
+    return;
+  }
+  const tail = yard.tail.map(([x, z]) => new THREE.Vector3(x, 0, z));
+  if (tail.length) {
+    walkRoute([...back, ...crossings(start, yard.tail[0]).map(([x, z]) => new THREE.Vector3(x, 0, z)), ...tail, door.clone()]);
+    game.pending = p;
+    game.pendingNpc = null;
+    return;
+  }
+  const route = [...back, ...crossings(start, [door.x, door.z]).map(([x, z]) => new THREE.Vector3(x, 0, z))];
   // Everything south of the railway lines the south road or sits down a side road off it: walk down the road
   // and turn off level with the door, rather than cutting across the shops and houses on the way.
   const from = route.at(-1) ?? game.pos;
@@ -295,7 +340,8 @@ export function nearestNpc(): Npc | null {
 }
 
 export function nearestPlace(): Place | null {
-  for (const p of PLACES) if (DOORS.get(p.id)!.distanceTo(game.pos) < 3.2) return p;
+  const { xmas } = usePlay.getState();
+  for (const p of PLACES) if (inSeason(p, xmas) && DOORS.get(p.id)!.distanceTo(game.pos) < 3.2) return p;
   return null;
 }
 

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { PLACES, footprint, hex } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, WHARF, WHARF_EAST, WHARF_BARS, barBox, streetHouses, toWorld } from "./colliders";
+import { PLACES, footprint, hex, inSeason } from "./places";
+import { AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, EXCHEQUER, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, WHARF, WHARF_EAST, WHARF_BARS, barBox, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
-import { game, walkTo } from "./store";
+import { game, usePlay, walkTo } from "./store";
 import s from "./play.module.css";
 
 const L = -BOUND - 4,
@@ -25,6 +25,7 @@ export default function Minimap() {
     return () => cancelAnimationFrame(raf);
   }, []);
   const water = PLACES.find((p) => p.kind === "water");
+  const xmas = usePlay((st) => st.xmas);
   return (
     <svg className={`${s.card} ${s.minimap}`} viewBox={`${L} ${TOP} ${W} ${H}`} role="img" aria-label="Map of the town">
       {/* the ground darkens as it climbs the hill */}
@@ -56,9 +57,11 @@ export default function Minimap() {
         <rect key={i} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill="#d9ccb2" pointerEvents="none" />
       ))}
       <rect x={L} y={-3} width={W} height={6} fill="#6b6573" />
-      {[...GREESTONE, ...EAST_FOOTPATH].map((g, i) => (
+      {[...GREESTONE, ...EAST_FOOTPATH, ...LANDMARK_PATHS].map((g, i) => (
         <rect key={i} x={g.x0} y={g.z0} width={g.x1 - g.x0} height={g.z1 - g.z0} fill="#e8dcc2" pointerEvents="none" />
       ))}
+      {/* the wall round Minster Yard, either side of the Exchequer Gate */}
+      <rect x={EXCHEQUER.x - 0.5} y={EXCHEQUER.wall.z0} width={1} height={EXCHEQUER.wall.z1 - EXCHEQUER.wall.z0} fill="#b9ad9a" pointerEvents="none" />
       {[BUS_STATION.kerb, ...BUS_STATION.tarmac].map((r, i) => (
         <rect key={i} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill={i ? "#6b6573" : "#e8dcc2"} pointerEvents="none" />
       ))}
@@ -69,7 +72,7 @@ export default function Minimap() {
         Object.entries(BRAYFORD).map(([k, b]) => (
           <rect key={k} x={water.x + b.x0} y={water.z + b.z0} width={b.x1 - b.x0} height={b.z1 - b.z0} fill={k === "front" ? "#f2e2c4" : "#3aa6e8"} />
         ))}
-      {PLACES.filter((p) => p.kind !== "water").map((p) => {
+      {PLACES.filter((p) => p.kind !== "water" && inSeason(p, xmas)).map((p) => {
         const f = footprint(p);
         return (
           <g key={p.id}>
