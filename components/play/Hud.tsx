@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { PLACES, hex, shopSign, type Place } from "./places";
+import { PLACES, hex, inSeason, isXmas, shopSign, type Place } from "./places";
 import { usePlay, walkTo, zoomBy, keepHover, leaveCard, autoWalking } from "./store";
 import { HIDDEN } from "./hidden";
 import PlayLeadForm from "./PlayLeadForm";
@@ -35,7 +35,7 @@ function useMedia(q: string) {
 }
 
 export default function Hud() {
-  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, street, toggleStreet, found, badge, setBadge, hover, setHover } = usePlay();
+  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, street, toggleStreet, found, badge, setBadge, hover, setHover, xmas } = usePlay();
   const openShop = usePlay((st) => (open && st.shop?.lot === open.id ? st.shop.name : ""));
   const total = HIDDEN.length;
   const spotter = found.length >= total;
@@ -82,7 +82,7 @@ export default function Hud() {
     usePlay.getState().hydrate();
     useSound.getState().hydrate();
     const id = new URLSearchParams(window.location.search).get("place");
-    const p = PLACES.find((x) => x.id === id);
+    const p = PLACES.find((x) => x.id === id && inSeason(x, isXmas()));
     if (p) usePlay.getState().openPlace(p);
   }, []);
 
@@ -150,7 +150,7 @@ export default function Hud() {
           Go to {navOpen ? "▴" : "▾"}
         </button>
         {navOpen && <TravelToggle />}
-        {navOpen && PLACES.map((p) => (
+        {navOpen && PLACES.filter((p) => inSeason(p, xmas)).map((p) => (
           <button
             key={p.id}
             onClick={() => {
@@ -260,7 +260,7 @@ export default function Hud() {
       ) : near && !open ? (
         <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
           <kbd>E</kbd>
-          <span>{["lot", "tank", "gate", "bridge", "arch", "oldhouse", "ruins"].includes(near.kind ?? "shop") ? "Look at" : "Enter"} {near.name}</span>
+          <span>{["lot", "tank", "gate", "bridge", "arch", "oldhouse", "ruins", "lane", "mill", "memorial"].includes(near.kind ?? "shop") ? "Look at" : "Enter"} {near.name}</span>
         </button>
       ) : (
         nudge &&

@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "lane" | "mill" | "park" | "venue" | "memorial" | "market";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -22,6 +22,7 @@ export type Place = {
   intro: string[];
   items?: PlaceItem[];
   link?: { href: string; label: string; external?: boolean };
+  season?: "xmas"; // only in town in December (or with ?season=xmas while developing)
 };
 
 // What a plot's sign says once a visitor has typed their business name there.
@@ -954,7 +955,149 @@ export const PLACES: Place[] = [
     ],
     link: { href: "https://www.raf.mod.uk/display-teams/red-arrows/", label: "Meet the Red Arrows", external: true },
   },
+  {
+    id: "bailgate",
+    kind: "lane",
+    name: "Bailgate",
+    kicker: "From Castle Square to Newport Arch",
+    nav: "Bailgate",
+    // the cobbled street itself, between its two rows of shops: nothing solid, just the Roman markers in the setts
+    x: 0,
+    z: -141,
+    w: 8.6,
+    d: 20,
+    h: 0,
+    wall: 0xb9ad9a,
+    roof: 0xb9ad9a,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "Bailgate runs north from Castle Square to Newport Arch along the line of the Roman city's main street, and today it's full of independent shops, tea rooms and pubs.",
+      "Look down as you walk: round markers set into the road show where the columns of a Roman colonnade once stood.",
+    ],
+    link: { href: "https://www.visitlincoln.com/explore/areas-of-lincoln/bailgate/", label: "See it on Visit Lincoln", external: true },
+  },
+  {
+    id: "ellis-mill",
+    kind: "mill",
+    name: "Ellis Mill",
+    kicker: "Up on Mill Road",
+    nav: "Ellis Mill",
+    // up on the ridge north-west of the castle, reached along a lane from Castle Square
+    x: -62,
+    z: -152,
+    w: 6,
+    d: 6,
+    h: 8,
+    wall: 0x34302e,
+    roof: 0xfff8e7,
+    roofType: "pitch",
+    rot: 0,
+    intro: [
+      "Ellis Mill is a brick tower windmill built in 1798, the last of a row of windmills that once lined the ridge west of uphill Lincoln.",
+      "Volunteers restored it as a working mill, and it opens to visitors on selected days.",
+    ],
+    link: { href: "https://www.lincolnshire.gov.uk/history-heritage/ellis-mill", label: "Find out about Ellis Mill", external: true },
+  },
+  {
+    id: "arboretum",
+    kind: "park",
+    name: "The Arboretum",
+    kicker: "Victorian park on Monks Road",
+    nav: "Arboretum",
+    // east of the centre, its gates opening west onto a path from the footbridge
+    x: 88,
+    z: -50,
+    w: 22,
+    d: 18,
+    h: 3,
+    wall: 0x5fae55,
+    roof: 0x2f6d55,
+    roofType: "flat",
+    rot: -Math.PI / 2,
+    intro: [
+      "Lincoln Arboretum is a Victorian park on the hillside east of the city centre, opened in 1872.",
+      "Look out for the bandstand and the stone lion, both from the park's early years, and the ponds and winding paths between the trees.",
+    ],
+    link: { href: "https://www.lincoln.gov.uk/parks-open-spaces/lincoln-arboretum-1", label: "Visit the Arboretum", external: true },
+  },
+  {
+    id: "engine-shed",
+    kind: "venue",
+    name: "The Engine Shed",
+    kicker: "Live music on campus",
+    nav: "Engine Shed",
+    // on the university's side of town, by the railway, facing the main road
+    x: -50,
+    z: 10.5,
+    w: 12,
+    d: 6.5,
+    h: 4.6,
+    wall: 0x9b4a32,
+    roof: 0x5b6470,
+    roofType: "pitch",
+    rot: Math.PI,
+    intro: [
+      "The Engine Shed was once a Victorian railway engine shed. It's now the University of Lincoln Students' Union's venue for gigs, comedy and club nights.",
+      "It's the biggest live music venue in Lincolnshire, so plenty of big names have played here.",
+    ],
+    link: { href: "https://www.engineshed.co.uk/", label: "See what's on", external: true },
+  },
+  {
+    id: "ibcc",
+    kind: "memorial",
+    name: "International Bomber Command Centre",
+    kicker: "On Canwick Hill",
+    nav: "Bomber Command Centre",
+    // south of the city across the valley, its spire turned north to face the cathedral
+    x: 60,
+    z: 91,
+    w: 16,
+    d: 14,
+    h: 16,
+    wall: 0x8a4b2c,
+    roof: 0x8a4b2c,
+    roofType: "flat",
+    rot: Math.PI,
+    intro: [
+      "The International Bomber Command Centre on Canwick Hill remembers the men and women who served and supported RAF Bomber Command in the Second World War, and those who lost their lives.",
+      "Its steel Memorial Spire looks across the city to the cathedral, a landmark for crews flying from Lincolnshire. Around it, the Walls of Names list those who died.",
+    ],
+    link: { href: "https://internationalbcc.co.uk/", label: "Visit internationalbcc.co.uk", external: true },
+  },
+  {
+    id: "christmas-market",
+    kind: "market",
+    season: "xmas",
+    name: "Christmas Market",
+    kicker: "December in uphill Lincoln",
+    nav: "Christmas Market",
+    // a row of wooden chalets along the north side of Castle Square, facing into it
+    x: 25.5,
+    z: -128,
+    w: 13.6,
+    d: 2.6,
+    h: 2.6,
+    wall: 0x8a5a32,
+    roof: 0xfafafa,
+    roofType: "pitch",
+    rot: 0,
+    intro: [
+      "For forty years, Lincoln's Christmas Market filled the streets round the castle and cathedral with stalls each December. It drew such crowds that the council ended it in 2023 over safety worries.",
+      "Uphill Lincoln still glows at Christmas, with festive lights, makers' markets and events around Castle Square and Bailgate.",
+    ],
+    link: { href: "https://www.visitlincoln.com/", label: "See what's on at Visit Lincoln", external: true },
+  },
 ];
+
+// Seasonal places, like the Christmas market, are only in town at their time of year.
+// ?season=xmas (or ?season=off) previews one any time while developing.
+export function isXmas() {
+  const ask = process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("season") : null;
+  if (ask) return ask === "xmas";
+  return new Date().getMonth() === 11;
+}
+export const inSeason = (p: Place, xmas: boolean) => !p.season || xmas;
 
 // Axis-aligned footprint, accounting for buildings turned to face a side road.
 export function footprint(p: Place) {

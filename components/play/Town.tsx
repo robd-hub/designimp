@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-three/fiber";
-import { PLACES, hex, shopSign, type Place } from "./places";
+import { PLACES, hex, inSeason, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow, HighBridge, NewportArch, OldHouse, Gallery, Ruins, River } from "./Landmarks";
 import { EXTRA_BOXES, toWorld, TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, CORNHILL, STONEBOW_STREETS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
@@ -22,6 +22,7 @@ import { CornExchange } from "./CornExchange";
 import { Waterside } from "./Waterside";
 import Wharf from "./Wharf";
 import Bailgate, { Pub } from "./Bailgate";
+import { Lane, Mill, Park, Venue, Memorial, Market as XmasMarket } from "./MoreLandmarks";
 import { Crowd, Chant } from "./Matchday";
 import { TaxiRank } from "./Taxi";
 import { Weather, useSky } from "./Weather";
@@ -981,6 +982,7 @@ export default function Town({ font }: { font: string }) {
   const [signsReady, setSignsReady] = useState(false);
   const night = usePlay((s) => s.night);
   const street = usePlay((s) => s.street);
+  const xmas = usePlay((s) => s.xmas);
   const wx = useSky(night);
   useEffect(() => setNightGlow(night), [night]);
 
@@ -1045,8 +1047,8 @@ export default function Town({ font }: { font: string }) {
       <River />
       {signsReady &&
         PLACES.map((p) => {
-          if (p.kind === "tank") return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub }[p.kind ?? "shop"];
+          if (p.kind === "tank" || !inSeason(p, xmas)) return null;
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, lane: Lane, mill: Mill, park: Park, venue: Venue, memorial: Memorial, market: XmasMarket }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
