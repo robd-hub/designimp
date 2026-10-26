@@ -755,10 +755,10 @@ export const PLACES: Place[] = [
     name: "The Magna Carta",
     kicker: "Pub at the top of Steep Hill",
     nav: "Magna Carta pub",
-    // on the corner at the top of Steep Hill, its front door opening north onto Castle Square, between the
-    // castle and the cathedral
-    x: 12.2,
-    z: -118.5,
+    // on the corner at the top of Steep Hill, in place of the top house on the east side of the hill, its
+    // front door opening north onto Castle Square between the castle and the cathedral
+    x: 8.3,
+    z: -117,
     w: 8,
     d: 6,
     h: 5.4,

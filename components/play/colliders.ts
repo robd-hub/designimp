@@ -17,13 +17,18 @@ export const STREET_GAP = 4; // house left out on both sides: a little square ha
 
 // The old stone houses that stand in the rows on Steep Hill, in place of an ordinary house each.
 const OLD_HOUSES = PLACES.filter((p) => p.kind === "oldhouse");
+// The Magna Carta stands on the top house's plot on the east side.
+const PUBS = PLACES.filter((p) => p.kind === "pub").map(footprint);
 
 // Steep Hill's houses, bottom of the hill first, in the street's own coordinates.
 export function streetHouses(p: { x: number; z: number; w: number; d: number }) {
   const len = p.d / STREET_HOUSES;
   return [-1, 1].flatMap((side) =>
     Array.from({ length: STREET_HOUSES }, (_, i) => ({ side, i, len, x: side * (p.w / 2 - STREET_ROW / 2), z: p.d / 2 - len / 2 - i * len })).filter(
-      (h) => h.i !== STREET_GAP && !OLD_HOUSES.some((o) => Math.abs(o.x - p.x - h.x) < 0.5 && Math.abs(o.z - p.z - h.z) < 0.5),
+      (h) =>
+        h.i !== STREET_GAP &&
+        !OLD_HOUSES.some((o) => Math.abs(o.x - p.x - h.x) < 0.5 && Math.abs(o.z - p.z - h.z) < 0.5) &&
+        !PUBS.some((f) => p.x + h.x > f.x0 && p.x + h.x < f.x1 && p.z + h.z > f.z0 && p.z + h.z < f.z1),
     ),
   );
 }
