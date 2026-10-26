@@ -9,18 +9,26 @@ import { toon } from "./toon";
 // The slope stretches right across the map from east to west, so height only depends on z.
 const hill = footprint(PLACES.find((p) => p.kind === "street")!);
 export const RISE = { z0: hill.z1 + 2, z1: hill.z0 - 2, h: 9 }; // from the foot of the hill (south) to the top (north)
+// Past Castle Square the ground keeps climbing, gently, up Bailgate to Newport Arch.
+const arch = PLACES.find((p) => p.kind === "arch")!;
+export const BAIL_RISE = { z0: hill.z0 - 13, z1: arch.z - 4, h: 1.4 };
+const SLOPES = [RISE, BAIL_RISE];
 
-const along = (z: number) => Math.min(1, Math.max(0, (RISE.z0 - z) / (RISE.z0 - RISE.z1)));
+const along = (z: number, r: typeof RISE) => Math.min(1, Math.max(0, (r.z0 - z) / (r.z0 - r.z1)));
 
 export function groundY(z: number) {
-  const t = along(z);
-  return RISE.h * t * t * (3 - 2 * t);
+  return SLOPES.reduce((y, r) => {
+    const t = along(z, r);
+    return y + r.h * t * t * (3 - 2 * t);
+  }, 0);
 }
 
 // Rotation about x that lays something flat on the slope at z.
 export function groundTilt(z: number) {
-  const t = along(z);
-  const dydz = t > 0 && t < 1 ? (-RISE.h * 6 * t * (1 - t)) / (RISE.z0 - RISE.z1) : 0;
+  const dydz = SLOPES.reduce((s, r) => {
+    const t = along(z, r);
+    return s + (t > 0 && t < 1 ? (-r.h * 6 * t * (1 - t)) / (r.z0 - r.z1) : 0);
+  }, 0);
   return -Math.atan(dydz);
 }
 

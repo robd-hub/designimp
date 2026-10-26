@@ -165,7 +165,7 @@ function RiverSwan({ phase, reduce }: { phase: number; reduce: boolean }) {
 }
 
 // A street name plate on two posts.
-function NamePlate({ text, font, position, rot = 0 }: { text: string; font: string; position: [number, number, number]; rot?: number }) {
+export function NamePlate({ text, font, position, rot = 0 }: { text: string; font: string; position: [number, number, number]; rot?: number }) {
   const sign = useMemo(() => signTexture(text, "#1a1320", font), [text, font]);
   useEffect(() => () => sign.dispose(), [sign]);
   return (
