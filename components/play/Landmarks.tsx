@@ -247,7 +247,7 @@ export function SteepHill({ p, font }: { p: Place; font: string }) {
   );
 }
 
-function Boat({ color, cabin = 0xfff8e7, len = 3.6, ...g }: { color: number; cabin?: number; len?: number; position: [number, number, number]; "rotation-y"?: number }) {
+export function Boat({ color, cabin = 0xfff8e7, len = 3.6, ...g }: { color: number; cabin?: number; len?: number; position: [number, number, number]; "rotation-y"?: number }) {
   return (
     <group {...g}>
       <Part geometry={geo.box(1.3, 0.55, len)} color={color} outline={0.05} position-y={0.28} />

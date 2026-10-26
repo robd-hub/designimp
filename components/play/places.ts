@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -313,6 +313,28 @@ export const PLACES: Place[] = [
     link: { href: "https://www.cornhillquarter.co.uk/", label: "Visit the Cornhill Quarter", external: true },
   },
   {
+    id: "waterside",
+    kind: "mall",
+    name: "Waterside",
+    kicker: "Shopping centre on the Witham",
+    nav: "Waterside Shopping Centre",
+    // on the north bank of the Witham just east of High Bridge, as the real one is, its front facing south
+    // across Saltergate to the water and Cornhill beyond
+    x: 27,
+    z: -41.6,
+    w: 20,
+    d: 9,
+    h: 6,
+    wall: 0xc9834f,
+    roof: 0x3f8f7a,
+    roofType: "pitch",
+    rot: 0,
+    intro: [
+      "Waterside is Lincoln's riverside shopping centre, on the north bank of the Witham a minute's walk east of High Bridge and the Stonebow.",
+      "Shops under one roof, right on the water, looking across the river towards Cornhill.",
+    ],
+  },
+  {
     id: "tolet-west",
     kind: "lot",
     name: "To Let",
@@ -369,6 +391,48 @@ export const PLACES: Place[] = [
     rot: -Math.PI / 2,
     intro: [
       "A plot on the High Street, ready for a new shop. Tell me a little about your business and I'll design a free mockup of your new website before you spend a penny.",
+    ],
+    link: { href: "/get-started", label: "Open the full form" },
+  },
+  {
+    id: "brayford-wharf-1",
+    kind: "lot",
+    name: "To Let",
+    kicker: "Waterside plot to let by the Brayford",
+    nav: "To let (Brayford Wharf 1)",
+    // on the north bank, fronting Guildhall Street and the river, across the water from the wharf's bars
+    x: -24.2,
+    z: -39.6,
+    w: 6,
+    d: 6.4,
+    h: 0,
+    wall: 0x2b59c3,
+    roof: 0xffd23f,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "A plot on the water, looking across the Witham to the bars on Brayford Wharf. Tell me a little about your business and I'll design a free mockup of your new website before you spend a penny.",
+    ],
+    link: { href: "/get-started", label: "Open the full form" },
+  },
+  {
+    id: "brayford-wharf-2",
+    kind: "lot",
+    name: "To Let",
+    kicker: "Waterside plot to let by the Brayford",
+    nav: "To let (Brayford Wharf 2)",
+    // on the north bank, fronting Guildhall Street and the river, across the water from the wharf's bars
+    x: -17.6,
+    z: -39.6,
+    w: 6,
+    d: 6.4,
+    h: 0,
+    wall: 0x1fb5a8,
+    roof: 0xffd23f,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "A plot on the water, looking across the Witham to the bars on Brayford Wharf. Tell me a little about your business and I'll design a free mockup of your new website before you spend a penny.",
     ],
     link: { href: "/get-started", label: "Open the full form" },
   },
