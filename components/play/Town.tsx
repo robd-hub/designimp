@@ -592,7 +592,7 @@ for (let i = 20; i < EAST; i += 18) {
 // down the south road, none on the level crossing or across the junction with the side roads
 for (let i = 20; i < SOUTH; i += 18) if (Math.abs(i - RAIL.z) > 5 && Math.abs(i - STADIUM_ROAD.z) > 5) LAMPS.push([5.5, i], [-5.5, i]);
 // up the High Street, along the shopfronts and clear of the river and the Stonebow
-for (const i of [-12, -24, -47]) LAMPS.push([HIGH_ST - 0.7, i], [0.7 - HIGH_ST, i]);
+for (const i of [-12, -24, -43, -61, -70]) LAMPS.push([HIGH_ST - 0.7, i], [0.7 - HIGH_ST, i]);
 // on Cornhill, in front of the shops and by the way in
 LAMPS.push([CORNHILL[0].x0 + 0.8, CORNHILL[0].z1 - 0.8], [CORNHILL[1].x1 - 0.8, -10]);
 
