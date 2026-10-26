@@ -3,7 +3,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PLACES, inSeason, isXmas, type Place } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
-import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH, yardWay } from "./colliders";
+import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH } from "./colliders";
 import { cleanName, cleanType, cleanColour, type ShopType } from "./shop";
 
 type PlayState = {
@@ -237,9 +237,6 @@ export function walkTo(p: Place) {
   s.endTalk();
   // Setting off from out along one of those paths: walk back down it to the road before going anywhere else.
   const out = leaveApproach(p.id);
-  // Minster Yard is walled off from Castle Square: in and out through the Exchequer Gate, and round the cathedral inside.
-  const yard = yardWay(out.at(-1) ?? [game.pos.x, game.pos.z], [door.x, door.z]);
-  out.push(...yard.lead);
   const start: [number, number] = out.at(-1) ?? [game.pos.x, game.pos.z];
   const back = out.map(([x, z]) => new THREE.Vector3(x, 0, z));
   // Landmarks out beyond the streets have a path of their own: join it at its nearest point and follow it in.
@@ -249,13 +246,6 @@ export function walkTo(p: Place) {
     const pts = way.slice(near);
     const route = [...crossings(start, pts[0]), ...pts].map(([x, z]) => new THREE.Vector3(x, 0, z));
     walkRoute([...back, ...route, door.clone()]);
-    game.pending = p;
-    game.pendingNpc = null;
-    return;
-  }
-  const tail = yard.tail.map(([x, z]) => new THREE.Vector3(x, 0, z));
-  if (tail.length) {
-    walkRoute([...back, ...crossings(start, yard.tail[0]).map(([x, z]) => new THREE.Vector3(x, 0, z)), ...tail, door.clone()]);
     game.pending = p;
     game.pendingNpc = null;
     return;
