@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -747,6 +747,28 @@ export const PLACES: Place[] = [
     intro: [
       "Newport Arch was the north gate of Roman Lincoln, built in the third century AD at the top of what is now Bailgate.",
       "It's the oldest arch in Britain that traffic still passes under, and the little side arch for people on foot has survived alongside it.",
+    ],
+  },
+  {
+    id: "magna-carta",
+    kind: "pub",
+    name: "The Magna Carta",
+    kicker: "Pub at the top of Steep Hill",
+    nav: "Magna Carta pub",
+    // on the corner at the top of Steep Hill, its front door opening north onto Castle Square, between the
+    // castle and the cathedral
+    x: 12.2,
+    z: -118.5,
+    w: 8,
+    d: 6,
+    h: 5.4,
+    wall: 0xcdbf9f,
+    roof: 0x5b6b7a,
+    roofType: "pitch",
+    rot: Math.PI,
+    intro: [
+      "The Magna Carta is a pub at the top of Steep Hill, looking out over Castle Square between the castle and the cathedral.",
+      "It's named after the 1215 Magna Carta kept just across the square in Lincoln Castle, one of only four originals that survive.",
     ],
   },
   {

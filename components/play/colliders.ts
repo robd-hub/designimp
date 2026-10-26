@@ -231,13 +231,13 @@ const SHOP_RUNS: [number, number, number, number, number, number?][] = [
     [side, HIGH_ST, -58, -53.8, 1],
     [side, HIGH_ST, -76, -64.4, 3],
   ] as [number, number, number, number, number][]),
-  ...[-1, 1].map((side) => [side, BAILGATE.x1, NEWPORT.z + NEWPORT.d / 2 + 0.6, CLOSE.z0, 4] as [number, number, number, number, number]),
+  ...[-1, 1].map((side) => [side, BAILGATE.x1, NEWPORT.z + NEWPORT.d / 2 + 0.6, CLOSE.z0, 5] as [number, number, number, number, number]),
   [-1, 5, CORNHILL[0].z0, CORNHILL[0].z1, 3, CORNHILL[0].x0 + 5], // backing onto the Town Hall, fronts onto the square
 ];
 export const SHOPFRONTS = SHOP_RUNS.flatMap(([side, front, z0, z1, n, cx = 0], r) => {
   const len = (z1 - z0) / n,
     deep = front === HIGH_ST ? SHOPFRONT.deep : SHOPFRONT.bailgate;
-  return Array.from({ length: n }, (_, i) => ({ side, x: cx + side * (front + deep / 2), z: z0 + len * (i + 0.5), len, deep, k: r * 2 + i }));
+  return Array.from({ length: n }, (_, i) => ({ side, x: cx + side * (front + deep / 2), z: z0 + len * (i + 0.5), len, deep, k: r * 2 + i, i, bailgate: front === BAILGATE.x1 }));
 });
 
 // The Stonebow: the old city gate with the Guildhall above it, spanning the pedestrianised

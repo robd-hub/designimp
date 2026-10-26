@@ -21,6 +21,7 @@ import { BusStation } from "./BusStation";
 import { CornExchange } from "./CornExchange";
 import { Waterside } from "./Waterside";
 import Wharf from "./Wharf";
+import Bailgate, { Pub } from "./Bailgate";
 import { Crowd, Chant } from "./Matchday";
 
 function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; color: number; x?: number; z?: number; y?: number }) {
@@ -73,8 +74,8 @@ function Roads() {
       {STONEBOW_STREETS.map((r, i) => (
         <Flat key={i} w={r.x1 - r.x0} d={r.z1 - r.z0} color={PAVED} x={(r.x0 + r.x1) / 2} z={(r.z0 + r.z1) / 2} y={0.034} />
       ))}
-      {/* and Bailgate, north from the square */}
-      <Strip w={BAILGATE.x1 - BAILGATE.x0} d={BAILGATE.z1 - BAILGATE.z0} color={PAVED} z={(BAILGATE.z0 + BAILGATE.z1) / 2} y={0.035} />
+      {/* and Bailgate, north from the square: the bed its cobbles are laid in */}
+      <Strip w={BAILGATE.x1 - BAILGATE.x0} d={BAILGATE.z1 - BAILGATE.z0} color={0x9c8f7a} z={(BAILGATE.z0 + BAILGATE.z1) / 2} y={0.035} />
       {dashes.map((i) => (
         <Flat key={i} w={1.8} d={0.25} color={0xffd23f} x={i} y={0.05} />
       ))}
@@ -596,16 +597,15 @@ for (const i of [-12, -24, -43, -61, -70]) LAMPS.push([HIGH_ST - 0.7, i], [0.7 -
 // on Cornhill, in front of the shops and by the way in
 LAMPS.push([CORNHILL[0].x0 + 0.8, CORNHILL[0].z1 - 0.8], [CORNHILL[1].x1 - 0.8, -10]);
 
-// Paving slabs scattered over Castle Square, Bailgate, up the High Street and along its side streets.
+// Paving slabs scattered over Castle Square, up the High Street and along its side streets.
 const SLABS = (() => {
   const r = seeded(23);
   const square = Array.from({ length: 90 }, () => [CLOSE.x0 + 1 + r() * (CLOSE.x1 - CLOSE.x0 - 2), CLOSE.z0 + 1 + r() * (CLOSE.z1 - CLOSE.z0 - 2)] as const);
   const street = Array.from({ length: 60 }, () => [(r() - 0.5) * (HIGH_ST * 2 - 1), NS_START + 1 + r() * (-8 - NS_START)] as const);
-  const bailgate = Array.from({ length: 25 }, () => [(r() - 0.5) * 7, BAILGATE.z0 + 1 + r() * (BAILGATE.z1 - BAILGATE.z0 - 2)] as const);
   const c = CORNHILL[0];
   const cornhill = Array.from({ length: 30 }, () => [c.x0 + 1 + r() * (c.x1 - c.x0 - 2), c.z0 + 1 + r() * (c.z1 - c.z0 - 2)] as const);
   const sides = STONEBOW_STREETS.flatMap((f) => Array.from({ length: Math.round((f.x1 - f.x0) / 3) }, () => [f.x0 + 1 + r() * (f.x1 - f.x0 - 2), f.z0 + 0.6 + r() * (f.z1 - f.z0 - 1.2)] as const));
-  return [...square, ...street, ...bailgate, ...cornhill, ...sides];
+  return [...square, ...street, ...cornhill, ...sides];
 })();
 
 // The farmers' market on Castle Square: striped stalls piled with fruit and veg.
@@ -713,12 +713,12 @@ function Houses() {
   );
 }
 
-// The shopfronts along the High Street and Bailgate: two storeys over a shop window, a coloured
-// fascia board over it, and the door to one side, front onto the street.
+// The shopfronts along the High Street and on Cornhill (Bailgate's own are in Bailgate.tsx): two storeys
+// over a shop window, a coloured fascia board over it, and the door to one side, front onto the street.
 function Shopfronts() {
   return (
     <>
-      {SHOPFRONTS.map((o) => {
+      {SHOPFRONTS.filter((o) => !o.bailgate).map((o) => {
         const h = 4.6 + (o.k % 3) * 0.6,
           w = o.len - 0.15,
           d = o.deep;
@@ -911,7 +911,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank") return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
@@ -927,6 +927,7 @@ export default function Town({ font }: { font: string }) {
       <Lamps />
       <Footpaths />
       {signsReady && <Wharf font={font} reduce={reduce} />}
+      {signsReady && <Bailgate font={font} />}
       <Market />
       <Clouds reduce={reduce} />
       <Hunt reduce={reduce} />
