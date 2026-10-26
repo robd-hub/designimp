@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const BUSINESS_TYPES = ["Hair Salon", "Barbershop", "Spa / Beauty", "Nail Salon", "Other"];
 
@@ -10,6 +10,14 @@ const labelClasses = "mb-2 block text-sm font-medium text-foreground";
 
 export default function LeadForm() {
   const [status, setStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
+  const businessRef = useRef<HTMLInputElement>(null);
+
+  // Arriving from the game's "Your Shop Here" plot, the business name comes along as ?business=.
+  useEffect(() => {
+    const name = new URLSearchParams(window.location.search).get("business");
+    const input = businessRef.current;
+    if (name && input && !input.value) input.value = name.replace(/[\u0000-\u001f<>]/g, "").trim().slice(0, 80);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -73,7 +81,7 @@ export default function LeadForm() {
 
         <div>
           <label htmlFor="businessName" className={labelClasses}>Business name</label>
-          <input id="businessName" name="businessName" type="text" required className={inputClasses} />
+          <input ref={businessRef} id="businessName" name="businessName" type="text" required className={inputClasses} />
         </div>
 
         <div>

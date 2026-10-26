@@ -441,6 +441,9 @@ export const TREES: [number, number, number][] = (() => {
 
 const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));
 
+// Solid boxes that come and go while the town is up, like a visitor's own shop built on a plot, by id.
+export const EXTRA_BOXES = new Map<string, { x0: number; x1: number; z0: number; z1: number }>();
+
 // barrier: whether the level crossing counts as blocked while its barriers are down.
 export function blocked(x: number, z: number, barrier = true) {
   if (barrier && atBarrier(x, z)) return true;
@@ -448,5 +451,6 @@ export function blocked(x: number, z: number, barrier = true) {
   if (Math.hypot(x - ROUNDABOUT.x, z - ROUNDABOUT.z) < ROUNDABOUT.island) return true;
   for (const c of circles) if (Math.hypot(x - c.cx, z - c.cz) < c.r) return true;
   for (const b of boxes) if (x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1) return true;
+  for (const b of EXTRA_BOXES.values()) if (x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1) return true;
   return false;
 }

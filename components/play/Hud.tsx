@@ -7,6 +7,9 @@ import { PLACES, hex, shopSign, type Place } from "./places";
 import { usePlay, walkTo, zoomBy, keepHover, leaveCard, autoWalking } from "./store";
 import { HIDDEN } from "./hidden";
 import PlayLeadForm from "./PlayLeadForm";
+import { TravelToggle, TaxiRide } from "./Taxi";
+import { WeatherChip } from "./Weather";
+import { mockupHref } from "./shop";
 import Minimap from "./Minimap";
 import Joystick from "./Joystick";
 import { useSound } from "./sound";
@@ -83,6 +86,13 @@ export default function Hud() {
     if (p) usePlay.getState().openPlace(p);
   }, []);
 
+  // The taxi rank in town opens Go to, set to taxis.
+  useEffect(() => {
+    const go = () => setNavOpen(true);
+    window.addEventListener("imp:goto", go);
+    return () => window.removeEventListener("imp:goto", go);
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const st = usePlay.getState();
@@ -134,10 +144,12 @@ export default function Hud() {
           {spotter ? (narrow ? "Spotter ★" : "Imp Spotter ★") : `${narrow ? "Imps" : "Imps found"} ${found.length}/${total}`}
         </span>
       </div>
+      <WeatherChip narrow={narrow} />
       <nav ref={navRef} className={`${s.card} ${s.places} ${navOpen ? "" : s.shut}`} aria-label="Places">
         <button className={s.lbl} onClick={() => setNavOpen(!navOpen)} aria-expanded={navOpen}>
           Go to {navOpen ? "▴" : "▾"}
         </button>
+        {navOpen && <TravelToggle />}
         {navOpen && PLACES.map((p) => (
           <button
             key={p.id}
@@ -300,14 +312,14 @@ export default function Hud() {
                 ))}
               </ul>
             )}
-            {open.kind === "lot" && <PlayLeadForm lot={open.id} />}
+            {open.kind === "lot" && <PlayLeadForm lot={open.id} styler />}
             {open.link?.external ? (
               <a className={s.cta} href={open.link.href} target="_blank" rel="noopener noreferrer">
                 {open.link.label} ↗
               </a>
             ) : (
               open.link && (
-                <Link className={s.cta} href={open.link.href}>
+                <Link className={s.cta} href={open.kind === "lot" ? mockupHref(openShop) : open.link.href}>
                   {open.link.label} →
                 </Link>
               )
@@ -315,6 +327,7 @@ export default function Hud() {
           </div>
         )}
       </aside>
+      <TaxiRide />
     </>
   );
 }
