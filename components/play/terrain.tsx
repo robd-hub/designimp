@@ -8,7 +8,7 @@ import { toon } from "./toon";
 // while the high street, the Brayford and everything south of them stay down by the river.
 // The slope stretches right across the map from east to west, so height only depends on z.
 const hill = footprint(PLACES.find((p) => p.kind === "street")!);
-export const RISE = { z0: hill.z1 + 2, z1: hill.z0 - 2, h: 9 }; // from the foot of the hill (south) to the top (north)
+export const RISE = { z0: hill.z1 + 2, z1: hill.z0 - 2, h: 16 }; // from the foot of the hill (south) to the top (north): about 1 in 2 at its steepest
 // Past Castle Square the ground keeps climbing, gently, up Bailgate to Newport Arch.
 const arch = PLACES.find((p) => p.kind === "arch")!;
 export const BAIL_RISE = { z0: hill.z0 - 13, z1: arch.z - 4, h: 1.4 };
