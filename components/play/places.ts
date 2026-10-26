@@ -458,6 +458,7 @@ export const PLACES: Place[] = [
       "St Marks is an open-air shopping centre on Lincoln's High Street, just south of the level crossing, with a paved street of shops running back to Brayford Wharf East and the river.",
       "It stands on the site of Lincoln St Marks station, which closed in 1985. The old station building, with its columned stone front, still stands at the entrance.",
     ],
+    link: { href: "https://www.stmarks-lincoln.co.uk/", label: "Visit St Marks", external: true },
   },
   {
     id: "st-marks-1",
