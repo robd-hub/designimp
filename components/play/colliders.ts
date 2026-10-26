@@ -150,6 +150,32 @@ export function overRiver([fx, fz]: [number, number], [tx, tz]: [number, number]
   return pts;
 }
 
+// Brayford Wharf: a paved quay along the south bank of the Witham, from the Brayford's east quay to the Post
+// by High Bridge, with bars and restaurants facing the water across it. Brayford Wharf East runs south off it,
+// down the east side of the pool to the main road, with two more bars along its east side facing west.
+// Each bar is [x, z, along, deep, rot], rot turning its front to face the quay or the lane.
+const post = footprint(PLACES.find((p) => p.id === "post")!);
+export const WHARF = { x0: PATH_X - 2, x1: post.x0 - 0.6, z0: RIVER.z + RIVER.half + 0.3, z1: RIVER.z + RIVER.half + 4.8 };
+export const WHARF_EAST = { x0: PATH_X - 2, x1: PATH_X + 2, z0: WHARF.z1, z1: -4.3 };
+const BAR_DEEP = 4.5;
+const quayRow = { x0: WHARF_EAST.x1, x1: WHARF.x1, n: 3 },
+  laneRow = { z0: WHARF.z1 + BAR_DEEP, z1: -8.5, n: 2 };
+export const WHARF_BARS = [
+  ...Array.from({ length: quayRow.n }, (_, i) => {
+    const len = (quayRow.x1 - quayRow.x0) / quayRow.n;
+    return { x: quayRow.x0 + len * (i + 0.5), z: WHARF.z1 + BAR_DEEP / 2, len, deep: BAR_DEEP, rot: Math.PI };
+  }),
+  ...Array.from({ length: laneRow.n }, (_, i) => {
+    const len = (laneRow.z1 - laneRow.z0) / laneRow.n;
+    return { x: WHARF_EAST.x1 + BAR_DEEP / 2, z: laneRow.z0 + len * (i + 0.5), len, deep: BAR_DEEP, rot: -Math.PI / 2 };
+  }),
+];
+// A bar's footprint in world coordinates.
+export const barBox = (b: (typeof WHARF_BARS)[number]) => {
+  const [hx, hz] = Math.abs(Math.sin(b.rot)) > 0.5 ? [b.deep / 2, b.len / 2] : [b.len / 2, b.deep / 2];
+  return { x0: b.x - hx, x1: b.x + hx, z0: b.z - hz, z1: b.z + hz };
+};
+
 // Newport Arch, the Roman north gate, over the top of Bailgate: a wide arch for the road and a little
 // one for people on foot on its east side. open is the half-width of the road arch, and postern the
 // little arch's span; only the stonework either side of them is solid.
@@ -367,7 +393,7 @@ const boxes = PLACES.filter((p) => p.kind !== "tank" && p.kind !== "gate" && p.k
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), STONEBOW_PIERS, NEWPORT_PIERS, RIVER_BOXES, RAIL_FENCES, STATION_BOXES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), STONEBOW_PIERS, NEWPORT_PIERS, RIVER_BOXES, RAIL_FENCES, STATION_BOXES);
 
 const HIGH_STREET = { x0: -HIGH_ST, x1: HIGH_ST, z0: hill.z1, z1: -4.3 };
 const onRoad = (x: number, z: number) =>
@@ -376,10 +402,11 @@ const onRoad = (x: number, z: number) =>
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
+  WHARF_BARS.map(barBox).some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   PLACES.some((p) => {
     const f = footprint(p);
     const door = p.kind === "lot" ? 0 : 4; // keep the approach to each entrance clear
