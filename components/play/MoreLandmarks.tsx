@@ -7,7 +7,7 @@ import type { Place } from "./places";
 import { footprint } from "./places";
 import { Part, geo, toon, signTexture, INK, WINDOW, LAMP, STONE, STONE_DARK } from "./toon";
 import { placeEvents } from "./store";
-import { EXTRA_BOXES, BAILGATE, seeded } from "./colliders";
+import { EXTRA_BOXES, seeded } from "./colliders";
 import { groundY, groundTilt, Strip } from "./terrain";
 
 type V3 = [number, number, number];
@@ -236,51 +236,8 @@ export function Park({ p, font }: Props) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// The Engine Shed: a long Victorian brick railway shed with a slate roof and smoke vents along its
-// ridge, arched windows, gig posters, and a modern glass entrance with the name over it.
-const POSTERS = [0xd0202e, 0xf2d06b, 0x5bc0eb, 0x9b5de5, 0xf15bb5, 0x00bb77];
-export function Venue({ p, font }: Props) {
-  const sign = useSign("ENGINE SHED", "#1a1320", font);
-  const roof = useRoof(p.d + 0.7, 1.9, p.w + 0.5);
-  const vent = useRoof(1.6, 0.5, 1.5);
-  const front = p.d / 2;
-  const windows = [-5, -3.6, 3.6, 5];
-  return (
-    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
-      <Part geometry={geo.box(p.w, p.h, p.d)} color={p.wall} position-y={p.h / 2} />
-      {/* a pale brick band and the slate roof, with its row of smoke vents */}
-      <mesh geometry={geo.box(p.w + 0.05, 0.25, p.d + 0.05)} material={toon(0xd9b48f)} position-y={p.h - 0.4} />
-      <Part geometry={roof} color={p.roof} position-y={p.h} />
-      {[-3.6, 0, 3.6].map((x) => (
-        <group key={x} position={[x, p.h + 1.75, 0]}>
-          <Part geometry={geo.box(1.2, 0.5, 1.1)} color={0x3b3f46} outline={0.03} position-y={0.25} />
-          <Part geometry={vent} color={p.roof} outline={0.03} position-y={0.5} />
-        </group>
-      ))}
-      {/* arched windows down the front, a pair each side of the doors */}
-      {windows.map((x) => (
-        <group key={x} position={[x, 2.2, front + 0.03]}>
-          <mesh geometry={geo.box(0.9, 1.5, 0.06)} material={toon(WINDOW)} />
-          <mesh geometry={geo.cyl(0.45, 0.45, 0.06, 14)} material={toon(WINDOW)} position-y={0.75} rotation-x={Math.PI / 2} />
-          <mesh geometry={geo.box(1.1, 0.12, 0.12)} material={toon(0xd9b48f)} position-y={-0.8} />
-        </group>
-      ))}
-      {/* gig posters between them */}
-      {[-4.3, 4.3, -2.6, 2.6].map((x, i) => (
-        <Part key={x} geometry={geo.box(0.75, 1.05, 0.05)} color={POSTERS[i % POSTERS.length]} outline={0.02} position={[x, 1.1, front + 0.04]} />
-      ))}
-      {/* the glass entrance block, its canopy and the name above */}
-      <Part geometry={geo.box(3.4, 3, 0.9)} color={0x2b2633} outline={0.04} position={[0, 1.5, front + 0.35]} />
-      <mesh geometry={geo.box(3, 2.6, 0.06)} material={toon(WINDOW)} position={[0, 1.4, front + 0.82]} />
-      <mesh geometry={geo.box(0.06, 2.6, 0.08)} material={toon(INK)} position={[0, 1.4, front + 0.84]} />
-      <Sign map={sign} w={4} h={1} position={[0, p.h - 0.85, front + 0.04]} />
-    </group>
-  );
-}
-
-// ---------------------------------------------------------------------------------------------
 // The Christmas market, in December: a row of wooden chalets with snowy roofs along the north side of
-// Castle Square, a big tree behind them, and festoon lights strung across Bailgate.
+// Castle Square, with a big tree behind them.
 const CHALET = 0x8a5a32;
 const SNOW = 0xfafafa;
 const GOODS = [0xd0202e, 0xf2d06b, 0x2f6d55, 0xfff8e7, 0x9b5de5];
@@ -321,56 +278,33 @@ export function Market({ p, font }: Props) {
     return out;
   }, []);
   return (
-    <>
-      <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
-        {xs.map((x, i) => (
-          <group key={x} position={[x, y(0), 0]}>
-            <Part geometry={geo.box(3.2, 2.2, 2.4)} color={CHALET} position={[0, 1.1, -0.1]} />
-            <Part geometry={roof} color={SNOW} position-y={2.2} />
-            {/* the counter and its goods, under the open shutter */}
-            <mesh geometry={geo.box(2.6, 1.1, 0.06)} material={toon(0x3a2418)} position={[0, 1.55, 1.12]} />
-            <Part geometry={geo.box(3, 0.9, 0.45)} color={0xb98552} outline={0.03} position={[0, 0.45, 1.25]} />
-            {[-0.9, -0.3, 0.3, 0.9].map((gx, j) => (
-              <Part key={gx} geometry={geo.box(0.4, 0.28, 0.3)} color={GOODS[(i + j) % GOODS.length]} outline={0.02} position={[gx, 1.04, 1.25]} />
-            ))}
-            <Part geometry={geo.box(3.3, 0.12, 0.7)} color={i % 2 ? 0xd0202e : 0x2f6d55} outline={0.03} position={[0, 2.25, 1.45]} rotation-x={0.3} />
-          </group>
-        ))}
-        <Many geometry={geo.sphere(0.07, 6, 4)} color={LAMP} list={lights} glow />
-        <Sign map={sign} w={3.4} h={0.85} position={[xs[1] + gap / 2, y(0) + 3.6, 0.3]} />
-        <mesh geometry={geo.box(0.1, 1.2, 0.1)} material={toon(INK)} position={[xs[1] + gap / 2, y(0) + 2.9, 0.25]} />
-        {/* the tree */}
-        <group position={[TREE.x, y(Math.cos(p.rot) * TREE.z), TREE.z]}>
-          <mesh geometry={geo.cyl(0.3, 0.4, 1.2, 8)} material={toon(0x6b4a2e)} position-y={0.6} />
-          {[0, 1, 2].map((i) => (
-            <Part key={i} geometry={geo.cone(2.4 - i * 0.65, 2.8, 10)} color={0x2f6d45} outline={0.05} position-y={2.1 + i * 1.9} />
+    <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+      {xs.map((x, i) => (
+        <group key={x} position={[x, y(0), 0]}>
+          <Part geometry={geo.box(3.2, 2.2, 2.4)} color={CHALET} position={[0, 1.1, -0.1]} />
+          <Part geometry={roof} color={SNOW} position-y={2.2} />
+          {/* the counter and its goods, under the open shutter */}
+          <mesh geometry={geo.box(2.6, 1.1, 0.06)} material={toon(0x3a2418)} position={[0, 1.55, 1.12]} />
+          <Part geometry={geo.box(3, 0.9, 0.45)} color={0xb98552} outline={0.03} position={[0, 0.45, 1.25]} />
+          {[-0.9, -0.3, 0.3, 0.9].map((gx, j) => (
+            <Part key={gx} geometry={geo.box(0.4, 0.28, 0.3)} color={GOODS[(i + j) % GOODS.length]} outline={0.02} position={[gx, 1.04, 1.25]} />
           ))}
-          <Part geometry={geo.sphere(0.32, 8, 6)} color={0xffd84d} outline={0.03} position-y={7.6} />
-          <Many geometry={geo.sphere(0.14, 8, 6)} color={LAMP} list={baubles} glow />
+          <Part geometry={geo.box(3.3, 0.12, 0.7)} color={i % 2 ? 0xd0202e : 0x2f6d55} outline={0.03} position={[0, 2.25, 1.45]} rotation-x={0.3} />
         </group>
+      ))}
+      <Many geometry={geo.sphere(0.07, 6, 4)} color={LAMP} list={lights} glow />
+      <Sign map={sign} w={3.4} h={0.85} position={[xs[1] + gap / 2, y(0) + 3.6, 0.3]} />
+      <mesh geometry={geo.box(0.1, 1.2, 0.1)} material={toon(INK)} position={[xs[1] + gap / 2, y(0) + 2.9, 0.25]} />
+      {/* the tree */}
+      <group position={[TREE.x, y(Math.cos(p.rot) * TREE.z), TREE.z]}>
+        <mesh geometry={geo.cyl(0.3, 0.4, 1.2, 8)} material={toon(0x6b4a2e)} position-y={0.6} />
+        {[0, 1, 2].map((i) => (
+          <Part key={i} geometry={geo.cone(2.4 - i * 0.65, 2.8, 10)} color={0x2f6d45} outline={0.05} position-y={2.1 + i * 1.9} />
+        ))}
+        <Part geometry={geo.sphere(0.32, 8, 6)} color={0xffd84d} outline={0.03} position-y={7.6} />
+        <Many geometry={geo.sphere(0.14, 8, 6)} color={LAMP} list={baubles} glow />
       </group>
-      <Festoons wy={groundY(p.z)} />
-    </>
+    </group>
   );
 }
 
-// Strings of coloured bulbs zig-zagging across Bailgate, from Castle Square up towards Newport Arch.
-function Festoons({ wy }: { wy: number }) {
-  const bulbs = useMemo(() => {
-    const out: Inst[] = [];
-    const per = 11;
-    let k = 0;
-    for (let z = BAILGATE.z1 - 3; z > BAILGATE.z0 + 4; z -= 4.5) {
-      const z0 = z,
-        z1 = z - 2.25; // each string runs diagonally across, from one side to the other
-      for (let i = 0; i < per; i++) {
-        const t = i / (per - 1);
-        const x = BAILGATE.x0 + 0.2 + t * (BAILGATE.x1 - BAILGATE.x0 - 0.4);
-        const zz = z0 + (z1 - z0) * t;
-        out.push({ at: [x, groundY(zz) - wy + 4.6 - Math.sin(t * Math.PI) * 0.7, zz], color: BULBS[k++ % BULBS.length] });
-      }
-    }
-    return out;
-  }, [wy]);
-  return <Many geometry={geo.sphere(0.11, 8, 6)} color={LAMP} list={bulbs} glow />;
-}

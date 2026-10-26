@@ -14,21 +14,21 @@ const SASH = 0xfff8e7;
 // Bailgate's shops, each side listed from Newport Arch down to Castle Square. Made-up names: these stand for the
 // street's pubs, tea rooms and independents, not any real one. Georgian fronts are three storeys of brick or render
 // behind a parapet; Tudor ones have a jettied, timber-framed upper floor under a gable onto the street.
-type Look = { name: string; sign: string; kind: "pub" | "tea" | "shop"; tudor: boolean; wall: number; front: number };
+type Look = { name: string; kind: "pub" | "tea" | "shop"; tudor: boolean; wall: number; front: number };
 const LOOKS: Record<number, Look[]> = {
   [-1]: [
-    { name: "The Roman Gate", sign: "The Roman\nGate", kind: "pub", tudor: false, wall: 0xa9553f, front: 0x1f4d3a },
-    { name: "Thimble & Thread", sign: "Thimble\n& Thread", kind: "shop", tudor: true, wall: 0xfaf3e3, front: 0x7a3b8f },
-    { name: "Quill & Ink", sign: "Quill\n& Ink", kind: "shop", tudor: false, wall: 0xf5dfa0, front: 0x2b59c3 },
-    { name: "Pennyfeather Teas", sign: "Pennyfeather\nTeas", kind: "tea", tudor: true, wall: 0xe8c36a, front: 0x9fc7b3 },
-    { name: "The Wandering Imp", sign: "The Wandering\nImp", kind: "pub", tudor: false, wall: 0xf2e2c4, front: 0x6b1f2a },
+    { name: "The Roman Gate", kind: "pub", tudor: false, wall: 0xa9553f, front: 0x1f4d3a },
+    { name: "Thimble & Thread", kind: "shop", tudor: true, wall: 0xfaf3e3, front: 0x7a3b8f },
+    { name: "Quill & Ink", kind: "shop", tudor: false, wall: 0xf5dfa0, front: 0x2b59c3 },
+    { name: "Pennyfeather Teas", kind: "tea", tudor: true, wall: 0xe8c36a, front: 0x9fc7b3 },
+    { name: "The Wandering Imp", kind: "pub", tudor: false, wall: 0xf2e2c4, front: 0x6b1f2a },
   ],
   [1]: [
-    { name: "The Bishop's Mitre", sign: "The Bishop's\nMitre", kind: "pub", tudor: true, wall: 0xfaf3e3, front: 0x1f2f5a },
-    { name: "Cobble Cheese Co.", sign: "Cobble\nCheese Co.", kind: "shop", tudor: false, wall: 0xc9dbe8, front: 0xffb627 },
-    { name: "Honeycomb Sweets", sign: "Honeycomb\nSweets", kind: "shop", tudor: true, wall: 0xf2d6c4, front: 0xe03a3e },
-    { name: "Bailgate Books", sign: "Bailgate\nBooks", kind: "shop", tudor: false, wall: 0xa9553f, front: 0x2f8f5b },
-    { name: "Minster Teacups", sign: "Minster\nTeacups", kind: "tea", tudor: true, wall: 0xe8f0d8, front: 0xd77a61 },
+    { name: "The Bishop's Mitre", kind: "pub", tudor: true, wall: 0xfaf3e3, front: 0x1f2f5a },
+    { name: "Cobble Cheese Co.", kind: "shop", tudor: false, wall: 0xc9dbe8, front: 0xffb627 },
+    { name: "Honeycomb Sweets", kind: "shop", tudor: true, wall: 0xf2d6c4, front: 0xe03a3e },
+    { name: "Bailgate Books", kind: "shop", tudor: false, wall: 0xa9553f, front: 0x2f8f5b },
+    { name: "Minster Teacups", kind: "tea", tudor: true, wall: 0xe8f0d8, front: 0xd77a61 },
   ],
 };
 
@@ -91,10 +91,9 @@ function Lantern({ x, y, z, night }: { x: number; y: number; z: number; night: b
 }
 
 // One of Bailgate's shops, its front onto the street. It is drawn level, on a plinth that takes up the slope.
-function BailgateShop({ o, font, night }: { o: (typeof SHOPS)[number]; font: string; night: boolean }) {
+function BailgateShop({ o, font }: { o: (typeof SHOPS)[number]; font: string }) {
   const look = LOOKS[o.side][o.i];
   const fascia = useSign(look.name, "#1a1320", font);
-  const hanging = useSign(look.sign, "#1a1320", font);
   const w = o.len - 0.15,
     d = o.deep,
     f = d / 2;
@@ -159,8 +158,6 @@ function BailgateShop({ o, font, night }: { o: (typeof SHOPS)[number]; font: str
         <planeGeometry args={[Math.min(w - 0.6, 2.9), 0.5]} />
         <meshBasicMaterial map={fascia} toneMapped={false} />
       </mesh>
-      <HangingSign sign={hanging} color={look.kind === "pub" ? look.front : 0xfff8e7} x={-w / 2 + 0.3} y={3.6} z={f + jetty} />
-      <Lantern x={w / 2 - 0.12} y={2.55} z={f} night={night} />
       {/* tea rooms put a table out on the cobbles */}
       {look.kind === "tea" && (
         <group position={[-w * 0.13, 0, f + 1.1]}>
@@ -172,34 +169,6 @@ function BailgateShop({ o, font, night }: { o: (typeof SHOPS)[number]; font: str
           ))}
         </group>
       )}
-    </group>
-  );
-}
-
-// Strings of bunting across the street, from the upper floors on one side to the other.
-const FLAGS = [0xe03a3e, 0xffd23f, 0x2b59c3, 0x2f8f5b, 0xfff8e7, 0xff8c1a];
-const BUNTING = Array.from({ length: 5 }, (_, i) => CLOSE.z0 - 2.4 - i * 4.4);
-const SPAN = BAILGATE.x1 - JETTY - 0.05;
-function Bunting({ z }: { z: number }) {
-  const y = groundY(z) + 4.7,
-    sag = 0.7;
-  const rope = useMemo(() => {
-    const c = new THREE.QuadraticBezierCurve3(new THREE.Vector3(-SPAN, 0, 0), new THREE.Vector3(0, -2 * sag, 0), new THREE.Vector3(SPAN, 0, 0));
-    return new THREE.TubeGeometry(c, 16, 0.025, 4);
-  }, []);
-  useEffect(() => () => rope.dispose(), [rope]);
-  const n = 13;
-  return (
-    <group position={[0, y, z]} raycast={() => null}>
-      <mesh geometry={rope} material={toon(0xfff8e7)} />
-      {Array.from({ length: n }, (_, k) => {
-        const t = (k + 1) / (n + 1),
-          x = -SPAN + 2 * SPAN * t,
-          dy = -sag * (1 - (2 * t - 1) ** 2);
-        return (
-          <Part key={k} geometry={geo.cone(0.22, 0.42, 3)} color={FLAGS[k % FLAGS.length]} outline={0.015} shadow={false} position={[x, dy - 0.23, 0]} rotation-x={Math.PI} scale={[1, 1, 0.25]} />
-        );
-      })}
     </group>
   );
 }
@@ -243,18 +212,13 @@ function SettMesh({ list, color }: { list: [number, number][]; color: number }) 
 }
 
 // Bailgate: the old street running north from Castle Square between the castle and the cathedral, climbing
-// gently to Newport Arch. Cobbled, lined with Georgian and Tudor fronts, pubs, tea rooms and little shops under
-// hanging signs, with bunting strung across overhead and lanterns that glow after dark.
+// gently to Newport Arch. Cobbled, lined with Georgian and Tudor fronts, pubs, tea rooms and little shops.
 export default function Bailgate({ font }: { font: string }) {
-  const night = usePlay((s) => s.night);
   return (
     <group>
       <Setts />
       {SHOPS.map((o) => (
-        <BailgateShop key={`${o.x},${o.z}`} o={o} font={font} night={night} />
-      ))}
-      {BUNTING.map((z) => (
-        <Bunting key={z} z={z} />
+        <BailgateShop key={`${o.x},${o.z}`} o={o} font={font} />
       ))}
       <NamePlate text="Bailgate" font={font} position={[-5.9, groundY(CLOSE.z0 + 1.6), CLOSE.z0 + 1.6]} />
     </group>

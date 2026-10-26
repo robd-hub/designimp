@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "venue" | "market";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -998,28 +998,6 @@ export const PLACES: Place[] = [
       "Look out for the bandstand and the stone lion, both from the park's early years, and the ponds and winding paths between the trees.",
     ],
     link: { href: "https://www.lincoln.gov.uk/parks-open-spaces/lincoln-arboretum-1", label: "Visit the Arboretum", external: true },
-  },
-  {
-    id: "engine-shed",
-    kind: "venue",
-    name: "The Engine Shed",
-    kicker: "Live music on campus",
-    nav: "Engine Shed",
-    // on the university's side of town, by the railway, facing the main road
-    x: -50,
-    z: 10.5,
-    w: 12,
-    d: 6.5,
-    h: 4.6,
-    wall: 0x9b4a32,
-    roof: 0x5b6470,
-    roofType: "pitch",
-    rot: Math.PI,
-    intro: [
-      "The Engine Shed was once a Victorian railway engine shed. It's now the University of Lincoln Students' Union's venue for gigs, comedy and club nights.",
-      "It's the biggest live music venue in Lincolnshire, so plenty of big names have played here.",
-    ],
-    link: { href: "https://www.engineshed.co.uk/", label: "See what's on", external: true },
   },
   {
     id: "christmas-market",
