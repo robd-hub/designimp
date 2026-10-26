@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { PLACES, type Place } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
 import { crossings, inCornhill, CORNHILL_WAY, RAIL } from "./colliders";
+import { cleanName, cleanType, cleanColour, type ShopType } from "./shop";
 
 type PlayState = {
   ready: boolean;
@@ -30,10 +31,16 @@ type PlayState = {
   hover: { place: Place; x: number; y: number } | null;
   setHover: (h: { place: Place; x: number; y: number } | null) => void;
   // The visitor's business name, painted on the sign of the plot they typed it at.
-  shop: { name: string; lot: string } | null;
+  // Optionally styled: the kind of business and the colour of its front.
+  shop: { name: string; lot: string; type?: ShopType; colour?: string } | null;
   welcome: boolean; // the Imp's hello, once per visit
   setWelcome: (w: boolean) => void;
   setShop: (name: string, lot: string) => void;
+  styleShop: (lot: string, style: { type?: ShopType; colour?: string }) => void;
+  // Go to by taxi rather than on foot, and the ride in progress.
+  taxi: boolean;
+  setTaxi: (taxi: boolean) => void;
+  ride: Place | null;
 };
 
 const FOUND_KEY = "imp-hunt";
@@ -49,10 +56,17 @@ const SHOP_KEY = "imp-shop";
 function loadShop(): PlayState["shop"] {
   try {
     const v = JSON.parse(localStorage.getItem(SHOP_KEY) ?? "null");
-    return typeof v?.name === "string" && typeof v?.lot === "string" ? v : null;
+    if (typeof v?.name !== "string" || typeof v?.lot !== "string") return null;
+    return { name: cleanName(v.name).trim(), lot: v.lot, type: cleanType(v.type), colour: cleanColour(v.colour) };
   } catch {
     return null;
   }
+}
+
+function saveShop(shop: PlayState["shop"]) {
+  try {
+    localStorage.setItem(SHOP_KEY, JSON.stringify(shop));
+  } catch {}
 }
 
 // Greet first-time arrivals, not someone sent straight to a building by link.
@@ -150,12 +164,22 @@ export const usePlay = create<PlayState>((set) => ({
   setWelcome: (welcome) => set({ welcome }),
   shop: null,
   setShop: (name, lot) => {
-    const shop = name.trim() ? { name, lot } : null;
-    try {
-      localStorage.setItem(SHOP_KEY, JSON.stringify(shop));
-    } catch {}
+    const prev = usePlay.getState().shop;
+    const clean = cleanName(name);
+    const style = prev?.lot === lot ? { type: prev.type, colour: prev.colour } : {};
+    const shop = clean.trim() || style.type || style.colour ? { name: clean, lot, ...style } : null;
+    saveShop(shop);
     set({ shop });
   },
+  styleShop: (lot, style) => {
+    const prev = usePlay.getState().shop;
+    const shop = { name: prev?.lot === lot ? prev.name : "", lot, type: cleanType(style.type) ?? (prev?.lot === lot ? prev.type : undefined), colour: cleanColour(style.colour) ?? (prev?.lot === lot ? prev.colour : undefined) };
+    saveShop(shop);
+    set({ shop });
+  },
+  taxi: false,
+  setTaxi: (taxi) => set({ taxi }),
+  ride: null,
   collect: (id, total) =>
     set(({ found }) => {
       if (found.includes(id)) return {};
@@ -179,9 +203,11 @@ export const DOORS = new Map(PLACES.map((p) => [p.id, doorOf(p)]));
 export function walkTo(p: Place) {
   const s = usePlay.getState();
   if (!s.ready) return s.openPlace(p); // no 3D scene: just open the panel
+  if (s.ride) return;
+  const door = DOORS.get(p.id)!;
+  if (s.taxi && door.distanceTo(game.pos) > TAXI_MIN) return taxiTo(p);
   s.close();
   s.endTalk();
-  const door = DOORS.get(p.id)!;
   const route = crossings([game.pos.x, game.pos.z], [door.x, door.z]).map(([x, z]) => new THREE.Vector3(x, 0, z));
   // Everything south of the railway lines the south road or sits down a side road off it: walk down the road
   // and turn off level with the door, rather than cutting across the shops and houses on the way.
@@ -201,6 +227,34 @@ export function walkTo(p: Place) {
   walkRoute([...route, door.clone()]);
   game.pending = p;
   game.pendingNpc = null;
+}
+
+// Taxi: a short ride with the screen faded out, then out at the door and straight in. Anything
+// closer than this is quicker on foot.
+const TAXI_MIN = 14;
+export const RIDE_MS = 1600;
+export function taxiTo(p: Place) {
+  const s = usePlay.getState();
+  s.close();
+  s.endTalk();
+  game.target = null;
+  game.via = [];
+  game.pending = p; // so nothing on the way counts as "near" and E does nothing mid-ride
+  game.pendingNpc = null;
+  usePlay.setState({ ride: p });
+  // the screen is fully faded by now: drop the Imp at the door, facing in
+  setTimeout(() => {
+    const door = DOORS.get(p.id)!;
+    game.pos.copy(door);
+    game.face = Math.atan2(p.x - door.x, p.z - door.z);
+    game.target = null;
+    game.via = [];
+  }, RIDE_MS * 0.45);
+  setTimeout(() => {
+    game.pending = null;
+    usePlay.setState({ ride: null });
+    usePlay.getState().openPlace(p);
+  }, RIDE_MS);
 }
 
 // Walk to each point in turn.

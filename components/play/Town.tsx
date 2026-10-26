@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow, HighBridge, NewportArch, OldHouse, Gallery, Ruins, River } from "./Landmarks";
-import { TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, CORNHILL, STONEBOW_STREETS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
+import { EXTRA_BOXES, toWorld, TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, CORNHILL, STONEBOW_STREETS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy, walkRoute, isMatchday } from "./store";
@@ -23,6 +23,9 @@ import { Waterside } from "./Waterside";
 import Wharf from "./Wharf";
 import Bailgate, { Pub } from "./Bailgate";
 import { Crowd, Chant } from "./Matchday";
+import { TaxiRank } from "./Taxi";
+import { Weather, useSky } from "./Weather";
+import { SHOP_COLOURS, type ShopType } from "./shop";
 
 function Flat({ w, d, color, x = 0, z = 0, y = 0.02 }: { w: number; d: number; color: number; x?: number; z?: number; y?: number }) {
   return <mesh geometry={geo.box(w, 0.04, d)} material={toon(color)} position={[x, y, z]} receiveShadow />;
@@ -439,10 +442,141 @@ function Cathedral({ p, font }: { p: Place; font: string }) {
   );
 }
 
+// The visitor's own shop, built on the plot they typed its name at: a front in their colour with a
+// striped awning, their name over it and a window display for their kind of business.
+function YourShop({ p, font, name, type, colour }: { p: Place; font: string; name: string; type: ShopType; colour: number }) {
+  const sign = useMemo(() => signTexture(shopSign(name), hex(colour), font), [name, colour, font]);
+  useEffect(() => () => sign.dispose(), [sign]);
+  const fw = p.w - 1.6,
+    fd = Math.min(3.6, p.d * 0.5),
+    back = -p.d / 2 + 0.4,
+    front = back + fd,
+    h = 3.8;
+  // solid while it stands
+  useEffect(() => {
+    EXTRA_BOXES.set(p.id, toWorld(p, { x0: -fw / 2, x1: fw / 2, z0: back, z1: front }));
+    return () => void EXTRA_BOXES.delete(p.id);
+  }, [p, fw, back, front]);
+  const signW = Math.min(fw - 0.6, 4.4);
+  const stripes = Math.max(5, Math.round(fw / 0.6));
+  const winW = fw * 0.45,
+    winX = -fw * 0.18,
+    doorX = fw / 2 - 0.9;
+  const z = front + 0.2; // just in front of the glass
+  return (
+    <group>
+      <Part geometry={geo.box(fw, h, fd)} color={colour} outline={0.07} position={[0, h / 2, (back + front) / 2]} />
+      <Part geometry={geo.box(fw + 0.3, 0.3, fd + 0.3)} color={INK} outline={0.04} position={[0, h + 0.15, (back + front) / 2]} />
+      {/* name board */}
+      <Part geometry={geo.box(signW + 0.2, 1.05, 0.12)} color={0xfff8e7} outline={0.05} position={[0, 3.15, front + 0.06]} />
+      <mesh position={[0, 3.15, front + 0.13]}>
+        <planeGeometry args={[signW, 0.95]} />
+        <meshBasicMaterial map={sign} toneMapped={false} />
+      </mesh>
+      {/* striped awning */}
+      {Array.from({ length: stripes }, (_, i) => (
+        <Part
+          key={i}
+          geometry={geo.box(fw / stripes + 0.01, 0.08, 1.05)}
+          color={i % 2 ? 0xfff8e7 : colour}
+          outline={0.02}
+          position={[-fw / 2 + (fw / stripes) * (i + 0.5), 2.35, front + 0.5]}
+          rotation-x={0.35}
+        />
+      ))}
+      <Part geometry={geo.box(fw, 0.22, 0.06)} color={colour} outline={0.03} position={[0, 2.08, front + 0.98]} />
+      {/* window, sill and door */}
+      <Part geometry={geo.box(winW, 1.3, 0.12)} color={WINDOW} outline={0.04} position={[winX, 1.2, front + 0.06]} />
+      <Part geometry={geo.box(winW + 0.2, 0.1, 0.35)} color={0xfff8e7} outline={0.03} position={[winX, 0.5, front + 0.15]} />
+      <Part geometry={geo.box(0.95, 2, 0.14)} color={0x7a4a2a} outline={0.05} position={[doorX, 1, front + 0.07]} />
+      <Part geometry={geo.sphere(0.07)} color={0xffd23f} outline={0.02} position={[doorX + 0.3, 1, front + 0.2]} />
+      <group position={[winX, 0.55, z]}>
+        <Display type={type} colour={colour} />
+      </group>
+      {/* flowers either side of the door */}
+      {[doorX - 0.85, doorX + 0.85].filter((x) => x < fw / 2).map((x) => (
+        <group key={x} position={[x, 0, front + 0.45]}>
+          <Part geometry={geo.box(0.5, 0.4, 0.5)} color={0x8a5a33} outline={0.03} position-y={0.2} />
+          {[0xff7eb6, 0xffd23f, 0xff5a3c].map((c, i) => (
+            <Part key={c} geometry={geo.sphere(0.13)} color={c} outline={0.02} position={[(i - 1) * 0.15, 0.52 + (i % 2) * 0.08, 0]} />
+          ))}
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// What's in the window, by kind of business.
+function Display({ type, colour }: { type: ShopType; colour: number }) {
+  if (type === "salon")
+    return (
+      <>
+        <Part geometry={geo.cyl(0.36, 0.36, 0.06, 20)} color={0xc8973a} outline={0.03} position={[-0.35, 0.65, -0.05]} rotation-x={Math.PI / 2} />
+        <Part geometry={geo.cyl(0.29, 0.29, 0.07, 20)} color={0xe8f7ff} outline={0} position={[-0.35, 0.65, -0.03]} rotation-x={Math.PI / 2} />
+        <Part geometry={geo.box(0.4, 0.12, 0.35)} color={colour} outline={0.03} position={[0.4, 0.25, 0]} />
+        <Part geometry={geo.box(0.4, 0.45, 0.08)} color={colour} outline={0.03} position={[0.4, 0.5, -0.14]} />
+        <Part geometry={geo.cyl(0.04, 0.04, 0.2, 8)} color={INK} outline={0} position={[0.4, 0.1, 0]} />
+      </>
+    );
+  if (type === "cafe")
+    return (
+      <>
+        <Part geometry={geo.cyl(0.26, 0.26, 0.22, 16)} color={0xff9ec7} outline={0.03} position={[-0.3, 0.16, 0]} />
+        <Part geometry={geo.cyl(0.27, 0.27, 0.06, 16)} color={0xfff8e7} outline={0.02} position={[-0.3, 0.29, 0]} />
+        <Part geometry={geo.sphere(0.07)} color={0xe03a3e} outline={0.02} position={[-0.3, 0.37, 0]} />
+        {[0.25, 0.6].map((x) => (
+          <group key={x} position={[x, 0.12, 0]}>
+            <Part geometry={geo.cyl(0.1, 0.08, 0.18, 12)} color={0xffffff} outline={0.02} />
+            <Part geometry={geo.cyl(0.11, 0.11, 0.02, 12)} color={0x6b4226} outline={0} position-y={0.09} />
+          </group>
+        ))}
+      </>
+    );
+  if (type === "trades")
+    return (
+      <>
+        <Part geometry={geo.box(0.6, 0.3, 0.28)} color={0xe03a3e} outline={0.03} position={[-0.3, 0.2, 0]} />
+        <Part geometry={geo.box(0.3, 0.06, 0.06)} color={INK} outline={0} position={[-0.3, 0.42, 0]} />
+        {/* a spanner and a hammer */}
+        <Part geometry={geo.box(0.06, 0.5, 0.04)} color={0xb8c0cc} outline={0.02} position={[0.3, 0.35, 0]} rotation-z={0.5} />
+        <Part geometry={geo.box(0.05, 0.45, 0.05)} color={0x8a5a33} outline={0.02} position={[0.6, 0.3, 0]} rotation-z={-0.3} />
+        <Part geometry={geo.box(0.22, 0.1, 0.08)} color={INK} outline={0.02} position={[0.67, 0.52, 0]} rotation-z={-0.3} />
+      </>
+    );
+  return (
+    <>
+      {[
+        [-0.45, 0.15, 0.3, 0xff5a3c],
+        [0.05, 0.13, 0.26, 0x3fa7d6],
+        [-0.2, 0.42, 0.22, 0xffd23f],
+        [0.5, 0.11, 0.22, colour],
+      ].map(([x, y, sz, c]) => (
+        <group key={x} position={[x, y, 0]}>
+          <Part geometry={geo.box(sz, sz, sz)} color={c} outline={0.03} />
+          <Part geometry={geo.box(sz + 0.02, 0.04, sz + 0.02)} color={0xfff8e7} outline={0} />
+        </group>
+      ))}
+    </>
+  );
+}
+
 // An empty plot with a signboard, waiting for the next client.
 function Lot({ p, font }: { p: Place; font: string }) {
-  const shop = usePlay((st) => (st.shop?.lot === p.id ? st.shop.name : ""));
-  const sign = useMemo(() => signTexture(shop ? shopSign(shop) : p.name, hex(p.wall), font), [p, font, shop]);
+  const mine = usePlay((st) => (st.shop?.lot === p.id ? st.shop : null));
+  const shop = mine?.name.trim() ?? "";
+  if (shop) {
+    return (
+      <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
+        <mesh geometry={geo.box(p.w, 0.06, p.d)} material={toon(0xd9ccb2)} position-y={0.03} receiveShadow />
+        <YourShop p={p} font={font} name={shop} type={mine?.type ?? "shop"} colour={parseInt((mine?.colour ?? SHOP_COLOURS[0]).slice(1), 16)} />
+      </group>
+    );
+  }
+  return <EmptyLot p={p} font={font} />;
+}
+
+function EmptyLot({ p, font }: { p: Place; font: string }) {
+  const sign = useMemo(() => signTexture(p.name, hex(p.wall), font), [p, font]);
   useEffect(() => () => sign.dispose(), [sign]);
   const back = -p.d / 2 + 1;
   return (
@@ -545,7 +679,7 @@ function Stadium({ p, font, reduce }: { p: Place; font: string; reduce: boolean 
   );
 }
 
-function Sun({ night }: { night: boolean }) {
+function Sun({ night, dim = 1 }: { night: boolean; dim?: number }) {
   const light = useRef<THREE.DirectionalLight>(null!);
   // keep the shadow box centred on the imp so shadows work across the whole town
   useFrame(() => {
@@ -559,7 +693,7 @@ function Sun({ night }: { night: boolean }) {
     <directionalLight
       ref={light}
       color={night ? 0x8fa3ff : 0xfff3d6}
-      intensity={night ? 0.7 : 2.4}
+      intensity={(night ? 0.7 : 2.4) * dim}
       castShadow
       shadow-mapSize={[2048, 2048]}
       shadow-camera-left={-40}
@@ -759,7 +893,7 @@ const CLOUDS = Array.from({ length: 16 }, (_, i) => ({
   puffs: Array.from({ length: 4 }, (_, j) => ({ r: Math.round((1.2 + rand() * 1.1) * 10) / 10, p: [j * 1.5 - 2.2, rand() * 0.8, rand() - 0.5] as const })),
 }));
 
-function Clouds({ reduce }: { reduce: boolean }) {
+function Clouds({ reduce, color = 0xffffff }: { reduce: boolean; color?: number }) {
   const refs = useRef<THREE.Group[]>([]);
   useFrame((_, delta) => {
     if (reduce) return;
@@ -773,7 +907,7 @@ function Clouds({ reduce }: { reduce: boolean }) {
       {CLOUDS.map((c, i) => (
         <group key={i} ref={(g) => void (g && (refs.current[i] = g))} position={[c.pos[0], c.pos[1] + groundY(c.pos[2]), c.pos[2]]}>
           {c.puffs.map((b, j) => (
-            <Part key={j} geometry={geo.sphere(b.r)} color={0xffffff} outline={0.08} shadow={false} position={b.p} />
+            <Part key={j} geometry={geo.sphere(b.r)} color={color} outline={0.08} shadow={false} position={b.p} />
           ))}
         </group>
       ))}
@@ -847,6 +981,7 @@ export default function Town({ font }: { font: string }) {
   const [signsReady, setSignsReady] = useState(false);
   const night = usePlay((s) => s.night);
   const street = usePlay((s) => s.street);
+  const wx = useSky(night);
   useEffect(() => setNightGlow(night), [night]);
 
   useEffect(() => {
@@ -897,11 +1032,11 @@ export default function Town({ font }: { font: string }) {
       onWheel={(e) => zoomBy(e.deltaY * 0.001)}
       style={{ position: "fixed", inset: 0, touchAction: "none" }}
     >
-      <color attach="background" args={[night ? "#1d2547" : "#7ccaff"]} />
-      {street && <fog attach="fog" args={[night ? "#1d2547" : "#7ccaff", 30, 150]} />}
+      <color attach="background" args={[wx.color]} />
+      {(street || wx.fog) && <fog attach="fog" args={[wx.color, ...(wx.fog && (!street || wx.fog[1] < 150) ? wx.fog : ([30, 150] as const))]} />}
       {street && <Hills />}
-      <hemisphereLight args={night ? [0x6a7bd6, 0x2a3350, 1.1] : [0xffffff, 0x88aa66, 2]} />
-      <Sun night={night} />
+      <hemisphereLight args={night ? [0x6a7bd6, 0x2a3350, 1.1 * wx.hemi] : [0xffffff, 0x88aa66, 2 * wx.hemi]} />
+      <Sun night={night} dim={wx.sun} />
       <Strip w={SIZE} d={DEPTH} color={0x6fd36b} x={MID_X} z={MID_Z} onClick={onGround} />
       <Roads />
       <Roundabout reduce={reduce} />
@@ -929,7 +1064,9 @@ export default function Town({ font }: { font: string }) {
       {signsReady && <Wharf font={font} reduce={reduce} />}
       {signsReady && <Bailgate font={font} />}
       <Market />
-      <Clouds reduce={reduce} />
+      <Clouds reduce={reduce} color={wx.cloud} />
+      <Weather reduce={reduce} />
+      {signsReady && <TaxiRank font={font} />}
       <Hunt reduce={reduce} />
       {night && <Ghost reduce={reduce} />}
       <Imp reduce={reduce} />
