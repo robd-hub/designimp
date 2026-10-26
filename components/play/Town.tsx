@@ -21,6 +21,8 @@ import { BusStation } from "./BusStation";
 import { CornExchange } from "./CornExchange";
 import { Waterside } from "./Waterside";
 import Wharf from "./Wharf";
+import Witham from "./Witham";
+import { StMarks } from "./StMarks";
 import Bailgate, { Pub } from "./Bailgate";
 import { Mill, Park, Market as XmasMarket } from "./MoreLandmarks";
 import { Crowd, Chant } from "./Matchday";
@@ -1048,7 +1050,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank" || !inSeason(p, xmas)) return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
@@ -1064,6 +1066,7 @@ export default function Town({ font }: { font: string }) {
       <Lamps />
       <Footpaths />
       {signsReady && <Wharf font={font} reduce={reduce} />}
+      {signsReady && <Witham font={font} />}
       {signsReady && <Bailgate font={font} />}
       <Market />
       <Clouds reduce={reduce} color={wx.cloud} />

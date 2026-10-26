@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex, inSeason } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, WHARF, WHARF_EAST, WHARF_BARS, barBox, streetHouses, toWorld } from "./colliders";
+import { AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, ST_MARKS, WEST_BANK, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, WHARF_BARS, WITHAM, WITHAM_RUNS, barBox, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
 import { game, usePlay, walkTo } from "./store";
 import s from "./play.module.css";
@@ -50,14 +50,18 @@ export default function Minimap() {
         .map((b) => (
           <rect key={b.x} x={b.x0} y={RIVER.z - RIVER.half - 0.8} width={b.x1 - b.x0} height={RIVER.half * 2 + 1.6} fill="#8a5a33" pointerEvents="none" />
         ))}
+      {WITHAM_RUNS.map((r, i) => (
+        <rect key={i} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill="#3aa6e8" pointerEvents="none" />
+      ))}
+      <rect x={WITHAM.x - WITHAM.half - 0.8} y={WITHAM.foot - WITHAM.footHalf} width={WITHAM.half * 2 + 1.6} height={WITHAM.footHalf * 2} fill="#8a5a33" pointerEvents="none" />
       <rect x={-HIGH_ST} y={RISE.z0} width={HIGH_ST * 2} height={-RISE.z0} fill="#d9ccb2" />
       <rect x={BAILGATE.x0} y={BAILGATE.z0} width={BAILGATE.x1 - BAILGATE.x0} height={BAILGATE.z1 - BAILGATE.z0} fill="#e8dcc2" />
       <rect x={CLOSE.x0} y={CLOSE.z0} width={CLOSE.x1 - CLOSE.x0} height={CLOSE.z1 - CLOSE.z0} fill="#e8dcc2" />
-      {[...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST].map((r, i) => (
+      {[...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, ST_MARKS.street].map((r, i) => (
         <rect key={i} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill="#d9ccb2" pointerEvents="none" />
       ))}
       <rect x={L} y={-3} width={W} height={6} fill="#6b6573" />
-      {[...GREESTONE, ...EAST_FOOTPATH, ...LANDMARK_PATHS].map((g, i) => (
+      {[...GREESTONE, ...EAST_FOOTPATH, ...LANDMARK_PATHS, WEST_BANK].map((g, i) => (
         <rect key={i} x={g.x0} y={g.z0} width={g.x1 - g.x0} height={g.z1 - g.z0} fill="#e8dcc2" pointerEvents="none" />
       ))}
       {[BUS_STATION.kerb, ...BUS_STATION.tarmac].map((r, i) => (
@@ -100,7 +104,7 @@ export default function Minimap() {
       {SHOPFRONTS.map((h) => (
         <rect key={`${h.x},${h.z}`} x={h.x - h.deep / 2} y={h.z - h.len / 2} width={h.deep} height={h.len} fill="#b5523b" pointerEvents="none" />
       ))}
-      {WHARF_BARS.map(barBox).map((b) => (
+      {[...WHARF_BARS, ...ST_MARKS.units].map(barBox).map((b) => (
         <rect key={`${b.x0},${b.z0}`} x={b.x0} y={b.z0} width={b.x1 - b.x0} height={b.z1 - b.z0} fill="#b5523b" pointerEvents="none" />
       ))}
       {HOUSES.map((h) => (

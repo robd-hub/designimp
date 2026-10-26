@@ -316,8 +316,10 @@ export const STONEBOW_STREETS = [
 // and crossing the half-width of the gap left in the fences for the road and its pavements.
 export const RAIL = { z: 18.5, gap: 1.6, fence: 3.6, crossing: 4.6 };
 // Set every frame by the railway while the barriers are down.
-export const CROSSING = { closed: false };
-export const atBarrier = (x: number, z: number) => CROSSING.closed && Math.abs(x) < RAIL.crossing && Math.abs(z - RAIL.z) < RAIL.fence + 0.4;
+// wharf is the same for the crossing on Brayford Wharf East.
+export const CROSSING = { closed: false, wharf: false };
+export const atBarrier = (x: number, z: number) =>
+  Math.abs(z - RAIL.z) < RAIL.fence + 0.4 && ((CROSSING.closed && Math.abs(x) < RAIL.crossing) || (CROSSING.wharf && Math.abs(x - WHARF_CROSSING.x) < WHARF_CROSSING.half));
 // Lincoln Central, just east of the crossing as in real Lincoln: the station building on the main road,
 // a platform along each track and a covered footbridge between them at the east end. edge is the
 // platform edges' offset from the line's centre, and the fences are left out alongside the platforms.
@@ -354,9 +356,84 @@ export const BUS_STATION = {
     { x0: concourse.x1 - 4.5, x1: concourse.x1 + 3, z0: concourse.z1 + 9, z1: -3 },
   ],
 };
+const pool = { x1: brayford.x + BRAYFORD.water.x1, z1: brayford.z + BRAYFORD.water.z1 };
+const ROAD_EDGE = 4.3; // the main road's pavements
+// St Marks: a paved street of shops off the High Street just south of the level crossing, running back from the
+// pavement to Brayford Wharf East, with the old station building on the corner and two to-let units on its south side.
+const stMarks = footprint(PLACES.find((p) => p.id === "st-marks")!);
+const stMarksLot = footprint(PLACES.find((p) => p.id === "st-marks-1")!);
+export const ST_MARKS = {
+  street: { x0: WHARF_EAST.x0, x1: -ROAD_EDGE, z0: stMarks.z1, z1: stMarksLot.z0 },
+  // the shops along the street: two in a row west of the old station building facing south onto it, and one
+  // on the south side west of the two to-let units, facing north. Each is [x, z, along, deep, rot] like a bar.
+  units: [
+    ...[0, 1].map((i) => ({ x: WHARF_EAST.x1 + 2.5 + i * 5, z: (stMarks.z0 + stMarks.z1) / 2, len: 5, deep: stMarks.z1 - stMarks.z0, rot: 0 })),
+    { x: WHARF_EAST.x1 + 2.5, z: (stMarksLot.z0 + stMarksLot.z1) / 2, len: 5, deep: stMarksLot.z1 - stMarksLot.z0, rot: Math.PI },
+  ],
+};
+// The Witham coming up from the south into the Brayford's south-east corner, between the University on its
+// west bank and Brayford Wharf East on its east bank, as in real Lincoln. It passes under the main road on a road
+// bridge and under the railway on a rail bridge, runs on south past the back of St Marks, then turns west at
+// bend and leaves the map towards Boultham. foot is the footbridge from the end of the St Marks street over to
+// the open ground on its west bank.
+export const WITHAM = { x: pool.x1 + 1, half: RIVER.half, z0: pool.z1, bend: 100, foot: (ST_MARKS.street.z0 + ST_MARKS.street.z1) / 2, footHalf: 1.2 };
+// Brayford Wharf East carried on south of the main road, over the railway on its own level crossing for people on
+// foot, down the river bank to the end of the St Marks street.
+export const WHARF_EAST_SOUTH = { x0: WHARF_EAST.x0, x1: WHARF_EAST.x1, z0: ROAD_EDGE, z1: ST_MARKS.street.z1 };
+export const WHARF_CROSSING = { x: (WHARF_EAST.x0 + WHARF_EAST.x1) / 2, half: (WHARF_EAST.x1 - WHARF_EAST.x0) / 2 };
+// The path along the Witham's west bank between the University and the water, from the Brayford's south quay to the main road.
+const W0 = WITHAM.x - WITHAM.half;
+export const WEST_BANK = { x0: W0 - 2.9, x1: W0 - 0.5, z0: brayford.z + brayford.d / 2, z1: -ROAD_EDGE };
+// The open water, north to south and then the stretch running off west: out of the pool to the road bridge,
+// on to the rail bridge, on south past St Marks either side of the footbridge to the bend, and away west.
+const footZ = [WITHAM.foot - WITHAM.footHalf, WITHAM.foot + WITHAM.footHalf];
+export const WITHAM_RUNS = [
+  [WITHAM.z0, -ROAD_EDGE],
+  [ROAD_EDGE, RAIL.z - RAIL.fence],
+  [RAIL.z + RAIL.fence, footZ[0]],
+  [footZ[1], WITHAM.bend - WITHAM.half],
+]
+  .map(([z0, z1]) => ({ x0: W0, x1: WITHAM.x + WITHAM.half, z0, z1 }))
+  .concat({ x0: -BOUND - 4, x1: WITHAM.x + WITHAM.half, z0: WITHAM.bend - WITHAM.half, z1: WITHAM.bend + WITHAM.half });
+const WITHAM_BOXES = WITHAM_RUNS.map((r) => ({ ...r, x0: r.x0 - 0.3, x1: r.x1 + 0.3, z1: r.z1 === WITHAM.bend + WITHAM.half ? r.z1 + 0.3 : r.z1 }));
+// The two pockets of ground on the Witham's west bank, closed in by the river, the pool and the Fossdyke or the
+// railway: n north of the railway, reached over the road bridge, and s south of it, reached over the footbridge.
+// For each, the points either side of its bridge, east bank first.
+const pocket = (x: number, z: number) =>
+  x > W0 - 0.4 ? null : z > WITHAM.z0 && z < RAIL.z - RAIL.fence ? "n" : z > RAIL.z + RAIL.fence && z < WITHAM.bend - WITHAM.half ? "s" : null;
+const WEST_PATH_X = (WEST_BANK.x0 + WEST_BANK.x1) / 2;
+const POCKET_BRIDGES: Record<"n" | "s", [number, number][]> = {
+  n: [
+    [WHARF_CROSSING.x, 0],
+    [WEST_PATH_X, 0],
+  ],
+  // in off the High Street along the St Marks street, so as not to cut across the shops
+  s: [
+    [-ROAD_EDGE - 1.5, WITHAM.foot],
+    [WHARF_CROSSING.x, WITHAM.foot],
+    [W0 - 2.5, WITHAM.foot],
+  ],
+};
+// Waypoints out of a west-bank pocket to the east bank, and the other way in. The University and the Brayford's
+// south quay are reached along the west bank path.
+function leaveWitham([x, z]: [number, number]) {
+  const p = pocket(x, z);
+  if (!p) return [];
+  const pts: [number, number][] = p === "n" && z < -ROAD_EDGE ? [[WEST_PATH_X, z]] : [];
+  return [...pts, ...POCKET_BRIDGES[p].slice().reverse()];
+}
+function enterWitham([x, z]: [number, number]) {
+  const p = pocket(x, z);
+  if (!p) return [];
+  const pts = POCKET_BRIDGES[p].slice();
+  if (p === "n" && z < -ROAD_EDGE) pts.push([WEST_PATH_X, z]);
+  return pts;
+}
+
 // Runs of fence along each side of the line, west to east.
 export const RAIL_FENCE_RUNS: [number, number][] = [
-  [-BOUND, -RAIL.crossing],
+  [-BOUND, WHARF_EAST.x0],
+  [WHARF_EAST.x1, -RAIL.crossing],
   [RAIL.crossing, STATION.x0],
   [STATION.x1, EAST],
 ];
@@ -385,15 +462,21 @@ export function overRailway([fx, fz]: [number, number], [tx, tz]: [number, numbe
 }
 
 // Waypoints for a walk across the river, the railway or both, in the order it comes to them.
+// Out of a pocket on the Witham's west bank first, if setting off from one, and into one last.
 export function crossings(from: [number, number], to: [number, number]) {
-  const pts: [number, number][] = [];
-  let at = from;
-  for (const leg of to[1] > from[1] ? [overRiver, overRailway] : [overRailway, overRiver]) {
-    const p = leg(at, to);
+  const a = pocket(...from),
+    b = pocket(...to);
+  if (a && a === b) return [];
+  const pts: [number, number][] = leaveWitham(from);
+  let at = pts.at(-1) ?? from;
+  const end = enterWitham(to);
+  const goal = end[0] ?? to;
+  for (const leg of goal[1] > at[1] ? [overRiver, overRailway] : [overRailway, overRiver]) {
+    const p = leg(at, goal);
     pts.push(...p);
     at = p.at(-1) ?? at;
   }
-  return pts;
+  return [...pts, ...end];
 }
 
 // The roundabout on the main road out west with the tank memorial in the middle, as at the start of
@@ -439,7 +522,7 @@ const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market"].includes(
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), STONEBOW_PIERS, NEWPORT_PIERS, RIVER_BOXES, RAIL_FENCES, STATION_BOXES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), STONEBOW_PIERS, NEWPORT_PIERS, RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES);
 
 const HIGH_STREET = { x0: -HIGH_ST, x1: HIGH_ST, z0: hill.z1, z1: -4.3 };
 const onRoad = (x: number, z: number) =>
@@ -448,11 +531,11 @@ const onRoad = (x: number, z: number) =>
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...WITHAM_RUNS, WHARF_EAST_SOUTH, ST_MARKS.street, WEST_BANK, ...ST_MARKS.units.map(barBox), ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
-  WHARF_BARS.map(barBox).some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
+  [...WHARF_BARS, ...ST_MARKS.units].map(barBox).some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   PLACES.some((p) => {
     const f = footprint(p);
     const door = p.kind === "lot" ? 0 : 4; // keep the approach to each entrance clear
