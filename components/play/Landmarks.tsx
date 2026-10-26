@@ -612,7 +612,7 @@ const BRIDGE_STONE = 0xb8a98a;
 const TUNNEL = 0x1f2a33;
 
 // Black timber studs and rails over a plastered face len wide and h tall, centred on its foot.
-function Studs({ len, h, ...g }: { len: number; h: number } & Omit<ThreeElements["group"], "children">) {
+export function Studs({ len, h, ...g }: { len: number; h: number } & Omit<ThreeElements["group"], "children">) {
   const n = Math.round(len / 0.8);
   return (
     <group {...g}>

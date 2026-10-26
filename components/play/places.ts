@@ -762,8 +762,8 @@ export const PLACES: Place[] = [
     w: 8,
     d: 6,
     h: 5.4,
-    wall: 0xcdbf9f,
-    roof: 0x5b6b7a,
+    wall: 0xf4ecd8,
+    roof: 0x5a4a3e,
     roofType: "pitch",
     rot: Math.PI,
     intro: [
