@@ -319,7 +319,7 @@ export const PLACES: Place[] = [
     kicker: "Shopping centre on the Witham",
     nav: "Waterside Shopping Centre",
     // on the north bank of the Witham just east of High Bridge, as the real one is, its front facing south
-    // across Saltergate to the water and Cornhill beyond
+    // across the riverside street to the water and Cornhill beyond
     x: 27,
     z: -41.6,
     w: 20,
@@ -361,7 +361,7 @@ export const PLACES: Place[] = [
     kicker: "Shop to let on the High Street",
     nav: "To let (High St west)",
     x: -11.1,
-    z: -47,
+    z: -61,
     w: 6,
     d: 7,
     h: 0,
@@ -381,7 +381,7 @@ export const PLACES: Place[] = [
     kicker: "Shop to let on the High Street",
     nav: "To let (High St east)",
     x: 11.1,
-    z: -47,
+    z: -61,
     w: 6,
     d: 7,
     h: 0,
@@ -400,7 +400,7 @@ export const PLACES: Place[] = [
     name: "To Let",
     kicker: "Waterside plot to let by the Brayford",
     nav: "To let (Brayford Wharf 1)",
-    // on the north bank, fronting Guildhall Street and the river, across the water from the wharf's bars
+    // on the north bank, fronting the riverside street and the river, across the water from the wharf's bars
     x: -24.2,
     z: -39.6,
     w: 6,
@@ -421,7 +421,7 @@ export const PLACES: Place[] = [
     name: "To Let",
     kicker: "Waterside plot to let by the Brayford",
     nav: "To let (Brayford Wharf 2)",
-    // on the north bank, fronting Guildhall Street and the river, across the water from the wharf's bars
+    // on the north bank, fronting the riverside street and the river, across the water from the wharf's bars
     x: -17.6,
     z: -39.6,
     w: 6,
@@ -566,7 +566,7 @@ export const PLACES: Place[] = [
     // w spans the main transept and d runs from the west front to the east end, near the real
     // building's proportions: about three times as long as its west front is wide.
     x: 65,
-    z: -101,
+    z: -127,
     w: 26,
     d: 58,
     h: 10,
@@ -638,7 +638,7 @@ export const PLACES: Place[] = [
     nav: "Castle",
     // at the west end of Castle Square, its gate opening east onto the square
     x: -39,
-    z: -99,
+    z: -125,
     w: 22,
     d: 18,
     h: 7,
@@ -659,7 +659,7 @@ export const PLACES: Place[] = [
     kicker: "Lincoln's famous street",
     nav: "Steep Hill",
     x: 0,
-    z: -72,
+    z: -98,
     w: 15.8,
     d: 40,
     h: 0,
@@ -687,7 +687,7 @@ export const PLACES: Place[] = [
     kicker: "Gateway on the High Street",
     nav: "Stonebow",
     x: 0,
-    z: -38,
+    z: -52,
     w: 15.2,
     d: 3.2,
     h: 8.4,
@@ -736,7 +736,7 @@ export const PLACES: Place[] = [
     nav: "Newport Arch",
     // the north end of Bailgate, where the Roman city's north gate still stands over the road
     x: 0,
-    z: -128,
+    z: -154,
     w: 14,
     d: 3.2,
     h: 8.6,
@@ -756,9 +756,9 @@ export const PLACES: Place[] = [
     kicker: "A 12th-century home on Steep Hill",
     nav: "Jew's House",
     // in place of the first house on the east side of Steep Hill, at the bottom of the hill
-    // (Steep Hill runs from z -52 to -92 in seven plots a side)
+    // (Steep Hill runs from z -78 to -118 in seven plots a side)
     x: 6.1,
-    z: -52 - 20 / 7,
+    z: -78 - 20 / 7,
     w: 40 / 7,
     d: 3.6,
     h: 4.6,
@@ -784,7 +784,7 @@ export const PLACES: Place[] = [
     nav: "Norman House",
     // in place of the sixth house on the east side, just above the little square halfway up the hill
     x: 6.1,
-    z: -52 - 20 / 7 - (5 * 40) / 7,
+    z: -78 - 20 / 7 - (5 * 40) / 7,
     w: 40 / 7,
     d: 3.6,
     h: 4.6,
@@ -810,7 +810,7 @@ export const PLACES: Place[] = [
     nav: "Bishop's Palace",
     // on the hillside just south of the cathedral, its terraces stepping down the slope towards the town
     x: 44,
-    z: -75,
+    z: -101,
     w: 18,
     d: 10,
     h: 6,
@@ -836,7 +836,7 @@ export const PLACES: Place[] = [
     nav: "Usher Gallery",
     // further down the hill, south-east of the Old Palace, looking out over the town as the real one looks over Temple Gardens
     x: 66,
-    z: -60,
+    z: -86,
     w: 18,
     d: 10,
     h: 6.5,

@@ -4,7 +4,7 @@ export const BOUND = 76; // the west edge of the map
 export const EAST = 100; // the east edge, further out to make room for the cathedral's long east end
 export const MID_X = (EAST - BOUND) / 2; // the map's centre line, east to west
 export const SOUTH = 168; // the south road runs a long way down, past rows of shops and houses to Sincil Bank and RAF Scampton
-export const NORTH = -138; // the map runs further north, up the hill to the cathedral and castle
+export const NORTH = -164; // the map runs further north, up the hill to the cathedral and castle
 
 // Small seeded random so the town is laid out the same on every visit.
 export function seeded(seed: number) {
@@ -224,9 +224,13 @@ export const STALLS = [
 // A run can also have its own centre line, cx, for the row along the west side of Cornhill.
 export const SHOPFRONT = { deep: 5, bailgate: 4 };
 const SHOP_RUNS: [number, number, number, number, number, number?][] = [
-  // north of the Stonebow; south of it the side streets run off either way
-  [-1, HIGH_ST, -44, -39.8, 1],
-  [1, HIGH_ST, -44, -39.8, 1],
+  ...[-1, 1].flatMap((side) => [
+    // from the side streets by the river up to the Stonebow
+    [side, HIGH_ST, -50.2, -36.6, 3],
+    // north of the Stonebow, either side of the to-let plots, on up to the foot of Steep Hill
+    [side, HIGH_ST, -58, -53.8, 1],
+    [side, HIGH_ST, -76, -64.4, 3],
+  ] as [number, number, number, number, number][]),
   ...[-1, 1].map((side) => [side, BAILGATE.x1, NEWPORT.z + NEWPORT.d / 2 + 0.6, CLOSE.z0, 4] as [number, number, number, number, number]),
   [-1, 5, CORNHILL[0].z0, CORNHILL[0].z1, 3, CORNHILL[0].x0 + 5], // backing onto the Town Hall, fronts onto the square
 ];
@@ -256,10 +260,10 @@ const STONEBOW_PIERS = Array.from({ length: stonebowEdges.length / 2 }, (_, i) =
   z1: STONEBOW.z + STONEBOW.d / 2,
 }));
 
-// The paved side streets off the High Street at the Stonebow's south front, as in real Lincoln:
-// Guildhall Street west to the Brayford's east quay, and Saltergate east along the north bank of the
-// Witham towards Waterside, as far as the footbridge over to Cornhill.
-const sideZ = { z0: STONEBOW.z + STONEBOW.d / 2 + 0.2, z1: RIVER.z - RIVER.half - 1.2 };
+// The paved side streets off the High Street just north of High Bridge, along the north bank of the Witham:
+// west to the Brayford's east quay, and east in front of Waterside as far as the footbridge over to Cornhill.
+// The Stonebow stands a little further up the High Street, beyond Waterside, as in real Lincoln.
+const sideZ = { z0: -36.2, z1: RIVER.z - RIVER.half - 1.2 };
 export const STONEBOW_STREETS = [
   { x0: brayford.x + BRAYFORD.water.x1 + 0.4, x1: -HIGH_ST, ...sideZ },
   { x0: HIGH_ST, x1: EAST_PATH_X + 1, ...sideZ },

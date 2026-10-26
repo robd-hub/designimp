@@ -55,7 +55,7 @@ export const NPCS: Npc[] = [
     skin: 0xf2d0b5,
     hair: 0xe3c37e,
     dog: 0x8a5a3c, // a brown cavapoo
-    path: [[3.7, -8], [3.7, -90], [-3.7, -90], [-3.7, -8]],
+    path: [[3.7, -8], [3.7, -116], [-3.7, -116], [-3.7, -8]],
     speed: 2.2,
     lines: [
       "Morning! Have you been up to the cathedral yet? Keep walking north.",
@@ -70,7 +70,7 @@ export const NPCS: Npc[] = [
     skin: 0xf2d0b5,
     hat: 0xc9c4b2,
     // Elizabeth's loop the other way round, so the two of them keep meeting for a chat
-    path: [[3.7, -90], [3.7, -8], [-3.7, -8], [-3.7, -90]],
+    path: [[3.7, -116], [3.7, -8], [-3.7, -8], [-3.7, -116]],
     speed: 2.2,
     lines: [
       "Afternoon! Lovely day for a stroll up the High Street.",
@@ -145,7 +145,7 @@ export const NPCS: Npc[] = [
     legs: 0x4a3a2a,
     skin: 0xf2d0b5,
     hat: 0x1a1320,
-    path: [[18, -97], [32, -97]],
+    path: [[18, -123], [32, -123]],
     speed: 1.2,
     lines: [
       "Lovely, isn't she? Building started on this cathedral over 900 years ago.",

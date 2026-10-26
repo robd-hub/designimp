@@ -7,7 +7,7 @@ import { AUDIO } from "./sound";
 
 // After dark a friendly ghost drifts round the top of Steep Hill, over the castle and past the cathedral.
 // Its loop runs from over the castle, across the square, to swoop past the cathedral's west front.
-const LOOP = { x: -2, z: -97, rx: 36, rz: 12, y: 10 };
+const LOOP = { x: -2, z: -123, rx: 36, rz: 12, y: 10 };
 const SHEET = new THREE.MeshToonMaterial({ color: 0xf4f7ff, emissive: 0xdfe8ff, emissiveIntensity: 0.9, transparent: true, opacity: 0.9 });
 
 const at = (t: number, out: THREE.Vector3) => {
