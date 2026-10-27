@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, inSeason, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow, HighBridge, NewportArch, OldHouse, Gallery, Ruins, River } from "./Landmarks";
-import { EXTRA_BOXES, toWorld, TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, CORNHILL, STONEBOW_STREETS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
+import { EXTRA_BOXES, toWorld, TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, CORNHILL, STONEBOW_STREETS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RING_PATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy, walkRoute, isMatchday } from "./store";
@@ -25,6 +25,7 @@ import Witham from "./Witham";
 import { StMarks } from "./StMarks";
 import Bailgate, { Pub } from "./Bailgate";
 import { Mill, Park, Market as XmasMarket } from "./MoreLandmarks";
+import { Gatehouse, Yard, MinsterGrounds, SETTS } from "./MinsterYard";
 import { Crowd, Chant } from "./Matchday";
 import { TaxiRank } from "./Taxi";
 import { Weather, useSky } from "./Weather";
@@ -800,7 +801,7 @@ function Footpaths() {
           key={i}
           w={f.x1 - f.x0}
           d={f.z1 - f.z0}
-          color={0xe8dcc2}
+          color={RING_PATHS.includes(f) ? SETTS : 0xe8dcc2}
           x={(f.x0 + f.x1) / 2}
           z={(f.z0 + f.z1) / 2}
           y={0.06 + i * 0.002}
@@ -1050,7 +1051,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank" || !inSeason(p, xmas)) return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks, gatehouse: Gatehouse, yard: Yard }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
@@ -1065,6 +1066,7 @@ export default function Town({ font }: { font: string }) {
       <Shopfronts />
       <Lamps />
       <Footpaths />
+      <MinsterGrounds />
       {signsReady && <Wharf font={font} reduce={reduce} />}
       {signsReady && <Witham font={font} />}
       {signsReady && <Bailgate font={font} />}

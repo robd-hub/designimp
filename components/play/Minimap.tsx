@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex, inSeason } from "./places";
-import { AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, ST_MARKS, WEST_BANK, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, WHARF_BARS, WITHAM, WITHAM_RUNS, barBox, streetHouses, toWorld } from "./colliders";
+import { EXCHEQUER, MINSTER, AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, ST_MARKS, WEST_BANK, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, WHARF_BARS, WITHAM, WITHAM_RUNS, barBox, streetHouses, toWorld } from "./colliders";
 import { RISE } from "./terrain";
 import { game, usePlay, walkTo } from "./store";
 import s from "./play.module.css";
@@ -57,6 +57,16 @@ export default function Minimap() {
       <rect x={-HIGH_ST} y={RISE.z0} width={HIGH_ST * 2} height={-RISE.z0} fill="#d9ccb2" />
       <rect x={BAILGATE.x0} y={BAILGATE.z0} width={BAILGATE.x1 - BAILGATE.x0} height={BAILGATE.z1 - BAILGATE.z0} fill="#e8dcc2" />
       <rect x={CLOSE.x0} y={CLOSE.z0} width={CLOSE.x1 - CLOSE.x0} height={CLOSE.z1 - CLOSE.z0} fill="#e8dcc2" />
+      {/* Minster Yard: the lawn north of the cathedral, the forecourt through the Exchequer Gate, the close wall's stubs
+          either side of the gate and the houses on the south side */}
+      <rect x={MINSTER.lawn.x0} y={MINSTER.lawn.z0} width={MINSTER.lawn.x1 - MINSTER.lawn.x0} height={MINSTER.lawn.z1 - MINSTER.lawn.z0} fill="#8cc46a" pointerEvents="none" />
+      <rect x={MINSTER.forecourt.x0} y={MINSTER.forecourt.z0} width={MINSTER.forecourt.x1 - MINSTER.forecourt.x0} height={MINSTER.forecourt.z1 - MINSTER.forecourt.z0} fill="#e8dcc2" pointerEvents="none" />
+      {[-1, 1].map((s) => (
+        <rect key={s} x={EXCHEQUER.x - 0.5} y={s < 0 ? EXCHEQUER.z - EXCHEQUER.half - EXCHEQUER.stub : EXCHEQUER.z + EXCHEQUER.half} width={1} height={EXCHEQUER.stub} fill="#8a7d66" pointerEvents="none" />
+      ))}
+      {MINSTER.south.map((h) => (
+        <rect key={h.x} x={h.x - h.w / 2} y={h.z - h.d / 2} width={h.w} height={h.d} fill="#6e4a3a" pointerEvents="none" />
+      ))}
       {[...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, ST_MARKS.street].map((r, i) => (
         <rect key={i} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill="#d9ccb2" pointerEvents="none" />
       ))}
