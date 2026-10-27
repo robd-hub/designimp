@@ -112,6 +112,14 @@ const doorAt = (id: string) => {
   const off = p.d / 2 + 1.8;
   return { x: p.x + Math.round(Math.sin(p.rot)) * off, z: p.z + Math.round(Math.cos(p.rot)) * off };
 };
+// The Exchequer Gate closes the east side of Castle Square; walks go through its big arch, between these two points
+// either side of it, the west one a little south so as to come in clear of the farmers' market stalls.
+const gatePlace = PLACES.find((p) => p.kind === "gatehouse")!;
+const ARCH_WEST: [number, number] = [gatePlace.x - gatePlace.d / 2 - 1.1, gatePlace.z + 1.2];
+const ARCH_EAST: [number, number] = [gatePlace.x + gatePlace.d / 2 + 1.1, gatePlace.z];
+// Minster Yard's close houses, along the north side of the lawn: reached along the path round the cathedral and up a spur.
+const yardPlace = PLACES.find((p) => p.kind === "yard")!;
+const YARD_SPUR_X = yardPlace.x;
 const MILL_DOOR = doorAt("ellis-mill"),
   ARBORETUM_DOOR = doorAt("arboretum"),
   MARKET_DOOR = doorAt("christmas-market");
@@ -133,18 +141,38 @@ export const APPROACH: Record<string, [number, number][]> = {
     [EAST_PATH_X, 0],
     [EAST_PATH_X, ARBORETUM_DOOR.z],
   ],
-  // the chalets line the north side of Castle Square: up Steep Hill, then across the square to them
+  // the chalets line the north side of Minster Yard's forecourt: up Steep Hill, across the square and through the gate
   "christmas-market": [
     [0, 0],
-    [0, MARKET_DOOR.z],
+    [0, -121],
+    ARCH_WEST,
+    ARCH_EAST,
+    [MARKET_DOOR.x, MARKET_DOOR.z],
+  ],
+  // the gatehouse's doorway on the square: from the top of Steep Hill, clear of Bailgate's shops and the stalls
+  "exchequer-gate": [[0, -121]],
+  // through the gate, north up the path along the west front and east along the north side to the spur
+  "minster-yard": [
+    [0, -121],
+    ARCH_WEST,
+    ARCH_EAST,
+    [P.x0 + P.w / 2, gatePlace.z - 1.5],
+    [P.x0 + P.w / 2, P.z0 + P.w / 2],
+    [YARD_SPUR_X, P.z0 + P.w / 2],
   ],
 };
-export const FOOTPATHS = [
-  { x0: PATH_X - 1, x1: PATH_X + 1, z0: castlePlace.z - 1, z1: -4.3 },
+// The path round the cathedral is Minster Yard's, laid in setts (Town.tsx), with a spur north across the lawn to
+// the close houses' doors.
+export const RING_PATHS = [
   { x0: P.x0, x1: P.x1, z0: P.z0, z1: P.z0 + P.w },
   { x0: P.x0, x1: P.x1, z0: P.z1 - P.w, z1: P.z1 },
   { x0: P.x0, x1: P.x0 + P.w, z0: P.z0 + P.w, z1: P.z1 - P.w },
   { x0: P.x1 - P.w, x1: P.x1, z0: P.z0 + P.w, z1: P.z1 - P.w },
+  { x0: YARD_SPUR_X - 1, x1: YARD_SPUR_X + 1, z0: footprint(yardPlace).z1, z1: P.z0 },
+];
+export const FOOTPATHS = [
+  { x0: PATH_X - 1, x1: PATH_X + 1, z0: castlePlace.z - 1, z1: -4.3 },
+  ...RING_PATHS,
   ...GREESTONE,
   ...EAST_FOOTPATH,
   ...LANDMARK_PATHS,
@@ -232,7 +260,62 @@ const NEWPORT_PIERS = ([[-NEWPORT.half, -NEWPORT.open], [NEWPORT.open, NEWPORT.p
 // Castle Square: a pedestrianised square at the top of Steep Hill, from the castle gate
 // across to the cathedral, with a row of farmers' market stalls along its north side, either side of the way into Bailgate.
 const hill = footprint(PLACES.find((p) => p.kind === "street")!);
-export const CLOSE = { x0: castle.x1 - 1, x1: cathedral.x0 + 1, z0: hill.z0 - 12, z1: hill.z0 + 3 };
+export const CLOSE = { x0: castle.x1 - 1, x1: gatePlace.x - gatePlace.d / 2, z0: hill.z0 - 12, z1: hill.z0 + 3 };
+// The Exchequer Gate across its east side (local x along the gate, so world z): solid but for its big central arch,
+// in line with the cathedral's west door, and a footway arch either side, with a short stub of the close wall off
+// each end.
+export const EXCHEQUER = { x: gatePlace.x, z: gatePlace.z, half: gatePlace.w / 2, d: gatePlace.d, arch: 1.6, foot: [2.9, 4.3], stub: 3.5, t: 0.3 };
+const E = EXCHEQUER;
+export const EXCHEQUER_BOXES = [
+  ...([[-E.half, -E.foot[1]], [-E.foot[0], -E.arch], [E.arch, E.foot[0]], [E.foot[1], E.half]] as const).map(([z0, z1]) => ({ x0: E.x - E.d / 2, x1: E.x + E.d / 2, z0: E.z + z0, z1: E.z + z1 })),
+  ...[-1, 1].map((s) => ({ x0: E.x - E.t, x1: E.x + E.t, z0: Math.min(E.z + s * E.half, E.z + s * (E.half + E.stub)), z1: Math.max(E.z + s * E.half, E.z + s * (E.half + E.stub)) })),
+];
+// Minster Yard beyond it: a paved forecourt out to the path along the cathedral's west front, the lawn north of the
+// cathedral in front of the close houses, and a plainer row of houses on the south side, east of the Greestone Stairs,
+// looking north onto the path.
+export const MINSTER = {
+  forecourt: { x0: E.x + E.d / 2, x1: P.x0, z0: E.z - 7, z1: E.z + 7 },
+  lawn: { x0: P.x0, x1: P.x1, z0: footprint(yardPlace).z1, z1: P.z0 },
+  south: Array.from({ length: 5 }, (_, i) => ({ x: 63.2 + i * 6.4, z: P.z1 + 4.3, w: 6.4, d: 3.6 })),
+};
+const yardBox = (h: { x: number; z: number; w: number; d: number }) => ({ x0: h.x - h.w / 2, x1: h.x + h.w / 2, z0: h.z - h.d / 2, z1: h.z + h.d / 2 });
+// A few trees on the lawn, clear of the walk from the path to the spur.
+export const YARD_TREES: [number, number, number][] = [
+  [40, -149.4, 1],
+  [47, -150, 0.9],
+  [80, -147.2, 1.05],
+  [87, -146.6, 0.95],
+  [93, -148.4, 1],
+];
+// Walks across the line of the gate and its wall stubs go through the big arch, square on. On the square side, setting
+// off from (or heading to) north of the market stalls' front, step south of them first so as not to cut through them.
+const STALLS_FRONT = hill.z0 - 6;
+// On the yard side, from the lawn or the path north of the cathedral, come down the path along the west front and
+// into the forecourt south of the Christmas chalets along its north edge.
+const WEST_PATH: [number, number] = [P.x0 + P.w / 2, E.z - 2.5];
+const yardSteps = ([x, z]: [number, number]): [number, number][] =>
+  z > WEST_PATH[1] - 0.5 ? [] : x > P.x0 + P.w ? [[WEST_PATH[0], P.z0 + P.w / 2], WEST_PATH] : [[WEST_PATH[0], z], WEST_PATH];
+// Between the forecourt (or the west door) and the lawn north of the cathedral, the same way round its corner.
+const inForecourt = ([x, z]: [number, number]) => x > E.x && x < P.x0 + P.w && z > WEST_PATH[1] - 0.5;
+const northOfCathedral = ([x, z]: [number, number]) => x > E.x && z < cathedral.z0 - 0.5;
+function throughGate(route: [number, number][]) {
+  const out: [number, number][] = [route[0]];
+  for (const b of route.slice(1)) {
+    const a = out.at(-1)!;
+    if ((a[0] - E.x) * (b[0] - E.x) < 0 && Math.max(Math.abs(a[0] - E.x), Math.abs(b[0] - E.x)) > E.d / 2 + 1.5) {
+      const z = a[1] + ((E.x - a[0]) / (b[0] - a[0])) * (b[1] - a[1]);
+      if (Math.abs(z - E.z) < E.half + E.stub + 0.5) {
+        const [west, east] = a[0] < E.x ? [a, b] : [b, a];
+        const step: [number, number][] = west[1] < STALLS_FRONT - 0.5 ? [[west[0], STALLS_FRONT]] : [];
+        const yard = yardSteps(east);
+        out.push(...(a === west ? [...step, ARCH_WEST, ARCH_EAST, ...yard.slice().reverse()] : [...yard, ARCH_EAST, ARCH_WEST, ...step]));
+      }
+    } else if (inForecourt(a) && northOfCathedral(b)) out.push(...yardSteps(b).reverse());
+    else if (northOfCathedral(a) && inForecourt(b)) out.push(...yardSteps(a));
+    out.push(b);
+  }
+  return out;
+}
 // Bailgate, pedestrianised too, running north from the square between the castle and the cathedral.
 export const BAILGATE = { x0: -4.3, x1: 4.3, z0: NORTH + 3, z1: CLOSE.z0 + 0.5 };
 export const STALL = { w: 4, d: 2.4 };
@@ -254,7 +337,8 @@ export const inCornhill = (x: number, z: number) => CORNHILL.some((r) => x > r.x
 export const CORNHILL_WAY = (CORNHILL[1].x0 + CORNHILL[1].x1) / 2;
 
 export const STALLS = [
-  ...[-16, -10, 10, 16].map((x) => ({ x, z: CLOSE.z0 + 2.5 })),
+  // (the east pair a little in from the Exchequer Gate, to leave its doorway and the way through its arch clear)
+  ...[-16, -10, 8, 13.5].map((x) => ({ x, z: CLOSE.z0 + 2.5 })),
   // and two more on Cornhill, west of the Corn Exchange
   ...[22.2, 26.6].map((x) => ({ x, z: exchange.z0 + 3.4 })),
 ];
@@ -476,7 +560,7 @@ export function crossings(from: [number, number], to: [number, number]) {
     pts.push(...p);
     at = p.at(-1) ?? at;
   }
-  return [...pts, ...end];
+  return throughGate([from, ...pts, ...end, to]).slice(1, -1);
 }
 
 // The roundabout on the main road out west with the tank memorial in the middle, as at the start of
@@ -489,7 +573,7 @@ export const ROUNDABOUT = { x: tank.x, z: tank.z, island: 4.3, ring: 6.8, edge: 
 export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 }));
 
 // The seasonal market adds its own stalls while it's in town (Town.tsx).
-const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market"].includes(p.kind ?? "shop")).flatMap((p) => {
+const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehouse"].includes(p.kind ?? "shop")).flatMap((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
     // only the signboard at the back of the plot is solid
@@ -522,7 +606,7 @@ const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market"].includes(
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), STONEBOW_PIERS, NEWPORT_PIERS, RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES);
 
 const HIGH_STREET = { x0: -HIGH_ST, x1: HIGH_ST, z0: hill.z1, z1: -4.3 };
 const onRoad = (x: number, z: number) =>
@@ -531,11 +615,11 @@ const onRoad = (x: number, z: number) =>
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...RIVER_BOXES, ...WITHAM_RUNS, WHARF_EAST_SOUTH, ST_MARKS.street, WEST_BANK, ...ST_MARKS.units.map(barBox), ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...EXCHEQUER_BOXES, MINSTER.forecourt, MINSTER.lawn, ...RIVER_BOXES, ...WITHAM_RUNS, WHARF_EAST_SOUTH, ST_MARKS.street, WEST_BANK, ...ST_MARKS.units.map(barBox), ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
-  [...WHARF_BARS, ...ST_MARKS.units].map(barBox).some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
+  [...[...WHARF_BARS, ...ST_MARKS.units].map(barBox), ...MINSTER.south.map(yardBox)].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   PLACES.some((p) => {
     const f = footprint(p);
     const door = p.kind === "lot" ? 0 : 4; // keep the approach to each entrance clear
@@ -556,7 +640,7 @@ export const TREES: [number, number, number][] = (() => {
     if (out.some(([ox, oz]) => Math.hypot(ox - x, oz - z) < 5)) continue;
     out.push([x, z, 0.85 + (out.length % 4) * 0.12]);
   }
-  return out;
+  return [...out, ...YARD_TREES];
 })();
 
 const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));

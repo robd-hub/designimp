@@ -15,15 +15,15 @@ type Props = { p: Place; font: string; reduce: boolean };
 
 // Height of the ground at a point dz along from a place's middle (in world z), relative to the middle,
 // since Town has already lifted each place to the ground at its own z.
-const lift = (p: Place) => (dz: number) => groundY(p.z + dz) - groundY(p.z);
+export const lift = (p: Place) => (dz: number) => groundY(p.z + dz) - groundY(p.z);
 
-function useSign(text: string, fg: string, font: string) {
+export function useSign(text: string, fg: string, font: string) {
   const sign = useMemo(() => signTexture(text, fg, font), [text, fg, font]);
   useEffect(() => () => sign.dispose(), [sign]);
   return sign;
 }
 
-function Sign({ map, w, h, ...g }: { map: THREE.Texture; w: number; h: number } & Omit<ThreeElements["mesh"], "children">) {
+export function Sign({ map, w, h, ...g }: { map: THREE.Texture; w: number; h: number } & Omit<ThreeElements["mesh"], "children">) {
   return (
     <mesh {...g}>
       <planeGeometry args={[w, h]} />
@@ -33,8 +33,8 @@ function Sign({ map, w, h, ...g }: { map: THREE.Texture; w: number; h: number } 
 }
 
 // Lots of one small part in one draw call: each is [position, rotation?, scale?].
-type Inst = { at: V3; rot?: V3; scale?: V3; color?: number };
-function Many({ geometry, color, list, glow = false }: { geometry: THREE.BufferGeometry; color: number; list: Inst[]; glow?: boolean }) {
+export type Inst = { at: V3; rot?: V3; scale?: V3; color?: number };
+export function Many({ geometry, color, list, glow = false }: { geometry: THREE.BufferGeometry; color: number; list: Inst[]; glow?: boolean }) {
   const ref = useRef<THREE.InstancedMesh>(null!);
   const material = useMemo(() => (glow ? new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }) : null), [glow]);
   useEffect(() => () => material?.dispose(), [material]);
@@ -57,7 +57,7 @@ function Many({ geometry, color, list, glow = false }: { geometry: THREE.BufferG
 }
 
 // A triangular prism for a pitched roof: span across, rise to the ridge, len along the ridge (local x).
-function useRoof(span: number, rise: number, len: number) {
+export function useRoof(span: number, rise: number, len: number) {
   const g = useMemo(() => {
     const shape = new THREE.Shape([new THREE.Vector2(-span / 2, 0), new THREE.Vector2(span / 2, 0), new THREE.Vector2(0, rise)]);
     const out = new THREE.ExtrudeGeometry(shape, { depth: len, bevelEnabled: false }).translate(0, 0, -len / 2).rotateY(Math.PI / 2);
@@ -246,9 +246,11 @@ export function Market({ p, font }: Props) {
   const sign = useSign("Christmas Market", "#a01a24", font);
   const roof = useRoof(2.9, 1, 3.4);
   const y = lift(p);
-  const n = 4,
-    gap = p.w / n;
-  const xs = useMemo(() => Array.from({ length: n }, (_, i) => -p.w / 2 + gap * (i + 0.5)), [p.w, gap]);
+  // as many chalets as fit, each a touch narrower when the row is short
+  const n = Math.round(p.w / 3.2),
+    gap = p.w / n,
+    fit = Math.min(1, (gap - 0.05) / 3.2);
+  const xs = useMemo(() => Array.from({ length: n }, (_, i) => -p.w / 2 + gap * (i + 0.5)), [p.w, gap, n]);
   const TREE = { x: 0, z: -3.8 };
   // solid while it's in town: the row of chalets and the tree behind
   useEffect(() => {
@@ -263,8 +265,8 @@ export function Market({ p, font }: Props) {
     };
   }, [p, TREE.z]);
   const lights = useMemo(
-    () => xs.flatMap((x, c) => Array.from({ length: 7 }, (_, i) => ({ at: [x - 1.5 + i * 0.5, 2.25 - Math.sin((i / 6) * Math.PI) * 0.12, 1.35] as V3, color: BULBS[(i + c) % BULBS.length] }))),
-    [xs],
+    () => xs.flatMap((x, c) => Array.from({ length: 7 }, (_, i) => ({ at: [x + (-1.5 + i * 0.5) * fit, 2.25 - Math.sin((i / 6) * Math.PI) * 0.12, 1.35] as V3, color: BULBS[(i + c) % BULBS.length] }))),
+    [xs, fit],
   );
   const baubles = useMemo(() => {
     const out: Inst[] = [];
@@ -280,7 +282,7 @@ export function Market({ p, font }: Props) {
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       {xs.map((x, i) => (
-        <group key={x} position={[x, y(0), 0]}>
+        <group key={x} position={[x, y(0), 0]} scale-x={fit}>
           <Part geometry={geo.box(3.2, 2.2, 2.4)} color={CHALET} position={[0, 1.1, -0.1]} />
           <Part geometry={roof} color={SNOW} position-y={2.2} />
           {/* the counter and its goods, under the open shutter */}
@@ -293,8 +295,8 @@ export function Market({ p, font }: Props) {
         </group>
       ))}
       <Many geometry={geo.sphere(0.07, 6, 4)} color={LAMP} list={lights} glow />
-      <Sign map={sign} w={3.4} h={0.85} position={[xs[1] + gap / 2, y(0) + 3.6, 0.3]} />
-      <mesh geometry={geo.box(0.1, 1.2, 0.1)} material={toon(INK)} position={[xs[1] + gap / 2, y(0) + 2.9, 0.25]} />
+      <Sign map={sign} w={3.4} h={0.85} position={[0, y(0) + 3.9, 0.3]} />
+      <mesh geometry={geo.box(0.1, 1.4, 0.1)} material={toon(INK)} position={[0, y(0) + 3.1, 0.25]} />
       {/* the tree */}
       <group position={[TREE.x, y(Math.cos(p.rot) * TREE.z), TREE.z]}>
         <mesh geometry={geo.cyl(0.3, 0.4, 1.2, 8)} material={toon(0x6b4a2e)} position-y={0.6} />
