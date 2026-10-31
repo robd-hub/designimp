@@ -11,9 +11,12 @@ const GIRDER = 0x2b59c3;
 const IRON = 0x2b2633;
 const PAVING = 0xd9ccb2;
 const PATH = 0xe8dcc2;
+const CONCRETE = 0xcfcac0;
+const CONCRETE_EDGE = 0xb5afa3;
 const ROAD_EDGE = WHARF_EAST_SOUTH.z0;
 
 const wide = WITHAM.half * 2;
+const UNI_W = WITHAM.uniHalf * 2;
 // The railings along the lane's river side, broken where the railway and the footbridge cross.
 const RAIL_RUNS = [
   [ROAD_EDGE + 0.6, RAIL.z - RAIL.fence - 0.3],
@@ -30,7 +33,7 @@ const LANE_LAMPS = [ROAD_EDGE + 5, RAIL.z + RAIL.fence + 6, RAIL.z + RAIL.fence 
 
 // The Witham south of the Brayford: open water in stone banks out of the pool's south-east corner, under the
 // main road through an arch in each face of its bridge, under the railway between the bridge's blue girders,
-// past the back of St Marks under a footbridge, and off west towards Boultham. Beside it, Brayford Wharf East
+// under the University Bridge, past the back of St Marks under a footbridge, and off west towards Boultham. Beside it, Brayford Wharf East
 // carries on down the east bank, railed off from the water, and a path runs down the west bank by the University.
 export default function Witham({ font }: { font: string }) {
   return (
@@ -69,6 +72,26 @@ export default function Witham({ font }: { font: string }) {
             <Part key={`${sz}${k}`} geometry={geo.box(0.12, 1, 0.12)} color={0x5a3a22} outline={0.02} position={[k * (wide / 2 + 0.6), 0.85, (sz * (WITHAM.footHalf * 2 - 0.3)) / 2]} />
           )),
         ])}
+      </group>
+      {/* the University Bridge from Brayford Wharf East to the campus: a flat concrete beam with a lip along each edge,
+          steel railings, a lamp at each corner on the wharf side and its name on the south rail */}
+      <group position={[WITHAM.x, 0, WITHAM.uni]}>
+        <mesh geometry={geo.box(wide, 0.12, UNI_W)} material={toon(WATER)} position-y={0.2} />
+        <Part geometry={geo.box(wide + 1.6, 0.35, UNI_W - 0.1)} color={CONCRETE} outline={0.04} position-y={0.35} />
+        {[-1, 1].flatMap((sz) => [
+          <Part key={`e${sz}`} geometry={geo.box(wide + 1.6, 0.2, 0.18)} color={CONCRETE_EDGE} outline={0.03} position={[0, 0.6, (sz * (UNI_W - 0.3)) / 2]} />,
+          ...[0.95, 1.4].map((y) => (
+            <Part key={`r${sz}${y}`} geometry={geo.box(wide + 1.6, 0.08, 0.08)} color={IRON} outline={0.02} position={[0, y, (sz * (UNI_W - 0.3)) / 2]} />
+          )),
+          ...[-1, -0.33, 0.33, 1].map((k) => (
+            <Part key={`${sz}${k}`} geometry={geo.box(0.1, 0.8, 0.1)} color={IRON} outline={0.02} position={[k * (wide / 2 + 0.7), 1.05, (sz * (UNI_W - 0.3)) / 2]} />
+          )),
+          <group key={`l${sz}`} position={[wide / 2 + 0.75, 0, (sz * (UNI_W - 0.3)) / 2]}>
+            <Part geometry={geo.cyl(0.08, 0.1, 2.6, 8)} color={IRON} outline={0.04} position-y={1.8} />
+            <Part geometry={geo.sphere(0.25)} color={LAMP} outline={0.05} position-y={3.2} />
+          </group>,
+        ])}
+        <NamePlate text="University Bridge" font={font} position={[-0.4, 0.5, (UNI_W - 0.3) / 2 + 0.1]} />
       </group>
       {/* Brayford Wharf East, paved on down to St Marks and over the line, and the path down the west bank */}
       <Strip w={WHARF_EAST_SOUTH.x1 - WHARF_EAST_SOUTH.x0} d={WHARF_EAST_SOUTH.z1 - WHARF_EAST_SOUTH.z0} color={PAVING} x={(WHARF_EAST_SOUTH.x0 + WHARF_EAST_SOUTH.x1) / 2} z={(WHARF_EAST_SOUTH.z0 + WHARF_EAST_SOUTH.z1) / 2} y={0.065} />
