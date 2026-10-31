@@ -45,7 +45,7 @@ let lastStep = 0;
 
 const CATHEDRAL = PLACES.find((p) => p.id === "cathedral")!;
 const STADIUM = PLACES.find((p) => p.id === "sincil-bank")!;
-const QUIET_KINDS = new Set(["lot", "tank", "gate", "bridge", "arch", "oldhouse", "ruins", "street", "water", "mill", "park"]);
+const QUIET_KINDS = new Set(["lot", "tank", "gate", "bridge", "arch", "oldhouse", "ruins", "street", "water", "mill", "park", "hill", "flyover"]);
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
