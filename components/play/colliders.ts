@@ -129,6 +129,38 @@ export const LANDMARK_PATHS = [
   { x0: MILL_DOOR.x - 1, x1: MILL_X - 1, z0: MILL_DOOR.z - 1, z1: MILL_DOOR.z + 1 },
   { x0: EAST_PATH_X + 1, x1: ARBORETUM_DOOR.x + 1, z0: ARBORETUM_DOOR.z - 1, z1: ARBORETUM_DOOR.z + 1 },
 ];
+// Lindum Hill: the steep road up the east side of the hill. Its foot is at the bottom of Monks Road, by the Arboretum's
+// gates, with a pavement past the park's west railings; it climbs north past the Usher Gallery's east end, then bends east
+// at the top along to Eastgate, where a footway runs up into Minster Yard at the cathedral's south-east corner. Tall
+// townhouses line both sides, left out on the west side where the gallery and the path along its front come up to it.
+const lindum = PLACES.find((p) => p.kind === "hill")!;
+const LH = footprint(lindum);
+export const LINDUM_ROW = 3.2; // depth of the house rows
+const LINDUM_N = 7;
+const lindumLen = (LH.z1 - 0.5 - LH.z0) / LINDUM_N;
+const TOP_Z0 = LH.z0 - 2.8;
+export const LINDUM = {
+  road: LH,
+  top: { x0: LH.x0, x1: P.x1, z0: TOP_Z0, z1: LH.z0 },
+  foot: { x0: LH.x0, x1: ARBORETUM_DOOR.x + 1.2, z0: LH.z1, z1: ARBORETUM_DOOR.z - 1 },
+  eastgate: { x0: P.x1 - P.w, x1: P.x1, z0: P.z1, z1: TOP_Z0 },
+  // each side listed from the bottom of the hill up; side -1 is the west row, its fronts facing east onto the road
+  houses: [-1, 1].flatMap((side) =>
+    Array.from({ length: LINDUM_N }, (_, i) => ({
+      side,
+      i,
+      len: lindumLen,
+      x: side < 0 ? LH.x0 - LINDUM_ROW / 2 : LH.x1 + LINDUM_ROW / 2,
+      z: LH.z1 - 0.5 - lindumLen * (i + 0.5),
+    })).filter((h) => side > 0 || h.z + h.len / 2 < gallery.z0 - 1.5 || h.z - h.len / 2 > gallery.z1 + 3.2),
+  ),
+};
+export const lindumBox = (h: (typeof LINDUM.houses)[number]) => ({
+  x0: h.x - LINDUM_ROW / 2,
+  x1: h.x + LINDUM_ROW / 2,
+  z0: h.z - h.len / 2,
+  z1: h.z + h.len / 2,
+});
 // Going to one of them (or the Christmas market) from Go to: join its path at the nearest of these points and follow it in.
 export const APPROACH: Record<string, [number, number][]> = {
   "ellis-mill": [
@@ -140,6 +172,12 @@ export const APPROACH: Record<string, [number, number][]> = {
   arboretum: [
     [EAST_PATH_X, 0],
     [EAST_PATH_X, ARBORETUM_DOOR.z],
+  ],
+  // along Monks Road past the Arboretum's gates, and north up the pavement to the foot of the hill
+  "lindum-hill": [
+    [EAST_PATH_X, 0],
+    [EAST_PATH_X, ARBORETUM_DOOR.z],
+    [lindum.x, ARBORETUM_DOOR.z],
   ],
   // the chalets line the north side of Minster Yard's forecourt: up Steep Hill, across the square and through the gate
   "christmas-market": [
@@ -584,6 +622,7 @@ const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehous
       [hx, hz] = side ? [0.6, 1.6] : [1.6, 0.6];
     return [{ x0: xs - hx, x1: xs + hx, z0: zs - hz, z1: zs + hz }];
   }
+  if (p.kind === "hill") return LINDUM.houses.map(lindumBox); // the road is open, its houses solid
   if (p.kind === "street") {
     // two rows of houses with a walkable lane between them
     return streetHouses(p).map((h) => ({
@@ -615,11 +654,11 @@ const onRoad = (x: number, z: number) =>
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...EXCHEQUER_BOXES, MINSTER.forecourt, MINSTER.lawn, ...RIVER_BOXES, ...WITHAM_RUNS, WHARF_EAST_SOUTH, ST_MARKS.street, WEST_BANK, ...ST_MARKS.units.map(barBox), ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...EXCHEQUER_BOXES, MINSTER.forecourt, MINSTER.lawn, LINDUM.top, LINDUM.foot, LINDUM.eastgate, ...RIVER_BOXES, ...WITHAM_RUNS, WHARF_EAST_SOUTH, ST_MARKS.street, WEST_BANK, ...ST_MARKS.units.map(barBox), ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
-  [...[...WHARF_BARS, ...ST_MARKS.units].map(barBox), ...MINSTER.south.map(yardBox)].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
+  [...[...WHARF_BARS, ...ST_MARKS.units].map(barBox), ...MINSTER.south.map(yardBox), ...LINDUM.houses.map(lindumBox)].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   PLACES.some((p) => {
     const f = footprint(p);
     const door = p.kind === "lot" ? 0 : 4; // keep the approach to each entrance clear

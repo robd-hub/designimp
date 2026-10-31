@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex, inSeason } from "./places";
-import { EXCHEQUER, MINSTER, AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, ST_MARKS, WEST_BANK, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, WHARF_BARS, WITHAM, WITHAM_RUNS, barBox, streetHouses, toWorld } from "./colliders";
+import { EXCHEQUER, MINSTER, AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, ST_MARKS, WEST_BANK, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, WHARF_BARS, WITHAM, WITHAM_RUNS, barBox, streetHouses, toWorld, LINDUM, lindumBox } from "./colliders";
 import { RISE } from "./terrain";
 import { game, usePlay, walkTo } from "./store";
 import s from "./play.module.css";
@@ -73,6 +73,13 @@ export default function Minimap() {
       <rect x={L} y={-3} width={W} height={6} fill="#6b6573" />
       {[...GREESTONE, ...EAST_FOOTPATH, ...LANDMARK_PATHS, WEST_BANK].map((g, i) => (
         <rect key={i} x={g.x0} y={g.z0} width={g.x1 - g.x0} height={g.z1 - g.z0} fill="#e8dcc2" pointerEvents="none" />
+      ))}
+      {/* Lindum Hill: the bend along the top, the pavements at either end and its houses (the road is its place rect) */}
+      {[LINDUM.top, LINDUM.foot, LINDUM.eastgate].map((r, i) => (
+        <rect key={i} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill={i ? "#e8dcc2" : "#6b6573"} pointerEvents="none" />
+      ))}
+      {LINDUM.houses.map(lindumBox).map((b) => (
+        <rect key={`${b.x0},${b.z0}`} x={b.x0} y={b.z0} width={b.x1 - b.x0} height={b.z1 - b.z0} fill="#b5523b" pointerEvents="none" />
       ))}
       {[BUS_STATION.kerb, ...BUS_STATION.tarmac].map((r, i) => (
         <rect key={i} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill={i ? "#6b6573" : "#e8dcc2"} pointerEvents="none" />

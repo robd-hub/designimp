@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -1069,6 +1069,29 @@ export const PLACES: Place[] = [
       "Look out for the bandstand and the stone lion, both from the park's early years, and the ponds and winding paths between the trees.",
     ],
     link: { href: "https://www.lincoln.gov.uk/parks-open-spaces/lincoln-arboretum-1", label: "Visit the Arboretum", external: true },
+  },
+  {
+    id: "lindum-hill",
+    kind: "hill",
+    name: "Lindum Hill",
+    kicker: "The steep road up the east side",
+    nav: "Lindum Hill",
+    // the roadway itself (its houses either side are laid out in colliders.ts): from the bottom of Monks Road, by the
+    // Arboretum's gates, north up the hillside east of the Usher Gallery, bending east at the top to Eastgate by the
+    // cathedral's east end
+    x: 78,
+    z: -81.5,
+    w: 4.8,
+    d: 39,
+    h: 0,
+    wall: 0x6b6573,
+    roof: 0x4a4f5c,
+    roofType: "pitch",
+    rot: 0,
+    intro: [
+      "Lindum Hill is the other way up to the cathedral: a steep road climbing the east side of the hill, from the bottom of Monks Road and Broadgate up to Eastgate by the cathedral's east end.",
+      "It takes its name from Lindum Colonia, the Romans' name for Lincoln, and it's lined with tall Georgian and Victorian townhouses, many of them offices now.",
+    ],
   },
   {
     id: "christmas-market",
