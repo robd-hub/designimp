@@ -1055,10 +1055,10 @@ export const PLACES: Place[] = [
     kicker: "Victorian park on Monks Road",
     nav: "Arboretum",
     // east of the centre, its gates opening west onto Broadgate, where Monks Road comes in from the footbridge path
-    x: 90.5,
+    x: 92.1,
     z: -50,
     w: 22,
-    d: 18,
+    d: 15,
     h: 3,
     wall: 0x5fae55,
     roof: 0x2f6d55,
@@ -1079,7 +1079,7 @@ export const PLACES: Place[] = [
     // the roadway itself (its houses either side are laid out in colliders.ts): from the top of Broadgate, by the
     // Arboretum's gates, north up the hillside east of the Usher Gallery, bending east at the top to Eastgate by the
     // cathedral's east end
-    x: 78,
+    x: 81.5,
     z: -81.5,
     w: 4.8,
     d: 39,
@@ -1101,7 +1101,7 @@ export const PLACES: Place[] = [
     nav: "Pelham Bridge",
     // Broadgate carried on south of the main road, up a ramp and over the railway on a high deck, and down again beyond
     // it (the shape of the climb is PELHAM in colliders.ts). Turned to face north, so its way on is off the main road.
-    x: 78,
+    x: 81.5,
     z: 19.65,
     w: 4.8,
     d: 30.7,
