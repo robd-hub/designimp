@@ -1054,11 +1054,11 @@ export const PLACES: Place[] = [
     name: "The Arboretum",
     kicker: "Victorian park on Monks Road",
     nav: "Arboretum",
-    // east of the centre, its gates opening west onto Broadgate, where Monks Road comes in from the footbridge path
-    x: 92.1,
+    // out east along Monks Road from the foot of Lindum Hill, as in real Lincoln, its gates opening west onto the road
+    x: 120,
     z: -50,
-    w: 22,
-    d: 15,
+    w: 30,
+    d: 26,
     h: 3,
     wall: 0x5fae55,
     roof: 0x2f6d55,

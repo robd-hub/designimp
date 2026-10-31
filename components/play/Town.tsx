@@ -904,7 +904,7 @@ function Clouds({ reduce, color = 0xffffff }: { reduce: boolean; color?: number 
     if (reduce) return;
     refs.current.forEach((c, i) => {
       c.position.x += Math.min(delta, 0.05) * (0.6 + (i % 3) * 0.2);
-      if (c.position.x > 95) c.position.x = -95;
+      if (c.position.x > EAST - 5) c.position.x = -95;
     });
   });
   return (
@@ -928,7 +928,7 @@ const HILLS = Array.from({ length: 28 }, (_, i) => {
   // round an oval, since the town is much longer north to south, pushed out further east where
   // the map runs on past the cathedral's east end
   const c = Math.cos(a);
-  return [c * r + Math.max(0, c) * 34, MID_Z + Math.sin(a) * r * 1.8, 18 + hillRand() * 22] as const;
+  return [c * r + Math.max(0, c) * (EAST - 66), MID_Z + Math.sin(a) * r * 1.8, 18 + hillRand() * 22] as const;
 });
 function Hills() {
   return (
