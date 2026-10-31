@@ -459,8 +459,10 @@ export const ST_MARKS = {
 // west bank and Brayford Wharf East on its east bank, as in real Lincoln. It passes under the main road on a road
 // bridge and under the railway on a rail bridge, runs on south past the back of St Marks, then turns west at
 // bend and leaves the map towards Boultham. foot is the footbridge from the end of the St Marks street over to
-// the open ground on its west bank.
-export const WITHAM = { x: pool.x1 + 1, half: RIVER.half, z0: pool.z1, bend: 100, foot: (ST_MARKS.street.z0 + ST_MARKS.street.z1) / 2, footHalf: 1.2 };
+// the open ground on its west bank. uni is the University Bridge, the concrete footbridge from Brayford Wharf East
+// over to the campus, level with the middle of the University building, and uniHalf half its width.
+const university = PLACES.find((p) => p.kind === "campus")!;
+export const WITHAM = { x: pool.x1 + 1, half: RIVER.half, z0: pool.z1, bend: 100, foot: (ST_MARKS.street.z0 + ST_MARKS.street.z1) / 2, footHalf: 1.2, uni: university.z, uniHalf: 1.4 };
 // Brayford Wharf East carried on south of the main road, over the railway on its own level crossing for people on
 // foot, down the river bank to the end of the St Marks street.
 export const WHARF_EAST_SOUTH = { x0: WHARF_EAST.x0, x1: WHARF_EAST.x1, z0: ROAD_EDGE, z1: ST_MARKS.street.z1 };
@@ -469,10 +471,12 @@ export const WHARF_CROSSING = { x: (WHARF_EAST.x0 + WHARF_EAST.x1) / 2, half: (W
 const W0 = WITHAM.x - WITHAM.half;
 export const WEST_BANK = { x0: W0 - 2.9, x1: W0 - 0.5, z0: brayford.z + brayford.d / 2, z1: -ROAD_EDGE };
 // The open water, north to south and then the stretch running off west: out of the pool to the road bridge,
-// on to the rail bridge, on south past St Marks either side of the footbridge to the bend, and away west.
+// either side of the University Bridge, on to the rail bridge, on south past St Marks either side of the footbridge
+// to the bend, and away west.
 const footZ = [WITHAM.foot - WITHAM.footHalf, WITHAM.foot + WITHAM.footHalf];
 export const WITHAM_RUNS = [
-  [WITHAM.z0, -ROAD_EDGE],
+  [WITHAM.z0, WITHAM.uni - WITHAM.uniHalf],
+  [WITHAM.uni + WITHAM.uniHalf, -ROAD_EDGE],
   [ROAD_EDGE, RAIL.z - RAIL.fence],
   [RAIL.z + RAIL.fence, footZ[0]],
   [footZ[1], WITHAM.bend - WITHAM.half],
@@ -481,12 +485,12 @@ export const WITHAM_RUNS = [
   .concat({ x0: -BOUND - 4, x1: WITHAM.x + WITHAM.half, z0: WITHAM.bend - WITHAM.half, z1: WITHAM.bend + WITHAM.half });
 const WITHAM_BOXES = WITHAM_RUNS.map((r) => ({ ...r, x0: r.x0 - 0.3, x1: r.x1 + 0.3, z1: r.z1 === WITHAM.bend + WITHAM.half ? r.z1 + 0.3 : r.z1 }));
 // The two pockets of ground on the Witham's west bank, closed in by the river, the pool and the Fossdyke or the
-// railway: n north of the railway, reached over the road bridge, and s south of it, reached over the footbridge.
-// For each, the points either side of its bridge, east bank first.
+// railway: n north of the railway, reached over the road bridge or the University Bridge, and s south of it, reached
+// over the footbridge. For each, the points either side of its bridge, east bank first.
 const pocket = (x: number, z: number) =>
   x > W0 - 0.4 ? null : z > WITHAM.z0 && z < RAIL.z - RAIL.fence ? "n" : z > RAIL.z + RAIL.fence && z < WITHAM.bend - WITHAM.half ? "s" : null;
 const WEST_PATH_X = (WEST_BANK.x0 + WEST_BANK.x1) / 2;
-const POCKET_BRIDGES: Record<"n" | "s", [number, number][]> = {
+const POCKET_BRIDGES: Record<"n" | "s" | "uni", [number, number][]> = {
   n: [
     [WHARF_CROSSING.x, 0],
     [WEST_PATH_X, 0],
@@ -497,19 +501,27 @@ const POCKET_BRIDGES: Record<"n" | "s", [number, number][]> = {
     [WHARF_CROSSING.x, WITHAM.foot],
     [W0 - 2.5, WITHAM.foot],
   ],
+  uni: [
+    [WHARF_CROSSING.x, WITHAM.uni],
+    [WEST_PATH_X, WITHAM.uni],
+  ],
 };
-// Waypoints out of a west-bank pocket to the east bank, and the other way in. The University and the Brayford's
-// south quay are reached along the west bank path.
-function leaveWitham([x, z]: [number, number]) {
+// Which bridge a walk into or out of a pocket uses: from the north pocket's campus side to anywhere north of the main
+// road, the University Bridge; otherwise the pocket's own.
+const pocketBridge = (p: "n" | "s", [, z]: [number, number], [, oz]: [number, number]) =>
+  p === "n" && z < -ROAD_EDGE && oz < -ROAD_EDGE ? POCKET_BRIDGES.uni : POCKET_BRIDGES[p];
+// Waypoints out of a west-bank pocket to the east bank, and the other way in, other being the far end of the walk.
+// The University and the Brayford's south quay are reached along the west bank path.
+function leaveWitham([x, z]: [number, number], other: [number, number]) {
   const p = pocket(x, z);
   if (!p) return [];
   const pts: [number, number][] = p === "n" && z < -ROAD_EDGE ? [[WEST_PATH_X, z]] : [];
-  return [...pts, ...POCKET_BRIDGES[p].slice().reverse()];
+  return [...pts, ...pocketBridge(p, [x, z], other).slice().reverse()];
 }
-function enterWitham([x, z]: [number, number]) {
+function enterWitham([x, z]: [number, number], other: [number, number]) {
   const p = pocket(x, z);
   if (!p) return [];
-  const pts = POCKET_BRIDGES[p].slice();
+  const pts = pocketBridge(p, [x, z], other).slice();
   if (p === "n" && z < -ROAD_EDGE) pts.push([WEST_PATH_X, z]);
   return pts;
 }
@@ -551,9 +563,9 @@ export function crossings(from: [number, number], to: [number, number]) {
   const a = pocket(...from),
     b = pocket(...to);
   if (a && a === b) return [];
-  const pts: [number, number][] = leaveWitham(from);
+  const pts: [number, number][] = leaveWitham(from, to);
   let at = pts.at(-1) ?? from;
-  const end = enterWitham(to);
+  const end = enterWitham(to, from);
   const goal = end[0] ?? to;
   for (const leg of goal[1] > at[1] ? [overRiver, overRailway] : [overRailway, overRiver]) {
     const p = leg(at, goal);
