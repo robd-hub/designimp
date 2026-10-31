@@ -81,7 +81,9 @@ export default function Hud() {
   useEffect(() => {
     usePlay.getState().hydrate();
     useSound.getState().hydrate();
-    const id = new URLSearchParams(window.location.search).get("place");
+    const asked = new URLSearchParams(window.location.search).get("place");
+    // links shared before a place was renamed
+    const id = asked === "jews-house" ? "normans-house" : asked;
     const p = PLACES.find((x) => x.id === id && inSeason(x, isXmas()));
     if (p) usePlay.getState().openPlace(p);
   }, []);

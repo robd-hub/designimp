@@ -767,7 +767,7 @@ export function NewportArch({ p, font }: { p: Place; font: string }) {
 
 // One of Steep Hill's Norman stone houses, standing in the row in place of an ordinary house:
 // two storeys of stone on a plinth stepping down the hill, a round-arched doorway (with a chimney
-// rising from just above it on the Jew's House) and pairs of round-headed windows upstairs.
+// rising from just above it on Norman's House) and pairs of round-headed windows upstairs.
 export function OldHouse({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, "#8a3b2e", font), [p, font]);
   const y = (dz: number) => groundY(p.z + dz) - groundY(p.z);
@@ -777,7 +777,7 @@ export function OldHouse({ p, font }: { p: Place; font: string }) {
   const top = y(-p.w / 2),
     low = y(p.w / 2) - 0.3;
   const front = deep / 2 + 0.06;
-  const chimney = p.id === "jews-house";
+  const chimney = p.id === "normans-house";
   const door = chimney ? 0 : -len / 4;
   const arched = (w: number, h: number, color: number, x: number, yy: number, key?: string) => (
     <group key={key} position={[x, yy, front]}>
