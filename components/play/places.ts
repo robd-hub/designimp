@@ -844,11 +844,11 @@ export const PLACES: Place[] = [
     ],
   },
   {
-    id: "jews-house",
+    id: "normans-house",
     kind: "oldhouse",
-    name: "Jew's House",
-    kicker: "A 12th-century home on Steep Hill",
-    nav: "Jew's House",
+    name: "Norman's House",
+    kicker: "A 12th-century home at the foot of Steep Hill",
+    nav: "Norman's House",
     // in place of the first house on the east side of Steep Hill, at the bottom of the hill
     // (Steep Hill runs from z -78 to -118 in seven plots a side)
     x: 6.1,
@@ -861,7 +861,7 @@ export const PLACES: Place[] = [
     roofType: "pitch",
     rot: -Math.PI / 2,
     intro: [
-      "The Jew's House was built in stone in the middle of the 12th century, and it's one of the oldest houses in England that's still in use.",
+      "Norman's House was built in stone in the middle of the 12th century, and it's one of the oldest houses in England that's still in use.",
       "Look for the carved round arch over the front door, with the chimney rising from just above it. Lincoln had one of the largest Jewish communities in medieval England, until Edward I expelled the Jews from England in 1290.",
     ],
     link: {
@@ -873,9 +873,9 @@ export const PLACES: Place[] = [
   {
     id: "aarons-house",
     kind: "oldhouse",
-    name: "Norman House",
-    kicker: "Another 12th-century stone house, further up",
-    nav: "Norman House",
+    name: "Medieval Norman House",
+    kicker: "Another 12th-century stone house, halfway up",
+    nav: "Medieval Norman House",
     // in place of the sixth house on the east side, just above the little square halfway up the hill
     x: 6.1,
     z: -78 - 20 / 7 - (5 * 40) / 7,
