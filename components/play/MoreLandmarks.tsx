@@ -175,7 +175,7 @@ export function Park({ p, font }: Props) {
     const out: { x: number; z: number; s: number }[] = [];
     const clear = (x: number, z: number) =>
       Math.hypot(x - 2.5, z + 2.5) > 4.2 && Math.hypot(x - 3.5, z - 5.5) > 3.6 && Math.abs(z) > 1.8 && Math.abs(x - 2.5) > 1.6 && !(x < -2 && Math.abs(z - 2.6) < 2);
-    for (let tries = 0; out.length < 16 && tries < 600; tries++) {
+    for (let tries = 0; out.length < Math.round((hw * hd) / 6) && tries < 1200; tries++) {
       const x = -hw + 1.6 + rand() * (2 * hw - 3.2),
         z = -hd + 1.6 + rand() * (2 * hd - 3.2);
       if (!clear(x, z) || out.some((t) => Math.hypot(t.x - x, t.z - z) < 3)) continue;

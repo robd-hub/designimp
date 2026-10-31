@@ -1,7 +1,7 @@
 import { PLACES, footprint } from "./places";
 
 export const BOUND = 76; // the west edge of the map
-export const EAST = 100; // the east edge, further out to make room for the cathedral's long east end
+export const EAST = 140; // the east edge, well out past the cathedral's long east end, with the Arboretum out along Monks Road
 export const MID_X = (EAST - BOUND) / 2; // the map's centre line, east to west
 export const SOUTH = 168; // the south road runs a long way down, past rows of shops and houses to Sincil Bank and RAF Scampton
 export const NORTH = -164; // the map runs further north, up the hill to the cathedral and castle
