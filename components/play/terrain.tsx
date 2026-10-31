@@ -3,6 +3,7 @@ import * as THREE from "three";
 import type { ThreeElements } from "@react-three/fiber";
 import { PLACES, footprint } from "./places";
 import { toon } from "./toon";
+import { PELHAM } from "./colliders";
 
 // Uphill Lincoln: the ground climbs Steep Hill to the cathedral and castle on the hilltop,
 // while the high street, the Brayford and everything south of them stay down by the river.
@@ -21,6 +22,15 @@ export function groundY(z: number) {
     const t = along(z, r);
     return y + r.h * t * t * (3 - 2 * t);
   }, 0);
+}
+
+// How high Pelham Bridge's road stands above the ground at a point: zero anywhere off it.
+export function deckY(x: number, z: number) {
+  const P = PELHAM;
+  if (x < P.x0 - 0.1 || x > P.x1 + 0.1 || z <= P.a || z >= P.d) return 0;
+  if (z < P.b) return (P.h * (z - P.a)) / (P.b - P.a);
+  if (z > P.c) return (P.h * (P.d - z)) / (P.d - P.c);
+  return P.h;
 }
 
 // Rotation about x that lays something flat on the slope at z.
