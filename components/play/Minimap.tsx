@@ -53,6 +53,7 @@ export default function Minimap() {
       {WITHAM_RUNS.map((r, i) => (
         <rect key={i} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill="#3aa6e8" pointerEvents="none" />
       ))}
+      <rect x={WITHAM.x - WITHAM.half - 0.8} y={WITHAM.uni - WITHAM.uniHalf} width={WITHAM.half * 2 + 1.6} height={WITHAM.uniHalf * 2} fill="#cfcac0" pointerEvents="none" />
       <rect x={WITHAM.x - WITHAM.half - 0.8} y={WITHAM.foot - WITHAM.footHalf} width={WITHAM.half * 2 + 1.6} height={WITHAM.footHalf * 2} fill="#8a5a33" pointerEvents="none" />
       <rect x={-HIGH_ST} y={RISE.z0} width={HIGH_ST * 2} height={-RISE.z0} fill="#d9ccb2" />
       <rect x={BAILGATE.x0} y={BAILGATE.z0} width={BAILGATE.x1 - BAILGATE.x0} height={BAILGATE.z1 - BAILGATE.z0} fill="#e8dcc2" />
