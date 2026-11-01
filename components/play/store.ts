@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
-import { PLACES, inSeason, isXmas, type Place } from "./places";
+import { PLACES, inSeason, currentSeason, type Place, type Season } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
 import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH } from "./colliders";
 import { cleanName, cleanType, cleanColour, type ShopType } from "./shop";
@@ -20,7 +20,7 @@ type PlayState = {
   openPlace: (p: Place) => void;
   close: () => void;
   night: boolean;
-  xmas: boolean; // December: the Christmas market is in town
+  season: Season; // December: the Christmas market is in town; around 5 November: the bonfire field
   toggleNight: () => void;
   street: boolean; // first-person "street view"
   toggleStreet: () => void;
@@ -148,7 +148,7 @@ export const usePlay = create<PlayState>((set) => ({
   },
   // set on mount (not during server render) so the HUD hydrates cleanly
   night: false,
-  xmas: false,
+  season: null,
   toggleNight: () => set(({ night }) => ({ night: !night })),
   street: false,
   toggleStreet: () =>
@@ -161,7 +161,7 @@ export const usePlay = create<PlayState>((set) => ({
       return { street: !street };
     }),
   found: [],
-  hydrate: () => set({ night: isNight(), xmas: isXmas(), found: loadFound(), shop: loadShop(), welcome: firstArrival() }),
+  hydrate: () => set({ night: isNight(), season: currentSeason(), found: loadFound(), shop: loadShop(), welcome: firstArrival() }),
   welcome: false,
   setWelcome: (welcome) => {
     if (!welcome) {
@@ -330,8 +330,8 @@ export function nearestNpc(): Npc | null {
 }
 
 export function nearestPlace(): Place | null {
-  const { xmas } = usePlay.getState();
-  for (const p of PLACES) if (inSeason(p, xmas) && DOORS.get(p.id)!.distanceTo(game.pos) < 3.2) return p;
+  const { season } = usePlay.getState();
+  for (const p of PLACES) if (inSeason(p, season) && DOORS.get(p.id)!.distanceTo(game.pos) < 3.2) return p;
   return null;
 }
 

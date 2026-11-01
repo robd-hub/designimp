@@ -25,7 +25,7 @@ export default function Minimap() {
     return () => cancelAnimationFrame(raf);
   }, []);
   const water = PLACES.find((p) => p.kind === "water");
-  const xmas = usePlay((st) => st.xmas);
+  const season = usePlay((st) => st.season);
   return (
     <svg className={`${s.card} ${s.minimap}`} viewBox={`${L} ${TOP} ${W} ${H}`} role="img" aria-label="Map of the town">
       {/* the ground darkens as it climbs the hill */}
@@ -93,7 +93,7 @@ export default function Minimap() {
         Object.entries(BRAYFORD).map(([k, b]) => (
           <rect key={k} x={water.x + b.x0} y={water.z + b.z0} width={b.x1 - b.x0} height={b.z1 - b.z0} fill={k === "front" ? "#f2e2c4" : "#3aa6e8"} />
         ))}
-      {PLACES.filter((p) => p.kind !== "water" && inSeason(p, xmas)).map((p) => {
+      {PLACES.filter((p) => p.kind !== "water" && inSeason(p, season)).map((p) => {
         const f = footprint(p);
         return (
           <g key={p.id}>

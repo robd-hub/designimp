@@ -25,6 +25,7 @@ import Witham from "./Witham";
 import { StMarks } from "./StMarks";
 import Bailgate, { Pub } from "./Bailgate";
 import { Mill, Park, Market as XmasMarket } from "./MoreLandmarks";
+import { Bonfire } from "./Bonfire";
 import { Gatehouse, Yard, MinsterGrounds, SETTS } from "./MinsterYard";
 import { LindumHill, PelhamBridge } from "./LindumHill";
 import { Crowd, Chant } from "./Matchday";
@@ -986,7 +987,7 @@ export default function Town({ font }: { font: string }) {
   const [signsReady, setSignsReady] = useState(false);
   const night = usePlay((s) => s.night);
   const street = usePlay((s) => s.street);
-  const xmas = usePlay((s) => s.xmas);
+  const season = usePlay((s) => s.season);
   const wx = useSky(night);
   useEffect(() => setNightGlow(night), [night]);
 
@@ -1051,8 +1052,8 @@ export default function Town({ font }: { font: string }) {
       <River />
       {signsReady &&
         PLACES.map((p) => {
-          if (p.kind === "tank" || !inSeason(p, xmas)) return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks, gatehouse: Gatehouse, yard: Yard, hill: LindumHill, flyover: PelhamBridge }[p.kind ?? "shop"];
+          if (p.kind === "tank" || !inSeason(p, season)) return null;
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks, gatehouse: Gatehouse, yard: Yard, hill: LindumHill, flyover: PelhamBridge, bonfire: Bonfire }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />

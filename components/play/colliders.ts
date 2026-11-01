@@ -630,8 +630,8 @@ export const ROUNDABOUT = { x: tank.x, z: tank.z, island: 4.3, ring: 6.8, edge: 
 // Two cannons guarding the castle gate, on the right as you face it (in the castle's own coordinates).
 export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 }));
 
-// The seasonal market adds its own stalls while it's in town (Town.tsx).
-const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehouse"].includes(p.kind ?? "shop")).flatMap((p) => {
+// The seasonal market and bonfire add their own solid parts while they're in town (MoreLandmarks.tsx, Bonfire.tsx).
+const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehouse", "bonfire"].includes(p.kind ?? "shop")).flatMap((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
     // only the signboard at the back of the plot is solid
