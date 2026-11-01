@@ -1121,7 +1121,7 @@ export const PLACES: Place[] = [
     // the roadway itself (its houses either side are laid out in colliders.ts): from the top of Broadgate, by the
     // Arboretum's gates, north up the hillside east of the Usher Gallery, bending east at the top to Eastgate by the
     // cathedral's east end
-    x: 81.5,
+    x: 85.5,
     z: -81.5,
     w: 8.6,
     d: 39,
@@ -1143,7 +1143,7 @@ export const PLACES: Place[] = [
     nav: "Pelham Bridge",
     // Broadgate carried on south of the main road, up a ramp and over the railway on a high deck, and down again beyond
     // it (the shape of the climb is PELHAM in colliders.ts). Turned to face north, so its way on is off the main road.
-    x: 81.5,
+    x: 85.5,
     z: 21.15,
     w: 8.6,
     d: 33.7,
