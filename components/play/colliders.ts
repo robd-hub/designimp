@@ -131,20 +131,34 @@ export const LANDMARK_PATHS = [
   { x0: EAST_PATH_X + 1, x1: ARBORETUM_DOOR.x + 1, z0: ARBORETUM_DOOR.z - 1, z1: ARBORETUM_DOOR.z + 1 },
 ];
 // Lindum Hill: the steep road up the east side of the hill. Broadgate brings it up from the main road, over the Witham on
-// a road bridge and past the Arboretum's gates where Monks Road comes in; from there it climbs north past the Usher Gallery's east end, then bends east
-// at the top along to Eastgate, where a footway runs up into Minster Yard at the cathedral's south-east corner. Tall
-// townhouses line both sides, left out on the west side where the gallery and the path along its front come up to it.
+// a road bridge and past the Arboretum's gates where Monks Road comes in; from there it climbs north past the Usher Gallery's east end,
+// then at the top sweeps in a smooth curve east, clear of the cathedral's south-east corner, and on north along the
+// cathedral's east end, with a footway across to the path round the precinct. Tall townhouses line both sides of the
+// hill, left out on the west side where the gallery and the path along its front come up to it, and on the east side
+// at the top where the road curves away.
 const lindum = PLACES.find((p) => p.kind === "hill")!;
 const LH = footprint(lindum);
 export const LINDUM_ROW = 3.2; // depth of the house rows
 const LINDUM_N = 7;
 const lindumLen = (LH.z1 - 0.5 - LH.z0) / LINDUM_N;
-const TOP_Z0 = LH.z0 - 2.8;
+const LINDUM_HALF = (LH.x1 - LH.x0) / 2;
+const LEG_X = 104; // the road's centre line along the cathedral's east end
+const CURVE_Z = -88; // where the straight road ends and the curve begins
+const LEG_END = -141;
+// The centre line of the road on from the top of the hill, a cubic curve from the end of the straight road (heading north)
+// round to the north along the east end, then straight on. It starts well down the hill so the bend is gentle.
+const bend = (t: number): [number, number] => {
+  const u = 1 - t,
+    P: [number, number][] = [[lindum.x, CURVE_Z], [lindum.x, -100], [LEG_X, -102], [LEG_X, -114]];
+  return [u * u * u * P[0][0] + 3 * u * u * t * P[1][0] + 3 * u * t * t * P[2][0] + t * t * t * P[3][0], u * u * u * P[0][1] + 3 * u * u * t * P[1][1] + 3 * u * t * t * P[2][1] + t * t * t * P[3][1]];
+};
+export const LINDUM_PATH: [number, number][] = [...Array.from({ length: 41 }, (_, i) => bend(i / 40)), [LEG_X, -120], [LEG_X, -130], [LEG_X, LEG_END]];
 export const LINDUM = {
-  road: LH,
-  top: { x0: LH.x0, x1: P.x1, z0: TOP_Z0, z1: LH.z0 },
+  road: { ...LH, z0: CURVE_Z }, // the straight part, up to where the curve begins
+  half: LINDUM_HALF,
+  path: LINDUM_PATH,
   broadgate: { x0: LH.x0, x1: LH.x1, z0: LH.z1, z1: -4.3 }, // down to the main road's pavement
-  eastgate: { x0: P.x1 - P.w, x1: P.x1, z0: P.z1, z1: TOP_Z0 },
+  link: { x0: P.x1, x1: LEG_X - LINDUM_HALF + 0.2, z0: -126, z1: -124 }, // a footway across to the path round the precinct
   // each side listed from the bottom of the hill up; side -1 is the west row, its fronts facing east onto the road
   houses: [-1, 1].flatMap((side) =>
     Array.from({ length: LINDUM_N }, (_, i) => ({
@@ -153,14 +167,18 @@ export const LINDUM = {
       len: lindumLen,
       x: side < 0 ? LH.x0 - LINDUM_ROW / 2 : LH.x1 + LINDUM_ROW / 2,
       z: LH.z1 - 0.5 - lindumLen * (i + 0.5),
-    })).filter((h) => side > 0 || h.z + h.len / 2 < gallery.z0 - 1.5 || h.z - h.len / 2 > gallery.z1 + 3.2),
+    }))
+      .filter((h) => h.z - h.len / 2 >= CURVE_Z - 0.5) // the houses stop where the road starts to curve away
+      .filter((h) => side > 0 || h.z + h.len / 2 < gallery.z0 - 1.5 || h.z - h.len / 2 > gallery.z1 + 3.2),
   ),
 };
+// Rectangles round the curved road, so trees keep off it.
+const LINDUM_ROADBOXES = LINDUM_PATH.map(([x, z]) => ({ x0: x - LINDUM_HALF, x1: x + LINDUM_HALF, z0: z - LINDUM_HALF, z1: z + LINDUM_HALF }));
 // Pelham Bridge, Broadgate's way on south of the main road: flat to a, up a ramp to the deck at b, high over the railway
 // to c, down again to d and flat on to the end of the road. h is the deck's height; only the road itself is lifted
 // (deckY in terrain.tsx), with a parapet each side keeping walkers on it.
 const flyover = footprint(PLACES.find((p) => p.kind === "flyover")!);
-export const PELHAM = { x0: flyover.x0, x1: flyover.x1, z0: flyover.z0, a: 6, b: 13, c: 24, d: 31, z1: flyover.z1, h: 4.2 };
+export const PELHAM = { x0: flyover.x0, x1: flyover.x1, z0: flyover.z0, a: 4.5, b: 14.5, c: 23, d: 33, z1: flyover.z1, h: 6 };
 const PELHAM_PARAPETS = [-1, 1].map((s) => {
   const x = s < 0 ? PELHAM.x0 - 0.2 : PELHAM.x1 + 0.2;
   return { x0: x - 0.25, x1: x + 0.25, z0: PELHAM.a + 1, z1: PELHAM.d - 1 };
@@ -688,7 +706,7 @@ const onRoad = (x: number, z: number) =>
   (Math.abs(z - STADIUM_ROAD.z) < 7 && x < STADIUM_ROAD.x1) ||
   (Math.abs(z - AIRFIELD_ROAD.z) < 7 && x > AIRFIELD_ROAD.x0) ||
   Math.abs(z - RAIL.z) < RAIL.fence + 2 ||
-  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...EXCHEQUER_BOXES, MINSTER.forecourt, MINSTER.lawn, LINDUM.top, LINDUM.broadgate, LINDUM.eastgate, flyover, ...RIVER_BOXES, ...WITHAM_RUNS, WHARF_EAST_SOUTH, ST_MARKS.street, WEST_BANK, ...ST_MARKS.units.map(barBox), ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
+  [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...EXCHEQUER_BOXES, MINSTER.forecourt, MINSTER.lawn, ...LINDUM_ROADBOXES, LINDUM.broadgate, LINDUM.link, flyover, ...RIVER_BOXES, ...WITHAM_RUNS, WHARF_EAST_SOUTH, ST_MARKS.street, WEST_BANK, ...ST_MARKS.units.map(barBox), ...FOOTPATHS, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||

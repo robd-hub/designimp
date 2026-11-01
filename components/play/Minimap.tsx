@@ -75,11 +75,11 @@ export default function Minimap() {
       {[...GREESTONE, ...EAST_FOOTPATH, ...LANDMARK_PATHS, WEST_BANK].map((g, i) => (
         <rect key={i} x={g.x0} y={g.z0} width={g.x1 - g.x0} height={g.z1 - g.z0} fill="#e8dcc2" pointerEvents="none" />
       ))}
-      {/* Lindum Hill: Broadgate up from the main road, the bend along the top, the footway into Minster Yard and its
-          houses (the road up the hill is its place rect) */}
-      {[LINDUM.broadgate, LINDUM.top, LINDUM.eastgate].map((r, i) => (
-        <rect key={i} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill={i === 2 ? "#e8dcc2" : "#6b6573"} pointerEvents="none" />
-      ))}
+      {/* Lindum Hill: Broadgate up from the main road, the curve round the top and on along the cathedral's east end, the
+          footway across to the precinct and its houses (the road up the hill is its place rect) */}
+      <rect x={LINDUM.broadgate.x0} y={LINDUM.broadgate.z0} width={LINDUM.broadgate.x1 - LINDUM.broadgate.x0} height={LINDUM.broadgate.z1 - LINDUM.broadgate.z0} fill="#6b6573" pointerEvents="none" />
+      <polyline points={LINDUM.path.map(([x, z]) => `${x},${z}`).join(" ")} fill="none" stroke="#6b6573" strokeWidth={LINDUM.half * 2} strokeLinejoin="round" pointerEvents="none" />
+      <rect x={LINDUM.link.x0} y={LINDUM.link.z0} width={LINDUM.link.x1 - LINDUM.link.x0} height={LINDUM.link.z1 - LINDUM.link.z0} fill="#e8dcc2" pointerEvents="none" />
       {LINDUM.houses.map(lindumBox).map((b) => (
         <rect key={`${b.x0},${b.z0}`} x={b.x0} y={b.z0} width={b.x1 - b.x0} height={b.z1 - b.z0} fill="#b5523b" pointerEvents="none" />
       ))}
