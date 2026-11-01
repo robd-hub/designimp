@@ -1123,7 +1123,7 @@ export const PLACES: Place[] = [
     // cathedral's east end
     x: 81.5,
     z: -81.5,
-    w: 4.8,
+    w: 8.6,
     d: 39,
     h: 0,
     wall: 0x6b6573,
@@ -1144,9 +1144,9 @@ export const PLACES: Place[] = [
     // Broadgate carried on south of the main road, up a ramp and over the railway on a high deck, and down again beyond
     // it (the shape of the climb is PELHAM in colliders.ts). Turned to face north, so its way on is off the main road.
     x: 81.5,
-    z: 19.65,
-    w: 4.8,
-    d: 30.7,
+    z: 21.15,
+    w: 8.6,
+    d: 33.7,
     h: 0,
     wall: 0x9a948a,
     roof: 0x6b6573,

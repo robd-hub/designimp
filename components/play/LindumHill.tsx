@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useMemo } from "react";
 import * as THREE from "three";
+import type { ThreeElements } from "@react-three/fiber";
 import type { Place } from "./places";
-import { Part, geo, toon, WINDOW } from "./toon";
+import { Part, geo, toon, WINDOW, LAMP } from "./toon";
 import { LINDUM, LINDUM_ROW, PELHAM, RIVER } from "./colliders";
 import { deckY, groundY, Strip } from "./terrain";
 import { placeEvents } from "./store";
@@ -97,12 +98,56 @@ function House({ h, font, place }: { h: (typeof LINDUM.houses)[number]; font: st
   );
 }
 
+// A road laid along a curved centre line: a flat ribbon of the given width following the ground, for the curve at the top
+// of Lindum Hill.
+function Ribbon({ path, half, color, y, ...mesh }: { path: [number, number][]; half: number; color: number; y: number } & Omit<ThreeElements["mesh"], "geometry" | "material">) {
+  const geometry = useMemo(() => {
+    const pos: number[] = [],
+      idx: number[] = [];
+    path.forEach(([x, z], i) => {
+      const [ax, az] = path[Math.max(0, i - 1)],
+        [bx, bz] = path[Math.min(path.length - 1, i + 1)];
+      const len = Math.hypot(bx - ax, bz - az) || 1,
+        nx = -(bz - az) / len,
+        nz = (bx - ax) / len;
+      for (const s of [-1, 1]) pos.push(x + nx * half * s, groundY(z + nz * half * s) + y, z + nz * half * s);
+      if (i > 0) idx.push(2 * i - 2, 2 * i - 1, 2 * i, 2 * i - 1, 2 * i + 1, 2 * i);
+    });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    return g;
+  }, [path, half, y]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return <mesh geometry={geometry} material={toon(color)} receiveShadow {...mesh} />;
+}
+
+// Dashes for the centre line, every 4 units along a path, turned to follow it.
+function pathDashes(path: [number, number][], from: number) {
+  const out: { x: number; z: number; ry: number }[] = [];
+  let walked = 0,
+    next = from;
+  for (let i = 1; i < path.length; i++) {
+    const [ax, az] = path[i - 1],
+      [bx, bz] = path[i];
+    const len = Math.hypot(bx - ax, bz - az);
+    while (next <= walked + len) {
+      const t = (next - walked) / len;
+      out.push({ x: ax + (bx - ax) * t, z: az + (bz - az) * t, ry: Math.atan2(bx - ax, bz - az) });
+      next += 4;
+    }
+    walked += len;
+  }
+  return out;
+}
+
 // Lindum Hill: the roadway up the hill with its houses either side, Broadgate bringing it up from the main road over its
-// bridge on the Witham, the bend east along the top and the footway up into Minster Yard. Drawn in world coordinates, so
+// bridge on the Witham, the curve round the top and on along the cathedral's east end. Drawn in world coordinates, so
 // the group drops back down by the height Town has lifted it to at the road's middle.
 const BRIDGE_STONE = 0xb8a98a;
 export function LindumHill({ p, font }: { p: Place; font: string }) {
-  const { road, top, broadgate, eastgate } = LINDUM;
+  const { road, broadgate, path, half, link } = LINDUM;
   const rect = (r: { x0: number; x1: number; z0: number; z1: number }) => ({ w: r.x1 - r.x0, d: r.z1 - r.z0, x: (r.x0 + r.x1) / 2, z: (r.z0 + r.z1) / 2 });
   const mid = (road.x0 + road.x1) / 2;
   // the centre line from the bottom of Broadgate to the top of the hill, leaving the bridge plain
@@ -111,9 +156,13 @@ export function LindumHill({ p, font }: { p: Place; font: string }) {
   return (
     <group position-y={-groundY(p.z)}>
       <Strip {...rect(road)} color={TARMAC} y={0.05} {...placeEvents(p)} />
-      <Strip {...rect(top)} color={TARMAC} y={0.052} {...placeEvents(p)} />
+      <Ribbon path={path} half={half} color={TARMAC} y={0.16} {...placeEvents(p)} />
       <Strip {...rect(broadgate)} color={TARMAC} y={0.054} {...placeEvents(p)} />
-      <Strip {...rect(eastgate)} color={PAVEMENT} y={0.07} {...placeEvents(p)} />
+      <Strip {...rect(link)} color={PAVEMENT} y={0.07} {...placeEvents(p)} />
+      <Strip w={half * 2} d={2.4} color={PAVEMENT} x={path[path.length - 1][0]} z={path[path.length - 1][1] - 1.2} y={0.07} {...placeEvents(p)} />
+      {pathDashes(path, 2).map((d, i) => (
+        <mesh key={i} geometry={geo.box(0.22, 0.02, 1.8)} material={toon(0xfff8e7)} position={[d.x, groundY(d.z) + 0.2, d.z]} rotation-y={d.ry} raycast={() => null} />
+      ))}
       {dashes.map((z) => (
         <Strip key={z} w={0.22} d={1.8} color={0xfff8e7} x={mid} z={z} y={0.07} raycast={() => null} />
       ))}
@@ -153,8 +202,8 @@ const RAMP_UP: [number, number][] = [
   [PELHAM.b, 0],
 ];
 const DECK: [number, number][] = [
-  [PELHAM.b, PELHAM.h - 0.8],
-  [PELHAM.c, PELHAM.h - 0.8],
+  [PELHAM.b, PELHAM.h - 1.4],
+  [PELHAM.c, PELHAM.h - 1.4],
   [PELHAM.c, PELHAM.h],
   [PELHAM.b, PELHAM.h],
 ];
@@ -164,7 +213,7 @@ const RAMP_DOWN: [number, number][] = [
   [PELHAM.c, PELHAM.h],
 ];
 const zs = Array.from({ length: 61 }, (_, i) => PELHAM.a + ((PELHAM.d - PELHAM.a) * i) / 60);
-const PARAPET: [number, number][] = [...zs.map((z) => [z, profile(z) + 0.9] as [number, number]), ...zs.slice().reverse().map((z) => [z, Math.max(0, profile(z) - 0.25)] as [number, number])];
+const PARAPET: [number, number][] = [...zs.map((z) => [z, profile(z) + 1.1] as [number, number]), ...zs.slice().reverse().map((z) => [z, Math.max(0, profile(z) - 0.25)] as [number, number])];
 
 function Side({ points, depth, x, color }: { points: [number, number][]; depth: number; x: number; color: number }) {
   const g = useSide(points, depth);
@@ -195,6 +244,15 @@ export function PelhamBridge({ p, font }: { p: Place; font: string }) {
       {[PELHAM.x0, PELHAM.x1 + 0.4].map((x) => (
         <Side key={x} points={PARAPET} depth={0.4} x={x} color={CONCRETE} />
       ))}
+      {/* lamps along each parapet, over the railway and on the ramps either side */}
+      {[PELHAM.x0 + 0.1, PELHAM.x1 + 0.3].flatMap((x) =>
+        [PELHAM.b - 4, PELHAM.b + 1, (PELHAM.b + PELHAM.c) / 2, PELHAM.c - 1, PELHAM.c + 4].map((z) => (
+          <group key={`${x}${z}`} position={[x, profile(z) + 1.1, z]}>
+            <Part geometry={geo.cyl(0.08, 0.1, 2.6, 8)} color={0x2b2633} outline={0.04} position-y={1.3} />
+            <Part geometry={geo.sphere(0.3)} color={LAMP} outline={0.05} position-y={2.7} />
+          </group>
+        )),
+      )}
       <NamePlate text={p.name} font={font} position={[PELHAM.x1 + 1.2, 0, PELHAM.z0 + 0.8]} />
     </group>
   );
