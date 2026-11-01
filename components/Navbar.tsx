@@ -16,9 +16,12 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
+  // Close the mobile menu when the page changes (adjusting state while rendering, rather than in an effect)
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
     setMenuOpen(false);
-  }, [pathname]);
+  }
 
   // Lock body scroll while mobile menu is open
   useEffect(() => {
