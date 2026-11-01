@@ -542,6 +542,12 @@ APPROACH.brayford = [
   [WEST_PATH_X, -21],
   [-46, -20.4],
 ];
+// The Architecture building is out west past the campus, and the straight line to its door from the bridge landing runs
+// through the Engine Shed: go along the grass in front of the campus instead.
+APPROACH.architecture = [
+  [WEST_PATH_X, -6],
+  [-79.5, -6.5],
+];
 const POCKET_BRIDGES: Record<"n" | "s" | "uni", [number, number][]> = {
   n: [
     [WHARF_CROSSING.x, 0],

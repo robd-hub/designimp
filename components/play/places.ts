@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "bonfire" | "venue";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "bonfire" | "venue" | "architecture";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -989,10 +989,10 @@ export const PLACES: Place[] = [
     name: "University of Lincoln",
     kicker: "Just south of the Brayford",
     nav: "University",
-    // shifted west to make room for the Engine Shed between the campus and the University Bridge
-    x: -57.2,
+    // shifted west to make room for the Engine Shed between the campus and the University Bridge; the library is at its east end beside the shed
+    x: -58.7,
     z: -12.5,
-    w: 22,
+    w: 25,
     d: 8,
     h: 7,
     wall: 0x7a1f3d,
@@ -1024,6 +1024,26 @@ export const PLACES: Place[] = [
     intro: [
       "The Engine Shed is the University of Lincoln Students' Union's building on the Brayford waterfront, a venue for gigs, comedy and club nights.",
       "It stands by the Brayford, between the main campus and the University Bridge over the Witham.",
+    ],
+  },
+  {
+    id: "architecture",
+    kind: "architecture",
+    name: "Architecture Building",
+    kicker: "University of Lincoln",
+    nav: "Architecture Building",
+    // standing apart from the main building, to the west of it, on the way to the tank roundabout
+    x: -79.5,
+    z: -15,
+    w: 14,
+    d: 8,
+    h: 8.6,
+    wall: 0xf4f4f0,
+    roof: 0x9fa3a8,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "The Architecture building is a white, modern teaching building on the University of Lincoln's Brayford campus, standing apart from the main building.",
     ],
   },
   {
