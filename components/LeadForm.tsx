@@ -49,9 +49,9 @@ export default function LeadForm() {
   if (status === "success") {
     return (
       <section className="mx-auto max-w-2xl px-6 py-20 text-center">
-        <p className="text-2xl font-semibold text-foreground">Thanks, that's in.</p>
+        <p className="text-2xl font-semibold text-foreground">Thanks, that&apos;s in.</p>
         <p className="mt-3 text-lg text-muted leading-loose">
-          I'll put together your free mockup and be in touch shortly.
+          I&apos;ll put together your free mockup and be in touch shortly.
         </p>
       </section>
     );
