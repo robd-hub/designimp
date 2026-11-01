@@ -46,11 +46,12 @@ export const HOUSES = [-1, 1].flatMap((side) =>
 export const HIGH_ST = 7.6;
 
 // Brayford in its own coordinates: the pool, the Fossdyke running off west to the edge of
-// the map, and the row of waterfront buildings along the far quay.
+// the map, and the row of waterfront buildings along the far quay. The pool's south and east edges stay where they
+// are (the Witham leaves its south-east corner and the University is just south); it grows north and west.
 export const BRAYFORD = {
-  water: { x0: -12, x1: 12, z0: -7, z1: 5 },
-  canal: { x0: -BOUND + 46, x1: -12, z0: -2.5, z1: 0.5 }, // runs off west to the map's edge (the Brayford is at x -46)
-  front: { x0: -16, x1: 16, z0: -11, z1: -8 },
+  water: { x0: -36, x1: 12, z0: -19, z1: 5 },
+  canal: { x0: -BOUND + 46, x1: -36, z0: -2.5, z1: 0.5 }, // runs off west to the map's edge (the Brayford is at x -46)
+  front: { x0: -40, x1: 16, z0: -23, z1: -20 },
 };
 
 // The road off the south road to Sincil Bank, east of the high street as in real Lincoln.
@@ -535,6 +536,12 @@ const WITHAM_BOXES = WITHAM_RUNS.map((r) => ({ ...r, x0: r.x0 - 0.3, x1: r.x1 + 
 const pocket = (x: number, z: number) =>
   x > W0 - 0.4 ? null : z > WITHAM.z0 && z < RAIL.z - RAIL.fence ? "n" : z > RAIL.z + RAIL.fence && z < WITHAM.bend - WITHAM.half ? "s" : null;
 const WEST_PATH_X = (WEST_BANK.x0 + WEST_BANK.x1) / 2;
+// The Brayford's door is on its south quay, in the gap between the University and the Engine Shed: go up the west bank
+// path to the quay and along it, rather than straight at the door through the shed.
+APPROACH.brayford = [
+  [WEST_PATH_X, -21],
+  [-46, -20.4],
+];
 const POCKET_BRIDGES: Record<"n" | "s" | "uni", [number, number][]> = {
   n: [
     [WHARF_CROSSING.x, 0],

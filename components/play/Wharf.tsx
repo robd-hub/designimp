@@ -25,7 +25,7 @@ const BARS = [
 // Lamps along the quay edge, clear of the footbridge, and the two on the Brayford's south quay.
 const QUAY_LAMPS = [WHARF.x0 + 5.5, (WHARF.x0 + WHARF.x1) / 2 + 2.4, WHARF.x1 - 1].map((x) => [x, WHARF.z0 + 0.5] as const);
 const brayford = PLACES.find((p) => p.kind === "water")!;
-const POOL_LAMPS = [-12, 12].map((x) => [brayford.x + x, brayford.z + BRAYFORD.water.z1 + 1.2] as const);
+const POOL_LAMPS = [-36, -24, -12, 12].map((x) => [brayford.x + x, brayford.z + BRAYFORD.water.z1 + 1.2] as const);
 // Mooring bollards along the quay edge, between the lamps.
 const BOLLARDS = Array.from({ length: 12 }, (_, i) => WHARF.x0 + 3 + i * 1.4).filter((x) => QUAY_LAMPS.every(([lx]) => Math.abs(x - lx) > 0.8) && x < WHARF.x1 - 0.5);
 // Narrowboats tied up on the river between the lamps, two along the quay and one on the far side by High Bridge,

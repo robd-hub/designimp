@@ -319,6 +319,10 @@ const FRONT = [
   { w: 6.5, h: 5, color: 0xd77a61, awning: 0x1fb5a8 },
   { w: 6, h: 4.2, color: 0xf2d06b, awning: 0x2b59c3 },
   { w: 6, h: 7, color: 0x9fc0d8, glass: true },
+  { w: 6.5, h: 5.5, color: 0xf2e2c4, awning: 0x2b59c3 },
+  { w: 6, h: 6.5, color: 0x9fd8e8, glass: true },
+  { w: 6.5, h: 4.5, color: 0xd77a61, awning: 0xf2d06b },
+  { w: 6, h: 5, color: 0xf2d06b, awning: 0x1fb5a8 },
 ].map((b, i, all) => ({ ...b, x: BRAYFORD.front.x0 + all.slice(0, i).reduce((a, o) => a + o.w + 0.1, 0) + b.w / 2 }));
 
 // Brayford Pool: a marina basin with stone quays, moored boats, waterside bars
@@ -330,7 +334,7 @@ export function Brayford({ p, font, reduce }: { p: Place; font: string; reduce: 
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       {/* promenade and quay edge */}
-      <mesh geometry={geo.box(p.w, 0.06, p.d)} material={toon(0xe8dcc2)} position-y={0.03} receiveShadow />
+      <mesh geometry={geo.box(p.w + 24, 0.06, p.d + 12)} material={toon(0xe8dcc2)} position={[-12, 0.03, -6]} receiveShadow />
       <Part geometry={geo.box(W.x1 - W.x0 + 0.8, 0.3, W.z1 - W.z0 + 0.8)} color={0x9c8d6e} outline={0.05} position={[WX, 0.08, WZ]} />
       <mesh geometry={geo.box(W.x1 - W.x0, 0.12, W.z1 - W.z0)} material={toon(0x3aa6e8)} position={[WX, 0.2, WZ]} />
       {/* the Fossdyke */}
@@ -357,7 +361,7 @@ export function Brayford({ p, font, reduce }: { p: Place; font: string; reduce: 
         );
       })}
       {/* outdoor tables on the north quay */}
-      {[-9, -3, 9].map((x) => (
+      {[-33, -27, -15, -9, -3, 9].map((x) => (
         <group key={x} position={[x, 0, F.z1 + 0.6]}>
           <Part geometry={geo.cyl(0.45, 0.45, 0.08, 10)} color={0xffffff} outline={0.03} position-y={0.75} />
           <Part geometry={geo.cyl(0.05, 0.05, 0.75, 6)} color={0x2b2633} outline={0.02} position-y={0.38} />
@@ -373,25 +377,25 @@ export function Brayford({ p, font, reduce }: { p: Place; font: string; reduce: 
       {/* narrowboats tied up along the north quay */}
       <Boat color={0x1f6b4a} position={[-6, 0.15, W.z0 + 0.9]} rotation-y={Math.PI / 2} len={5.5} />
       <Boat color={0x7a2b3e} cabin={0xf2e2c4} position={[0, 0.15, W.z0 + 0.9]} rotation-y={Math.PI / 2} len={5} />
-      <Boat color={0x2b59c3} position={[-16, 0.15, (C.z0 + C.z1) / 2]} rotation-y={Math.PI / 2} len={5.5} />
+      <Boat color={0x2b59c3} position={[-42, 0.15, (C.z0 + C.z1) / 2]} rotation-y={Math.PI / 2} len={5.5} />
       <TourBoat reduce={reduce} />
       {[0, 1.3, 2.6, 3.9, 5.2].map((ph, i) => (
         <Swan key={ph} phase={ph} reduce={reduce} r={i % 2 ? 0.55 : 0.85} />
       ))}
       {/* railings and lamps along the near quay */}
-      {Array.from({ length: 9 }, (_, i) => -11 + i * 2.75).map((x) =>
+      {Array.from({ length: 17 }, (_, i) => -35 + i * 2.75).map((x) =>
         x > 3.5 && x < 6.5 ? null : <Part key={x} geometry={geo.cyl(0.07, 0.07, 1, 6)} color={0x2b2633} outline={0.02} position={[x, 0.7, W.z1 + 0.45]} />,
       )}
-      <Part geometry={geo.box(7.6, 0.08, 0.08)} color={0x2b2633} outline={0.02} position={[-1.8 - 3.4, 1.15, W.z1 + 0.45]} />
+      <Part geometry={geo.box(38, 0.08, 0.08)} color={0x2b2633} outline={0.02} position={[-16.5, 1.15, W.z1 + 0.45]} />
       <Part geometry={geo.box(4.6, 0.08, 0.08)} color={0x2b2633} outline={0.02} position={[9.5, 1.15, W.z1 + 0.45]} />
-      {[-12, 12].map((x) => (
+      {[-36, -24, -12, 12].map((x) => (
         <group key={x} position={[x, 0, W.z1 + 1.2]}>
           <Part geometry={geo.cyl(0.1, 0.12, 3.2, 8)} color={0x2b2633} outline={0.04} position-y={1.6} />
           <Part geometry={geo.sphere(0.3)} color={LAMP} outline={0.05} position-y={3.3} />
         </group>
       ))}
       {/* benches */}
-      {[-7, 1].map((x) => (
+      {[-27, -17, -7, 1].map((x) => (
         <group key={x} position={[x, 0, W.z1 + 2.4]}>
           <Part geometry={geo.box(2, 0.15, 0.6)} color={0x8a5a33} outline={0.03} position-y={0.5} />
           <Part geometry={geo.box(2, 0.6, 0.12)} color={0x8a5a33} outline={0.03} position={[0, 0.85, 0.3]} />
