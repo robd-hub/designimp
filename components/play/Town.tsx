@@ -26,6 +26,7 @@ import { StMarks } from "./StMarks";
 import Bailgate, { Pub } from "./Bailgate";
 import { Mill, Park, Market as XmasMarket } from "./MoreLandmarks";
 import { Bonfire } from "./Bonfire";
+import { Venue, Library } from "./EngineShed";
 import { Gatehouse, Yard, MinsterGrounds, SETTS } from "./MinsterYard";
 import { LindumHill, PelhamBridge } from "./LindumHill";
 import { Crowd, Chant } from "./Matchday";
@@ -895,7 +896,7 @@ function Lamps() {
 // Small seeded random so the sky is the same on every visit.
 const rand = seeded(7);
 const CLOUDS = Array.from({ length: 16 }, (_, i) => ({
-  pos: [-85 + i * 11, 16 + rand() * 6, NORTH - 4 + rand() * (SOUTH - NORTH)] as const,
+  pos: [-BOUND - 9 + i * 11, 16 + rand() * 6, NORTH - 4 + rand() * (SOUTH - NORTH)] as const,
   puffs: Array.from({ length: 4 }, (_, j) => ({ r: Math.round((1.2 + rand() * 1.1) * 10) / 10, p: [j * 1.5 - 2.2, rand() * 0.8, rand() - 0.5] as const })),
 }));
 
@@ -905,7 +906,7 @@ function Clouds({ reduce, color = 0xffffff }: { reduce: boolean; color?: number 
     if (reduce) return;
     refs.current.forEach((c, i) => {
       c.position.x += Math.min(delta, 0.05) * (0.6 + (i % 3) * 0.2);
-      if (c.position.x > EAST - 5) c.position.x = -95;
+      if (c.position.x > EAST - 5) c.position.x = -BOUND - 19;
     });
   });
   return (
@@ -929,7 +930,7 @@ const HILLS = Array.from({ length: 28 }, (_, i) => {
   // round an oval, since the town is much longer north to south, pushed out further east where
   // the map runs on past the cathedral's east end
   const c = Math.cos(a);
-  return [c * r + Math.max(0, c) * (EAST - 66), MID_Z + Math.sin(a) * r * 1.8, 18 + hillRand() * 22] as const;
+  return [c * r + Math.max(0, c) * (EAST - 66) + Math.min(0, c) * (BOUND - 76), MID_Z + Math.sin(a) * r * 1.8, 18 + hillRand() * 22] as const;
 });
 function Hills() {
   return (
@@ -1053,7 +1054,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank" || !inSeason(p, season)) return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks, gatehouse: Gatehouse, yard: Yard, hill: LindumHill, flyover: PelhamBridge, bonfire: Bonfire }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks, gatehouse: Gatehouse, yard: Yard, hill: LindumHill, flyover: PelhamBridge, bonfire: Bonfire, venue: Venue, library: Library }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />
