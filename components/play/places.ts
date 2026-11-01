@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "bonfire";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "bonfire" | "venue" | "library";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -683,7 +683,7 @@ export const PLACES: Place[] = [
     kicker: "Birthplace of the tank",
     nav: "Tank",
     // on its roundabout out west, past the university, as the real one sits south-west of the Brayford
-    x: -62,
+    x: -84,
     z: 0,
     w: 6.4,
     d: 6.4,
@@ -989,9 +989,10 @@ export const PLACES: Place[] = [
     name: "University of Lincoln",
     kicker: "Just south of the Brayford",
     nav: "University",
-    x: -49.5,
+    // shifted west to make room for the Engine Shed and the library beside it, between the campus and the University Bridge
+    x: -53.4,
     z: -12.5,
-    w: 22,
+    w: 14.4,
     d: 8,
     h: 7,
     wall: 0x7a1f3d,
@@ -1003,6 +1004,47 @@ export const PLACES: Place[] = [
       "It opened in 1996, and its library is in a restored Victorian railway warehouse, one of several old railway buildings on the campus.",
     ],
     link: { href: "https://www.lincoln.ac.uk/", label: "Visit lincoln.ac.uk", external: true },
+  },
+  {
+    id: "engine-shed",
+    kind: "venue",
+    name: "The Engine Shed",
+    kicker: "Live music on campus",
+    nav: "Engine Shed",
+    // between the university and the University Bridge, its front facing east onto the bridge's landing
+    x: -41.45,
+    z: -12.5,
+    w: 10,
+    d: 6.5,
+    h: 4.6,
+    wall: 0x9b4a32,
+    roof: 0x5b6470,
+    roofType: "pitch",
+    rot: Math.PI / 2,
+    intro: [
+      "The Engine Shed was once a Victorian railway engine shed. It's now the University of Lincoln Students' Union's venue for gigs, comedy and club nights.",
+      "It stands by the Brayford, between the main campus and the University Bridge over the Witham.",
+    ],
+  },
+  {
+    id: "university-library",
+    kind: "library",
+    name: "University Library",
+    kicker: "A restored railway warehouse",
+    nav: "University Library",
+    // the west end of the campus, beside the main building; its door lines up with the campus's, clear of the Engine Shed
+    x: -66,
+    z: -11.5,
+    w: 8.4,
+    d: 5.9,
+    h: 4.4,
+    wall: 0xb5543a,
+    roof: 0x4a4f5c,
+    roofType: "pitch",
+    rot: 0,
+    intro: [
+      "The University of Lincoln's library is in a restored Victorian railway warehouse, one of several old railway buildings on the campus.",
+    ],
   },
   {
     id: "scampton",

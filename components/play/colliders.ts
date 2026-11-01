@@ -1,6 +1,6 @@
 import { PLACES, footprint } from "./places";
 
-export const BOUND = 76; // the west edge of the map
+export const BOUND = 100; // the west edge of the map, well out past the university for the tank roundabout on the road to Tritton Road
 export const EAST = 140; // the east edge, well out past the cathedral's long east end, with the Arboretum out along Monks Road
 export const MID_X = (EAST - BOUND) / 2; // the map's centre line, east to west
 export const SOUTH = 168; // the south road runs a long way down, past rows of shops and houses to Sincil Bank and RAF Scampton
@@ -49,7 +49,7 @@ export const HIGH_ST = 7.6;
 // the map, and the row of waterfront buildings along the far quay.
 export const BRAYFORD = {
   water: { x0: -12, x1: 12, z0: -7, z1: 5 },
-  canal: { x0: -30, x1: -12, z0: -2.5, z1: 0.5 },
+  canal: { x0: -BOUND + 46, x1: -12, z0: -2.5, z1: 0.5 }, // runs off west to the map's edge (the Brayford is at x -46)
   front: { x0: -16, x1: 16, z0: -11, z1: -8 },
 };
 
@@ -689,16 +689,27 @@ const nearBuilding = (x: number, z: number, pad: number) =>
     return x > f.x0 - pad - dx && x < f.x1 + pad + dx && z > f.z0 - pad - dz && z < f.z1 + pad + dz;
   });
 
-// Trees scattered everywhere that isn't road, building or doorway.
+// Trees scattered everywhere that isn't road, building or doorway. The first lot are laid out as they were before the
+// map was widened west (so they haven't moved), then a second lot fill the new strip.
+const OLD_BOUND = 76;
 export const TREES: [number, number, number][] = (() => {
-  const rand = seeded(11);
   const out: [number, number, number][] = [];
+  const free = (x: number, z: number) =>
+    !onRoad(x, z) && !nearBuilding(x, z, 3) && Math.hypot(x - ROUNDABOUT.x, z - ROUNDABOUT.z) >= ROUNDABOUT.edge + 2 && !out.some(([ox, oz]) => Math.hypot(ox - x, oz - z) < 5);
+  const rand = seeded(11);
   for (let tries = 0; out.length < 140 && tries < 6000; tries++) {
-    const x = -BOUND + 3 + rand() * (BOUND + EAST - 6),
+    const x = -OLD_BOUND + 3 + rand() * (OLD_BOUND + EAST - 6),
       z = NORTH + 3 + rand() * (SOUTH - NORTH - 6);
-    if (onRoad(x, z) || nearBuilding(x, z, 3) || Math.hypot(x - ROUNDABOUT.x, z - ROUNDABOUT.z) < ROUNDABOUT.edge + 2) continue;
-    if (out.some(([ox, oz]) => Math.hypot(ox - x, oz - z) < 5)) continue;
-    out.push([x, z, 0.85 + (out.length % 4) * 0.12]);
+    if (free(x, z)) out.push([x, z, 0.85 + (out.length % 4) * 0.12]);
+  }
+  const west = seeded(12);
+  for (let tries = 0, n = 0; n < 30 && tries < 3000; tries++) {
+    const x = -BOUND + 3 + west() * (BOUND - OLD_BOUND),
+      z = NORTH + 3 + west() * (SOUTH - NORTH - 6);
+    if (free(x, z)) {
+      out.push([x, z, 0.85 + (n % 4) * 0.12]);
+      n++;
+    }
   }
   return [...out, ...YARD_TREES];
 })();
