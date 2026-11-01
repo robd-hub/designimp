@@ -69,7 +69,7 @@ docs/screenshots/         # kept verification screenshots
 - **Respect real Lincoln geography**: Steep Hill climbs from the Stonebow to the cathedral and castle; castle west, cathedral east, both facing Castle Square; Sincil Bank east of the south road, RAF Scampton west; the Witham and the railway cut across the town; Brayford and the University west. When unsure, ask Rob rather than guessing, and say where the game compromises with the real layout.
 - **Merge and deploy only with Rob's explicit OK** in the thread. Open the PR, say what changed, wait.
 - Vercel: designimp.com and lannalabs.com are on the project **lanna-labs** (team designimp-projects), which auto-deploys production from `main` on merge. No manual deploy; after a merge just check the production deployment for the merge commit is READY. (The old project "lannlabs-website" no longer exists.)
-- **designimp.com, visitlincoln.com and Facebook are blocked from the cloud sandbox.** Work from the repo. Use links Rob supplies verbatim (strip UTM tags) without trying to read them.
+- **designimp.com, visitlincoln.com and Facebook are blocked from the cloud sandbox** (not from Rob's own machine: designimp.com is reachable from a local Claude Code session, where `curl -L` and headless Chromium both work). In the sandbox, work from the repo. Use links Rob supplies verbatim (strip UTM tags) without trying to read them.
 - Do not put secrets in the repo, in docs or in commit messages.
 - PR bodies from Claude sessions carry Rob's attribution block at the top (the project's session context supplies it).
 
