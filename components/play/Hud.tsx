@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { PLACES, hex, inSeason, isXmas, shopSign, type Place } from "./places";
-import { usePlay, walkTo, zoomBy, keepHover, leaveCard, autoWalking } from "./store";
+import { PLACES, hex, inSeason, currentSeason, shopSign, type Place } from "./places";
+import { usePlay, walkTo, zoomBy, keepHover, leaveCard, autoWalking, hasShopLink } from "./store";
 import { HIDDEN } from "./hidden";
 import PlayLeadForm from "./PlayLeadForm";
 import { TravelToggle, TaxiRide } from "./Taxi";
@@ -35,7 +35,7 @@ function useMedia(q: string) {
 }
 
 export default function Hud() {
-  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, street, toggleStreet, found, badge, setBadge, hover, setHover, xmas } = usePlay();
+  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, street, toggleStreet, found, badge, setBadge, hover, setHover, season } = usePlay();
   const openShop = usePlay((st) => (open && st.shop?.lot === open.id ? st.shop.name : ""));
   const total = HIDDEN.length;
   const spotter = found.length >= total;
@@ -84,9 +84,19 @@ export default function Hud() {
     const asked = new URLSearchParams(window.location.search).get("place");
     // links shared before a place was renamed
     const id = asked === "jews-house" ? "normans-house" : asked;
-    const p = PLACES.find((x) => x.id === id && inSeason(x, isXmas()));
+    const p = PLACES.find((x) => x.id === id && inSeason(x, currentSeason()));
     if (p) usePlay.getState().openPlace(p);
   }, []);
+
+  // Sent here by a prospect link: once the town is up, the Imp walks to their shop and its card opens on arrival.
+  const sentToShop = useRef(false);
+  useEffect(() => {
+    if (!ready || sentToShop.current || !hasShopLink() || new URLSearchParams(window.location.search).has("place")) return;
+    sentToShop.current = true;
+    const lot = usePlay.getState().shop?.lot;
+    const p = PLACES.find((x) => x.id === lot);
+    if (p) walkTo(p);
+  }, [ready]);
 
   // The taxi rank in town opens Go to, set to taxis.
   useEffect(() => {
@@ -152,7 +162,7 @@ export default function Hud() {
           Go to {navOpen ? "▴" : "▾"}
         </button>
         {navOpen && <TravelToggle />}
-        {navOpen && PLACES.filter((p) => inSeason(p, xmas)).map((p) => (
+        {navOpen && PLACES.filter((p) => inSeason(p, season)).map((p) => (
           <button
             key={p.id}
             onClick={() => {

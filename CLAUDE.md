@@ -25,7 +25,8 @@ npm run lint
 
 - No test suite. Verify by running the app and looking (see "Verifying changes").
 - In the cloud sandbox Turbopack fails on the Google font download, so use `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt npx next dev --webpack`. On a normal machine plain `npm run dev` is fine.
-- Dev-only URL switches on `/play`: `?place=<id>` opens a card, `?weather=<sky>`, `?matchday=1`, `?season=xmas` (or `off`). The Christmas market is only in town in December otherwise.
+- Dev-only URL switches on `/play`: `?place=<id>` opens a card, `?weather=<sky>`, `?matchday=1`, `?season=xmas`, `?season=bonfire` or `?season=off`. Otherwise the Christmas market is only in town in December and the Bonfire Night field from 30 October to 9 November (`currentSeason()` in `places.ts`; the bonfire's fireworks are night only).
+- Prospect links (work in production, Rob shares them himself): `/play?shop=Jane%27s%20Hair&type=salon&colour=ff7eb6` puts that shop on the main To Let plot (`&plot=<lot id>` picks another) and walks the Imp to it. `type` is one of `shop|salon|cafe|trades`, `colour` one of `SHOP_COLOURS` in `shop.ts`; the name is cleaned by `cleanName`. See `shopFromLink()` in `store.ts`.
 
 ## Repo layout
 
@@ -41,11 +42,11 @@ docs/screenshots/         # kept verification screenshots
 ### components/play (the game)
 
 - `PlayClient.tsx` loads `Town` dynamically (client only) with a WebGL check, an error guard and the plain `StreetList` fallback. The site must stay usable without WebGL.
-- `places.ts`: every building (`PLACES`), as data: kind, position, size, colours, card text, optional link. **Adding a client or landmark starts here.** `kind` picks the drawing code; `season: "xmas"` hides it outside December.
+- `places.ts`: every building (`PLACES`), as data: kind, position, size, colours, card text, optional link. **Adding a client or landmark starts here.** `kind` picks the drawing code; `season: "xmas"` or `"bonfire"` hides it outside its time of year.
 - `colliders.ts`: the town's geometry and walking rules: map edges (`BOUND`, `EAST`, `NORTH`, `SOUTH`), paved areas, `SHOPFRONTS`, `FOOTPATHS`, `CLOSE` (Castle Square), `CORNHILL`, `WITHAM`/`RIVER` bridges, `LINDUM`, `PELHAM`, `STONEBOW_STREETS`, the `APPROACH` points the Imp walks to for each place, and `crossings()` which routes walks across rivers, rails and gates.
 - `terrain.tsx`: ground height. `groundY(z)` depends on z only (Steep Hill `RISE` 16 units, `BAIL_RISE` 1.4), `deckY` lifts the Imp over Pelham Bridge. Anything standing on a slope must use these.
 - `store.ts`: zustand store (open card, nearby place or NPC, night, street view, `walkTo` routing). `npcs.ts`: townsfolk (Elizabeth, Alan, Steve, Maya, Frank, Christine/Crissy and others). `Townsfolk.tsx` draws and moves them (`CHAT.on=false` keeps NPC-to-NPC chat switched off).
-- Scene files: `Town.tsx` (canvas, roads, shopfronts), `Landmarks.tsx` and `MoreLandmarks.tsx` (cathedral, castle, Stonebow and the rest), `Bailgate.tsx`, `MinsterYard.tsx`, `LindumHill.tsx`, `StMarks.tsx`, `Wharf.tsx`, `Waterside.tsx`, `Witham.tsx`, `Railway.tsx`, `Station.tsx`, `BusStation.tsx`, `CornExchange.tsx`, `Cars.tsx`, `Taxi.tsx`, `Matchday.tsx`, `Weather.tsx`, `Ghost.tsx` (night only), `Hunt.tsx` (imp hunt), `Imp.tsx` (the player).
+- Scene files: `Town.tsx` (canvas, roads, shopfronts), `Landmarks.tsx` and `MoreLandmarks.tsx` (cathedral, castle, Stonebow and the rest), `Bailgate.tsx`, `MinsterYard.tsx`, `LindumHill.tsx`, `StMarks.tsx`, `Wharf.tsx`, `Waterside.tsx`, `Witham.tsx`, `Railway.tsx`, `Station.tsx`, `BusStation.tsx`, `CornExchange.tsx`, `Cars.tsx`, `Taxi.tsx`, `Matchday.tsx`, `Bonfire.tsx` (Bonfire Night field and fireworks), `Weather.tsx`, `Ghost.tsx` (night only), `Hunt.tsx` (imp hunt), `Imp.tsx` (the player).
 - UI: `Hud.tsx` (cards, Go-to list, buttons), `Minimap.tsx`, `Joystick.tsx`, `PlayLeadForm.tsx` and `shop.ts` (the visitor types their business name onto an empty plot's sign, then the mockup form).
 - Sound: `sound.ts` (synthesised Web Audio, off by default, saved in localStorage `imp-sound`) and `Soundscape.tsx`.
 - `toon.tsx`: shared toon materials. Reuse them and the existing geometry helpers; do not create materials or geometries inside render loops.

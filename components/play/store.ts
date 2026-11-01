@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
-import { PLACES, inSeason, isXmas, type Place } from "./places";
+import { PLACES, inSeason, currentSeason, type Place, type Season } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
 import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH } from "./colliders";
 import { cleanName, cleanType, cleanColour, type ShopType } from "./shop";
@@ -20,7 +20,7 @@ type PlayState = {
   openPlace: (p: Place) => void;
   close: () => void;
   night: boolean;
-  xmas: boolean; // December: the Christmas market is in town
+  season: Season; // December: the Christmas market is in town; around 5 November: the bonfire field
   toggleNight: () => void;
   street: boolean; // first-person "street view"
   toggleStreet: () => void;
@@ -64,12 +64,30 @@ function loadShop(): PlayState["shop"] {
   }
 }
 
-// Greet first-time arrivals, not someone sent straight to a building by link. Once the hello has been
+// A link made for a prospect, /play?shop=Name&type=salon&colour=ff7eb6, puts their shop on a plot: the main To Let
+// plot unless &plot= names another. The name goes through the same cleaning as one typed in, and it is kept in the
+// browser like one, so the shop is still there if they come back without the link.
+export const hasShopLink = () => new URLSearchParams(window.location.search).has("shop");
+function shopFromLink(): PlayState["shop"] {
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const name = cleanName(q.get("shop")).trim();
+    if (!name) return null;
+    const plot = q.get("plot");
+    const lot = PLACES.find((p) => p.kind === "lot" && p.id === plot)?.id ?? "lot";
+    const c = q.get("colour");
+    return { name, lot, type: cleanType(q.get("type")), colour: cleanColour(c && !c.startsWith("#") ? `#${c}` : c) };
+  } catch {
+    return null;
+  }
+}
+
+// Greet first-time arrivals, not someone sent straight to a building or their own shop by link. Once the hello has been
 // dismissed it stays dismissed on return visits too.
 const WELCOME_KEY = "imp-welcome";
 function firstArrival() {
   try {
-    return !localStorage.getItem(WELCOME_KEY) && !new URLSearchParams(window.location.search).has("place");
+    return !localStorage.getItem(WELCOME_KEY) && !new URLSearchParams(window.location.search).has("place") && !hasShopLink();
   } catch {
     return false;
   }
@@ -148,7 +166,7 @@ export const usePlay = create<PlayState>((set) => ({
   },
   // set on mount (not during server render) so the HUD hydrates cleanly
   night: false,
-  xmas: false,
+  season: null,
   toggleNight: () => set(({ night }) => ({ night: !night })),
   street: false,
   toggleStreet: () =>
@@ -161,7 +179,11 @@ export const usePlay = create<PlayState>((set) => ({
       return { street: !street };
     }),
   found: [],
-  hydrate: () => set({ night: isNight(), xmas: isXmas(), found: loadFound(), shop: loadShop(), welcome: firstArrival() }),
+  hydrate: () => {
+    const linked = shopFromLink();
+    if (linked) saveShop(linked);
+    set({ night: isNight(), season: currentSeason(), found: loadFound(), shop: linked ?? loadShop(), welcome: firstArrival() });
+  },
   welcome: false,
   setWelcome: (welcome) => {
     if (!welcome) {
@@ -330,8 +352,8 @@ export function nearestNpc(): Npc | null {
 }
 
 export function nearestPlace(): Place | null {
-  const { xmas } = usePlay.getState();
-  for (const p of PLACES) if (inSeason(p, xmas) && DOORS.get(p.id)!.distanceTo(game.pos) < 3.2) return p;
+  const { season } = usePlay.getState();
+  for (const p of PLACES) if (inSeason(p, season) && DOORS.get(p.id)!.distanceTo(game.pos) < 3.2) return p;
   return null;
 }
 
