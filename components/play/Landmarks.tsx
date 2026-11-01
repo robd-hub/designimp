@@ -6,6 +6,7 @@ import { Part, geo, toon, signTexture, INK, WINDOW, LAMP, STONE, STONE_DARK } fr
 import { placeEvents } from "./store";
 import { AIRFIELD, BRAYFORD, CANNONS, NEWPORT, RIVER, RIVER_RUNS, STONEBOW, STREET_ROW, seeded, streetHouses } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
+import { useRoof } from "./MoreLandmarks";
 
 const CASTLE_STONE = 0xb8a98a;
 const CASTLE_DARK = 0x9c8d6e;
@@ -411,7 +412,7 @@ export function Brayford({ p, font, reduce }: { p: Place; font: string; reduce: 
   );
 }
 
-const BRICK = 0xb5543a;
+const BRICK = 0x7b3a2c; // the library's dark red brick
 const BRICK_DARK = 0x8f3f2c;
 
 // University of Lincoln's Brayford Pool campus, on the south side of the water: an old
@@ -419,6 +420,8 @@ const BRICK_DARK = 0x8f3f2c;
 // and a glassy teaching block, all facing the main road.
 export function Campus({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture("University\nof Lincoln", "#7a1f3d", font), [font]);
+  const libSign = useMemo(() => signTexture("GREAT CENTRAL\nWAREHOUSE LIBRARY", "#7b3a2c", font), [font]);
+  const libRoof = useRoof(4, 1.7, 5.8);
   const hw = p.w / 2,
     hd = p.d / 2,
     front = hd - 1.2;
@@ -429,19 +432,33 @@ export function Campus({ p, font }: { p: Place; font: string }) {
       {[-hw + 4.5, 0, hw - 4].map((x) => (
         <mesh key={x} geometry={geo.box(1.6, 0.07, 2.4)} material={toon(0xe8dcc2)} position={[x, 0.05, hd - 1.2]} />
       ))}
-      {/* the warehouse library: long brick shed with arched windows and a pitched roof */}
+      {/* the Great Central Warehouse Library: a dark red brick railway warehouse with two gables to the front, a round
+          window in each, rows of arched windows, glazing at the foot and its name across the middle */}
       <group position={[-hw + 4.5, 0, -0.6]}>
-        <Part geometry={geo.box(8, 4.4, 5.6)} color={BRICK} outline={0.08} position-y={2.2} />
-        <group position-y={4.4} rotation-y={Math.PI / 2}>
-          <Part geometry={geo.cyl(3.4, 3.4, 8.2, 3)} color={0x4a4f5c} outline={0.06} rotation-x={-Math.PI / 2} scale={[1, 1, 0.38]} position-y={0.6} />
-        </group>
-        {[-2.7, -0.9, 0.9, 2.7].map((x) => (
-          <group key={x} position={[x, 0, 2.85]}>
-            <Part geometry={geo.box(1, 1.6, 0.1)} color={WINDOW} outline={0.03} position-y={2.3} />
-            <Part geometry={geo.cyl(0.5, 0.5, 0.1, 12)} color={WINDOW} outline={0.03} position-y={3.1} rotation-x={Math.PI / 2} />
+        <Part geometry={geo.box(8, 4.6, 5.6)} color={BRICK} outline={0.08} position-y={2.3} />
+        {[-2, 2].map((x) => (
+          <group key={x} position={[x, 4.6, 0]} rotation-y={Math.PI / 2}>
+            <Part geometry={libRoof} color={0x4a4f5c} outline={0.06} />
           </group>
         ))}
-        <Part geometry={geo.box(8.3, 0.3, 5.9)} color={BRICK_DARK} outline={0.04} position-y={1.1} />
+        <Part geometry={geo.box(8.3, 0.3, 5.9)} color={BRICK_DARK} outline={0.04} position-y={0.15} />
+        <mesh geometry={geo.box(8.1, 0.2, 0.1)} material={toon(0xd9cbb0)} position={[0, 4.6, 2.82]} />
+        {[-2, 2].map((x) => (
+          <group key={x}>
+            <Part geometry={geo.cyl(0.4, 0.4, 0.1, 12)} color={0x2b2633} outline={0.03} position={[x, 5.3, 2.83]} rotation-x={Math.PI / 2} />
+            <Part geometry={geo.box(1.7, 1.6, 0.1)} color={0x20252d} outline={0.03} position={[x, 0.95, 2.82]} />
+          </group>
+        ))}
+        {[-3, -1, 1, 3].map((x) => (
+          <group key={x} position={[x, 3.75, 2.83]}>
+            <Part geometry={geo.box(0.6, 0.8, 0.1)} color={WINDOW} outline={0.03} />
+            <Part geometry={geo.cyl(0.3, 0.3, 0.1, 10)} color={WINDOW} outline={0.03} position-y={0.4} rotation-x={Math.PI / 2} />
+          </group>
+        ))}
+        <mesh position={[0, 2.5, 2.83]}>
+          <planeGeometry args={[4.4, 1.9]} />
+          <meshBasicMaterial map={libSign} toneMapped={false} />
+        </mesh>
       </group>
       {/* main building: brick base, tall glass atrium, flat roof */}
       <group position={[0.5, 0, -1]}>
