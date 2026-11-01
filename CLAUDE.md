@@ -26,6 +26,7 @@ npm run lint
 - No test suite. Verify by running the app and looking (see "Verifying changes").
 - In the cloud sandbox Turbopack fails on the Google font download, so use `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt npx next dev --webpack`. On a normal machine plain `npm run dev` is fine.
 - Dev-only URL switches on `/play`: `?place=<id>` opens a card, `?weather=<sky>`, `?matchday=1`, `?season=xmas`, `?season=bonfire` or `?season=off`. Otherwise the Christmas market is only in town in December and the Bonfire Night field from 30 October to 9 November (`currentSeason()` in `places.ts`; the bonfire's fireworks are night only).
+- Prospect links (work in production, Rob shares them himself): `/play?shop=Jane%27s%20Hair&type=salon&colour=ff7eb6` puts that shop on the main To Let plot (`&plot=<lot id>` picks another) and walks the Imp to it. `type` is one of `shop|salon|cafe|trades`, `colour` one of `SHOP_COLOURS` in `shop.ts`; the name is cleaned by `cleanName`. See `shopFromLink()` in `store.ts`.
 
 ## Repo layout
 
