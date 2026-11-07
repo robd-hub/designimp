@@ -123,12 +123,15 @@ const yardPlace = PLACES.find((p) => p.kind === "yard")!;
 const YARD_SPUR_X = yardPlace.x;
 const MILL_DOOR = doorAt("ellis-mill"),
   ARBORETUM_DOOR = doorAt("arboretum"),
-  MARKET_DOOR = doorAt("christmas-market");
+  MARKET_DOOR = doorAt("christmas-market"),
+  LAWN_DOOR = doorAt("the-lawn");
+const LAWN_PATH_Z = LAWN_DOOR.z + 0.7; // just south of The Lawn's gate, clear of the castle
 const MILL_X = PATH_X + 5;
 export const LANDMARK_PATHS = [
   { x0: MILL_X - 1, x1: MILL_X + 1, z0: MILL_DOOR.z - 1, z1: castlePlace.z - 4 }, // Castle Square's north edge
   { x0: MILL_DOOR.x - 1, x1: MILL_X - 1, z0: MILL_DOOR.z - 1, z1: MILL_DOOR.z + 1 },
   { x0: EAST_PATH_X + 1, x1: ARBORETUM_DOOR.x + 1, z0: ARBORETUM_DOOR.z - 1, z1: ARBORETUM_DOOR.z + 1 },
+  { x0: LAWN_DOOR.x - 1, x1: PATH_X - 1, z0: LAWN_PATH_Z - 1, z1: LAWN_PATH_Z + 1 }, // west off the castle footpath to The Lawn's gate
 ];
 // Lindum Hill: the steep road up the east side of the hill. Broadgate brings it up from the main road, over the Witham on
 // a road bridge and past the Arboretum's gates where Monks Road comes in; from there it climbs north past the Usher Gallery's east end,
@@ -200,6 +203,12 @@ export const APPROACH: Record<string, [number, number][]> = {
   arboretum: [
     [EAST_PATH_X, 0],
     [EAST_PATH_X, ARBORETUM_DOOR.z],
+  ],
+  // up the castle footpath and west along the path south of the castle to the gate
+  "the-lawn": [
+    [PATH_X, 0],
+    [PATH_X, LAWN_PATH_Z],
+    [LAWN_DOOR.x, LAWN_PATH_Z],
   ],
   // off the main road and up Broadgate to the foot of the hill
   "lindum-hill": [[lindum.x, 0]],
@@ -662,7 +671,7 @@ export const ROUNDABOUT = { x: tank.x, z: tank.z, island: 4.3, ring: 6.8, edge: 
 export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 }));
 
 // The seasonal market and bonfire add their own solid parts while they're in town (MoreLandmarks.tsx, Bonfire.tsx).
-const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehouse", "bonfire"].includes(p.kind ?? "shop")).flatMap((p) => {
+const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehouse", "bonfire", "lawn"].includes(p.kind ?? "shop")).flatMap((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
     // only the signboard at the back of the plot is solid
