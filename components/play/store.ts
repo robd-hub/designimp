@@ -20,7 +20,7 @@ type PlayState = {
   openPlace: (p: Place) => void;
   close: () => void;
   night: boolean;
-  season: Season; // December: the Christmas market is in town; around 5 November: the bonfire field
+  season: Season; // December: the Christmas market is in town
   toggleNight: () => void;
   street: boolean; // first-person "street view"
   toggleStreet: () => void;
