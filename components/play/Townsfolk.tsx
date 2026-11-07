@@ -5,7 +5,7 @@ import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { Part, geo, INK, toon } from "./toon";
 import { NPCS, npcPos, chatLine, type Npc } from "./npcs";
 import { game, usePlay, walkToNpc } from "./store";
-import { groundY } from "./terrain";
+import { groundY, deckY } from "./terrain";
 import { atBarrier } from "./colliders";
 
 const tmp = new THREE.Vector3();
@@ -91,7 +91,7 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
     const wave = talking || speaking;
     armR.current.rotation.x = wave ? Math.PI : sw * 0.8;
     armR.current.rotation.z = wave && !reduce ? Math.sin(clock.elapsedTime * 8) * 0.35 : 0;
-    body.current.position.set(pos.x, groundY(pos.z) + (moving ? Math.abs(Math.sin(s.walkT)) * 0.08 : 0), pos.z);
+    body.current.position.set(pos.x, groundY(pos.z) + deckY(pos.x, pos.z) + (moving ? Math.abs(Math.sin(s.walkT)) * 0.08 : 0), pos.z);
     body.current.rotation.y = s.face;
   });
 

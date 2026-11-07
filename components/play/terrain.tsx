@@ -3,7 +3,7 @@ import * as THREE from "three";
 import type { ThreeElements } from "@react-three/fiber";
 import { PLACES, footprint } from "./places";
 import { toon } from "./toon";
-import { PELHAM } from "./colliders";
+import { PELHAM, RIVER } from "./colliders";
 
 // Uphill Lincoln: the ground climbs Steep Hill to the cathedral and castle on the hilltop,
 // while the high street, the Brayford and everything south of them stay down by the river.
@@ -24,9 +24,25 @@ export function groundY(z: number) {
   }, 0);
 }
 
-// How high Pelham Bridge's road stands above the ground at a point: zero anywhere off it.
+// The footbridges over the Witham are humped high enough for the narrowboats to pass under: flat on top over the
+// water, with a ramp down to each bank. humpY gives the deck's height at dz from the middle of the river.
+export const FOOT_HUMP = { top: 1.65, flat: 1.7, half: 4.2 };
+export function humpY(dz: number) {
+  const t = Math.abs(dz),
+    H = FOOT_HUMP;
+  if (t >= H.half) return 0;
+  if (t <= H.flat) return H.top;
+  const k = (H.half - t) / (H.half - H.flat);
+  return H.top * k * k * (3 - 2 * k);
+}
+const FOOTBRIDGES = RIVER.bridges.filter((b) => b.foot);
+
+// How high a bridge deck stands above the ground at a point (Pelham Bridge's road, or a footbridge's hump): zero
+// anywhere off them.
 export function deckY(x: number, z: number) {
   const P = PELHAM;
+  const dz = z - RIVER.z;
+  if (Math.abs(dz) < FOOT_HUMP.half) for (const b of FOOTBRIDGES) if (x > b.x0 - 0.1 && x < b.x1 + 0.1) return humpY(dz);
   if (x < P.x0 - 0.1 || x > P.x1 + 0.1 || z <= P.a || z >= P.d) return 0;
   if (z < P.b) return (P.h * (z - P.a)) / (P.b - P.a);
   if (z > P.c) return (P.h * (P.d - z)) / (P.d - P.c);

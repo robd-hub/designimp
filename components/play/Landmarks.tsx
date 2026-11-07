@@ -5,7 +5,7 @@ import type { Place } from "./places";
 import { Part, geo, toon, signTexture, INK, WINDOW, LAMP, STONE, STONE_DARK } from "./toon";
 import { placeEvents } from "./store";
 import { AIRFIELD, BRAYFORD, CANNONS, NEWPORT, RIVER, RIVER_RUNS, STONEBOW, STREET_ROW, seeded, streetHouses } from "./colliders";
-import { Strip, groundY, groundTilt } from "./terrain";
+import { Strip, groundY, groundTilt, humpY, FOOT_HUMP } from "./terrain";
 import { useRoof } from "./MoreLandmarks";
 
 const CASTLE_STONE = 0xb8a98a;
@@ -299,7 +299,7 @@ function TourBoat({ reduce }: { reduce: boolean }) {
   const g = useRef<THREE.Group>(null!);
   useFrame(({ clock }) => {
     const t = reduce ? 1 : clock.elapsedTime * 0.06;
-    g.current.position.set(WX + Math.cos(t) * (WRX - 5), 0.1, WZ + Math.sin(t) * (WRZ - 3.2));
+    g.current.position.set(WX + Math.cos(t) * (WRX - 7), 0.1, WZ + Math.sin(t) * (WRZ - 3.2));
     g.current.rotation.y = -t;
   });
   return (
@@ -738,24 +738,50 @@ export function River() {
       {/* High Bridge's parapet on the east side of the street, and the river coming out from under it */}
       <Part geometry={geo.box(0.5, 1, wide + 1.2)} color={BRIDGE_STONE} outline={0.05} position={[RIVER.bridges[1].x1 + 0.2, 0.5, z]} />
       <Part geometry={geo.smile(RIVER.half + 0.15, 0.16)} color={0x9c8d6e} outline={0.03} position={[RIVER.bridges[1].x1 + 0.47, -0.65, z]} rotation={[0, Math.PI / 2, Math.PI]} scale={[1, 1, 0.4]} />
-      {/* the footbridges, humped a little over the water that runs on under them, with a rail along each side */}
+      {/* the footbridges, humped up high enough for the boats to pass under, the water running on beneath them, with
+          a rail along each side; drawn as short lengths of deck and rail laid along the hump */}
       {RIVER.bridges
         .filter((b) => b.foot)
-        .map((foot) => (
-          <group key={foot.x} position={[foot.x, 0, z]}>
-            <mesh geometry={geo.box(foot.x1 - foot.x0, 0.12, wide)} material={toon(0x3aa6e8)} position-y={0.2} />
-            <Part geometry={geo.box(foot.x1 - foot.x0 - 0.2, 0.25, wide + 1.6)} color={0x8a5a33} outline={0.04} position-y={0.4} />
-            {[-1, 1].flatMap((sx) => [
-              <Part key={`r${sx}`} geometry={geo.box(0.1, 0.1, wide + 1.6)} color={0x5a3a22} outline={0.02} position={[(sx * (foot.x1 - foot.x0 - 0.3)) / 2, 1.35, 0]} />,
-              ...[-1, 0, 1].map((k) => (
-                <Part key={`${sx}${k}`} geometry={geo.box(0.12, 1, 0.12)} color={0x5a3a22} outline={0.02} position={[(sx * (foot.x1 - foot.x0 - 0.3)) / 2, 0.85, k * (wide / 2 + 0.6)]} />
-              )),
-            ])}
-          </group>
-        ))}
+        .map((foot) => {
+          const span = foot.x1 - foot.x0;
+          return (
+            <group key={foot.x} position={[foot.x, 0, z]}>
+              <mesh geometry={geo.box(span, 0.12, wide)} material={toon(0x3aa6e8)} position-y={0.2} />
+              {HUMP_SEGS.map(({ z: sz, y, tilt, len }) => (
+                <group key={sz} position={[0, y, sz]} rotation-x={tilt}>
+                  <Part geometry={geo.box(span - 0.2, 0.25, len)} color={0x8a5a33} outline={0.04} position-y={0.3} />
+                  {[-1, 1].map((sx) => (
+                    <Part key={sx} geometry={geo.box(0.1, 0.1, len)} color={0x5a3a22} outline={0.02} position={[(sx * (span - 0.3)) / 2, 1.25, 0]} />
+                  ))}
+                </group>
+              ))}
+              {HUMP_POSTS.flatMap((pz) =>
+                [-1, 1].map((sx) => (
+                  <Part key={`${pz}${sx}`} geometry={geo.box(0.12, 0.85, 0.12)} color={0x5a3a22} outline={0.02} position={[(sx * (span - 0.3)) / 2, humpY(pz) + 0.85, pz]} />
+                )),
+              )}
+              {/* a stone pier under each end of the flat top, on the bank */}
+              {[-1, 1].map((s2) => (
+                <Part key={s2} geometry={geo.box(span - 0.4, FOOT_HUMP.top + 0.2, 0.5)} color={BRIDGE_STONE} outline={0.03} position={[0, (FOOT_HUMP.top + 0.2) / 2, s2 * (RIVER.half + 0.35)]} />
+              ))}
+            </group>
+          );
+        })}
     </group>
   );
 }
+
+// The footbridges' deck as short straight lengths along the hump, and where the rail posts stand.
+const HUMP_N = 14;
+const HUMP_SEGS = Array.from({ length: HUMP_N }, (_, i) => {
+  const step = (2 * FOOT_HUMP.half) / HUMP_N,
+    a = -FOOT_HUMP.half + i * step,
+    b = a + step;
+  const ya = humpY(a),
+    yb = humpY(b);
+  return { z: (a + b) / 2, y: (ya + yb) / 2, tilt: -Math.atan2(yb - ya, step), len: Math.hypot(step, yb - ya) + 0.04 };
+});
+const HUMP_POSTS = [-3.4, -1.6, 0, 1.6, 3.4];
 
 // Newport Arch, the Roman north gate of the city, still standing over the road at the top of Bailgate:
 // a big round arch for the road, the little arch for people on foot beside it on the east, and
