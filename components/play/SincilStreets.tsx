@@ -17,11 +17,11 @@ const DOORS = [0x2f4a7a, 0x7a1f3d, 0x1f6b4a, 0x2b2633, 0xf2e2c4];
 const SLATE = 0x4b5160;
 const POLE = 0x2b2633;
 type V3 = [number, number, number];
-type Item = { at: V3; rot: number };
+export type Item = { at: V3; rot: number };
 
 // Many copies of one shape in one draw, optionally with the town's ink outline round each (a second, slightly larger
 // copy drawn inside out, as Part does for single meshes).
-function Instances({ geometry, color, list, outline = 0 }: { geometry: THREE.BufferGeometry; color: number; list: Item[]; outline?: number }) {
+export function Instances({ geometry, color, list, outline = 0 }: { geometry: THREE.BufferGeometry; color: number; list: Item[]; outline?: number }) {
   const body = useRef<THREE.InstancedMesh>(null!);
   const ink = useRef<THREE.InstancedMesh>(null);
   useLayoutEffect(() => {

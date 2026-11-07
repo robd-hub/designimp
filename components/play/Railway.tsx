@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Part, geo, toon, INK, WINDOW, LAMP } from "./toon";
-import { BOUND, CROSSING, EAST, MID_X, RAIL, RAIL_FENCE_RUNS, STATION, WHARF_CROSSING } from "./colliders";
+import { BOUND, CROSSING, EAST, MID_X, RAIL, RAIL_FENCE_RUNS, STATION, TRITTON, WHARF_CROSSING } from "./colliders";
 import { AUDIO } from "./sound";
 
 // The railway south of the Workshop and HQ. Passenger trains and long tanker trains take it in
@@ -60,7 +60,7 @@ const tracks = [-1, 1].map((s) => RAIL.z + s * RAIL.gap);
 // no sleepers showing through the road and pavements at the crossing, or the paving of the one on Brayford Wharf East
 const SLEEPERS = tracks.flatMap((z) =>
   Array.from({ length: Math.floor(LEN / 1.2) }, (_, i) => MID_X - LEN / 2 + 0.6 + i * 1.2)
-    .filter((x) => Math.abs(x) > 4.6 && Math.abs(x - WHARF_CROSSING.x) > WHARF_CROSSING.half + 0.3)
+    .filter((x) => Math.abs(x) > 4.6 && Math.abs(x - WHARF_CROSSING.x) > WHARF_CROSSING.half + 0.3 && Math.abs(x - TRITTON.x) > RAIL.crossing)
     .map((x) => [x, 0.06, z] as [number, number, number]),
 );
 // fences run out from the crossing and stop at the station's platforms
@@ -110,10 +110,12 @@ const LAMP_ON = 0xff3b2a,
 const flash = () => [new THREE.MeshBasicMaterial({ color: LAMP_OFF }), new THREE.MeshBasicMaterial({ color: LAMP_OFF })];
 // the High Street's lamps, and the ones on the Brayford Wharf East crossing, which flash for their own trains
 const FLASH = flash(),
-  FLASH_WHARF = flash();
+  FLASH_WHARF = flash(),
+  FLASH_TRITTON = flash();
 const CROSSINGS = [
   { x: 0, half: RAIL.crossing, lamps: FLASH },
   { x: WHARF_CROSSING.x, half: WHARF_CROSSING.half, lamps: FLASH_WHARF },
+  { x: TRITTON.x, half: RAIL.crossing, lamps: FLASH_TRITTON }, // Tritton Road's, out west
 ];
 
 // One barrier on each side of the crossing, its post at the kerb and the arm spanning the road
@@ -282,7 +284,7 @@ export default function Railway({ reduce }: { reduce: boolean }) {
         s.called = false;
       }
     }
-    [CROSSING.closed, CROSSING.wharf] = closed;
+    [CROSSING.closed, CROSSING.wharf, CROSSING.tritton] = closed;
     const t = AUDIO.train;
     t.on = !reduce && s.wait <= 0;
     [t.head, t.dir, t.v, t.run] = [s.head, run.dir, s.v, s.i];

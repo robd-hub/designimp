@@ -475,9 +475,52 @@ export const STONEBOW_STREETS = [
 export const RAIL = { z: 18.5, gap: 1.6, fence: 3.6, crossing: 4.6 };
 // Set every frame by the railway while the barriers are down.
 // wharf is the same for the crossing on Brayford Wharf East.
-export const CROSSING = { closed: false, wharf: false };
+export const CROSSING = { closed: false, wharf: false, tritton: false };
+// Tritton Road and Tritton Retail Park, out west: the road runs south off the tank roundabout, over the railway on a
+// level crossing of its own, to the retail park on the west side of the Witham. The park is a car park with an L of
+// big shop units round its south and east sides (their fronts facing it), a to-let unit at the south end of the east
+// row and a coffee drive-through by the way in. The east row leaves a walkway through from the Witham footbridge. Each unit is
+// [x0, x1, z0, z1] with face "n" or "w" for the side its front is on; bays are the parked cars, in world coordinates.
+const TRITTON_X = PLACES.find((p) => p.kind === "tank")!.x;
+const TRITTON_PARK = { x0: -79, x1: -50, z0: 30, z1: 60 };
+const BAY_XS = Array.from({ length: 9 }, (_, i) => -76.65 + i * 2.7);
+const BAY_ROWS = [
+  { z: 33, face: 1 },
+  { z: 49, face: -1 },
+  { z: 54, face: 1 },
+];
+const bayRand = seeded(91);
+export const TRITTON = {
+  x: TRITTON_X,
+  road: { half: 3, pave: 4.3, z0: 4.3, z1: 92 },
+  park: TRITTON_PARK,
+  units: [
+    { name: "DIY", x0: -79, x1: -66, z0: 63, z1: 73, face: "n", color: 0xe8732a },
+    { name: "Furniture", x0: -66, x1: -56, z0: 63, z1: 73, face: "n", color: 0x2b59c3 },
+    { name: "Electricals", x0: -56, x1: -47, z0: 63, z1: 73, face: "n", color: 0xd1242f },
+    { name: "Sports", x0: -47, x1: -38.5, z0: 63, z1: 73, face: "n", color: 0x2f8f5b },
+    { name: "Pets", x0: -48, x1: -38.5, z0: 28, z1: 39.5, face: "w", color: 0x1fb5a8 },
+
+  ],
+  pod: { name: "Coffee", x0: -71, x1: -65, z0: 20, z1: 25, color: 0x7a4a2e },
+  bays: BAY_ROWS.flatMap((r) => BAY_XS.map((x) => ({ x, z: r.z, face: r.face }))),
+  cars: [] as { x: number; z: number; face: number; k: number }[],
+};
+TRITTON.cars = TRITTON.bays.filter(() => bayRand() < 0.6).map((b, k) => ({ ...b, k }));
+export const TRITTON_CAR = { w: 1.5, len: 3.3 };
+const TRITTON_BOXES = [
+  ...TRITTON.units.map((u) => ({ x0: u.x0, x1: u.x1, z0: u.z0, z1: u.z1 })),
+  { x0: TRITTON.pod.x0, x1: TRITTON.pod.x1, z0: TRITTON.pod.z0, z1: TRITTON.pod.z1 },
+  ...TRITTON.cars.map((c) => ({ x0: c.x - TRITTON_CAR.w / 2, x1: c.x + TRITTON_CAR.w / 2, z0: c.z - TRITTON_CAR.len / 2, z1: c.z + TRITTON_CAR.len / 2 })),
+];
+const TRITTON_PAVED = [
+  { x0: TRITTON_X - TRITTON.road.pave, x1: TRITTON_X + TRITTON.road.pave, z0: TRITTON.road.z0, z1: TRITTON.road.z1 },
+  { x0: TRITTON_PARK.x0, x1: -38.5, z0: 20, z1: 73 },
+];
+const nearTritton = (x: number, z: number, pad: number) => TRITTON_PAVED.some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
 export const atBarrier = (x: number, z: number) =>
-  Math.abs(z - RAIL.z) < RAIL.fence + 0.4 && ((CROSSING.closed && Math.abs(x) < RAIL.crossing) || (CROSSING.wharf && Math.abs(x - WHARF_CROSSING.x) < WHARF_CROSSING.half));
+  Math.abs(z - RAIL.z) < RAIL.fence + 0.4 &&
+  ((CROSSING.closed && Math.abs(x) < RAIL.crossing) || (CROSSING.wharf && Math.abs(x - WHARF_CROSSING.x) < WHARF_CROSSING.half) || (CROSSING.tritton && Math.abs(x - TRITTON_X) < RAIL.crossing));
 // Lincoln Central, just east of the crossing as in real Lincoln: the station building on the main road,
 // a platform along each track and a covered footbridge between them at the east end. edge is the
 // platform edges' offset from the line's centre, and the fences are left out alongside the platforms.
@@ -576,6 +619,13 @@ APPROACH.architecture = [
   [WEST_PATH_X, -6],
   [-79.5, -6.5],
 ];
+// Tritton Retail Park: its door is on Tritton Road at the end of the aisle between the parking rows, and the to-let
+// unit's at the east end of that aisle, by the walkway off the Witham footbridge.
+APPROACH["tritton-park"] = [[-78, 42]];
+APPROACH["tritton-unit"] = [
+  [-44, 43.5],
+  [-49.8, 46],
+];
 const POCKET_BRIDGES: Record<"n" | "s" | "uni", [number, number][]> = {
   n: [
     [WHARF_CROSSING.x, 0],
@@ -614,7 +664,8 @@ function enterWitham([x, z]: [number, number], other: [number, number]) {
 
 // Runs of fence along each side of the line, west to east.
 export const RAIL_FENCE_RUNS: [number, number][] = [
-  [-BOUND, WHARF_EAST.x0],
+  [-BOUND, TRITTON_X - RAIL.crossing], // open where Tritton Road crosses
+  [TRITTON_X + RAIL.crossing, WHARF_EAST.x0],
   [WHARF_EAST.x1, -RAIL.crossing],
   [RAIL.crossing, STATION.x0],
   [STATION.x1, PELHAM.x0 - 0.6], // left open under Pelham Bridge
@@ -653,6 +704,16 @@ export function crossings(from: [number, number], to: [number, number]): [number
   const a = pocket(...from),
     b = pocket(...to);
   if (a && a === b) return [];
+  if (a && b) {
+    // both on the Witham's west bank, either side of the railway: over Tritton Road's level crossing
+    // (round the east side of the roundabout's island from north of the main road, and down the road to the car park's
+    // aisle for the retail park)
+    const [np, sp] = a === "n" ? [from, to] : [to, from];
+    const north: [number, number][] = [...(np[1] < ROAD_EDGE ? [[TRITTON_X + 7, 0] as [number, number]] : []), [TRITTON_X, RAIL.z - RAIL.fence - 1]];
+    const south: [number, number][] = [[TRITTON_X, RAIL.z + RAIL.fence + 1], ...(sp[1] > TRITTON_PARK.z0 && sp[0] > TRITTON_X ? [[TRITTON_X, 42] as [number, number]] : [])];
+    const way = [...north, ...south];
+    return throughGate(aroundDyke([from, ...(a === "n" ? way : way.reverse()), to])).slice(1, -1);
+  }
   const pts: [number, number][] = leaveWitham(from, to);
   let at = pts.at(-1) ?? from;
   const end = enterWitham(to, from);
@@ -773,7 +834,7 @@ function leaveDyke(p: [number, number], other: [number, number]): [number, numbe
     const ways = DYKE_A_WAYS.filter((c) => c !== STADIUM_ROAD.z || p[0] < stadium.x0 + 1);
     const c = ways.reduce((m, c) => (2 * Math.abs(p[1] - c) + Math.abs(oz - c) < 2 * Math.abs(p[1] - m) + Math.abs(oz - m) ? c : m));
     const along: [number, number][] = p[0] > DYKE.x + 3.5 && Math.abs(p[1] - c) > 0.5 ? [[p[0], c]] : [];
-    return [...along, [DYKE.x + 3, c], [DYKE.x - 3, c]];
+    return [...along, [DYKE.x + 3, c], [DYKE.x - 3, c], [0, c]]; // and out onto the south road
   }
   if (eastOfC(p) && !eastOfC(other))
     return [
@@ -810,7 +871,7 @@ function aroundDyke(route: [number, number][]) {
 }
 
 // The seasonal market adds its own solid parts while it's in town (MoreLandmarks.tsx).
-const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehouse", "lawn"].includes(p.kind ?? "shop")).flatMap((p) => {
+const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehouse", "lawn", "retailpark"].includes(p.kind ?? "shop")).flatMap((p) => {
   const f = footprint(p);
   if (p.kind === "lot") {
     // only the signboard at the back of the plot is solid
@@ -845,7 +906,7 @@ const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehous
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES, DYKE_BOXES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), TRITTON_BOXES, STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES, DYKE_BOXES);
 
 const HIGH_STREET = { x0: -HIGH_ST, x1: HIGH_ST, z0: hill.z1, z1: -4.3 };
 const onRoad = (x: number, z: number) =>
@@ -860,6 +921,7 @@ const nearBuilding = (x: number, z: number, pad: number) =>
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
   [...[...WHARF_BARS, ...ST_MARKS.units].map(barBox), ...MINSTER.south.map(yardBox), ...LINDUM.houses.map(lindumBox)].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   PLACES.some((p) => {
+    if (p.id.startsWith("tritton-")) return false; // added later, and cleared of trees afterwards instead
     const f = footprint(p);
     const door = p.kind === "lot" ? 0 : 4; // keep the approach to each entrance clear
     const side = Math.abs(Math.sin(p.rot)) > 0.5; // entrance on an east or west face
@@ -891,7 +953,7 @@ export const TREES: [number, number, number][] = (() => {
     }
   }
   // the streets down to Sincil Bank came later: the trees already there stay put, bar any in their way
-  return [...out.filter(([x, z]) => !nearSincil(x, z, 2)), ...YARD_TREES];
+  return [...out.filter(([x, z]) => !nearSincil(x, z, 2) && !nearTritton(x, z, 2)), ...YARD_TREES];
 })();
 
 const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));
