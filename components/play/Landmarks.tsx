@@ -639,7 +639,6 @@ export function Airfield({ p, font, reduce }: { p: Place; font: string; reduce: 
 
 const TIMBER = 0x2b2633;
 const BRIDGE_STONE = 0xb8a98a;
-const TUNNEL = 0x1f2a33;
 
 // Black timber studs and rails over a plastered face len wide and h tall, centred on its foot.
 function Studs({ len, h, ...g }: { len: number; h: number } & Omit<ThreeElements["group"], "children">) {
@@ -678,12 +677,12 @@ export function HighBridge({ p, font }: { p: Place; font: string }) {
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       {/* the bridge: stone ground floor, its arch over the river on the upstream (back) face */}
-      <Part geometry={geo.box(p.w, ground, p.d)} color={BRIDGE_STONE} outline={0.08} position-y={ground / 2} />
-      <group position-z={-p.d / 2 - 0.06}>
-        <Part geometry={geo.box(RIVER.half * 2, 0.9, 0.1)} color={TUNNEL} outline={0} position-y={0.45} />
-        <Part geometry={geo.cyl(RIVER.half, RIVER.half, 0.1, 18)} color={TUNNEL} outline={0} position-y={0.9} rotation-x={Math.PI / 2} />
-        <Part geometry={geo.smile(RIVER.half + 0.2, 0.18)} color={0x9c8d6e} outline={0.03} position-y={0.9} rotation-z={Math.PI} scale={[1, 1, 0.4]} />
-      </group>
+      {/* the Glory Hole: a round arch right through the stone ground floor, with the river's dark water in it, a ring of
+          big stones round its mouth on the upstream (back) face, and a stone block closing it at the street end */}
+      <Part geometry={geo.arches(p.w, ground, p.d, [[0, RIVER.half * 2, 0.5]])} color={BRIDGE_STONE} outline={0.08} />
+      <mesh geometry={geo.box(RIVER.half * 2 + 0.2, 0.12, p.d - 0.5)} material={toon(0x1a4f73)} position={[0, 0.2, -0.25]} raycast={() => null} />
+      <Part geometry={geo.box(RIVER.half * 2 + 0.3, ground, 0.5)} color={BRIDGE_STONE} outline={0.04} position={[0, ground / 2, p.d / 2 - 0.25]} />
+      <Part geometry={geo.smile(RIVER.half + 0.2, 0.18)} color={0x9c8d6e} outline={0.03} position={[0, 0.5, -p.d / 2 - 0.04]} rotation-z={Math.PI} scale={[1, 1, 0.4]} />
       {/* shopfront onto the street */}
       <Part geometry={geo.box(1.2, 2, 0.2)} color={0x5a3a22} outline={0.05} position={[1.8, 1, p.d / 2 + 0.06]} />
       <Part geometry={geo.box(2.6, 1.3, 0.2)} color={WINDOW} outline={0.05} position={[-1, 1.15, p.d / 2 + 0.06]} />
