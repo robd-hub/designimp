@@ -7,7 +7,7 @@ import { CANWICK, DYKE, DYKE_CULVERTS, DYKE_RUNS, SIDE, SIDE_STREETS, SINCIL, ST
 import { Sign, useRoof, useSign } from "./MoreLandmarks";
 
 // The terraced streets down to Sincil Bank (laid out in colliders.ts): Canwick Road on south from the foot of Pelham
-// Bridge, Tentercroft, Portland and Scorer Streets east off the south road to it, and Sincil Bank past the ground.
+// Bridge, Tentercroft, Portland, Monson and Scorer Streets east off the south road to it, and Sincil Bank past the ground.
 // Rows of red-brick terraced houses line them, with a lamp every so often and the street's name at each end. The
 // houses are generic two-up two-downs, not drawn from particular buildings, and none of them has a card.
 const PAVE = 0xe8dcc2;
