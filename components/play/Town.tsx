@@ -6,7 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, inSeason, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Airfield, Stonebow, HighBridge, NewportArch, OldHouse, Gallery, Ruins, River } from "./Landmarks";
-import { EXTRA_BOXES, toWorld, TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, CORNHILL, STONEBOW_STREETS, STADIUM_ROAD, AIRFIELD_ROAD, FOOTPATHS, RING_PATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
+import { EXTRA_BOXES, toWorld, TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, CORNHILL, STONEBOW_STREETS, STADIUM_ROAD, SIDE_STREETS, AIRFIELD_ROAD, FOOTPATHS, RING_PATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
 import Townsfolk from "./Townsfolk";
 import { game, usePlay, placeEvents, zoomBy, walkRoute, isMatchday } from "./store";
@@ -25,10 +25,10 @@ import Witham from "./Witham";
 import { StMarks } from "./StMarks";
 import Bailgate, { Pub } from "./Bailgate";
 import { Mill, Park, Market as XmasMarket } from "./MoreLandmarks";
-import { Bonfire } from "./Bonfire";
 import { Venue } from "./EngineShed";
 import { Architecture } from "./Architecture";
 import { GloryBoat } from "./GloryHole";
+import SincilStreets from "./SincilStreets";
 import { Lawn } from "./Lawn";
 import { Gatehouse, Yard, MinsterGrounds, SETTS } from "./MinsterYard";
 import { LindumHill, PelhamBridge } from "./LindumHill";
@@ -59,7 +59,7 @@ function Roads() {
   for (let i = -BOUND; i <= EAST; i += 4) if (Math.abs(i) > 5 && Math.abs(i - ROUNDABOUT.x) > ROUNDABOUT.edge + 1) dashes.push(i);
   // down the south road, clear of the level crossing and the junction with the side roads
   const nsDashes: number[] = [];
-  for (let i = 8; i <= SOUTH; i += 4) if (Math.abs(i - STADIUM_ROAD.z) > 5 && Math.abs(i - RAIL.z) > RAIL.fence + 1) nsDashes.push(i);
+  for (let i = 8; i <= SOUTH; i += 4) if (Math.abs(i - STADIUM_ROAD.z) > 5 && Math.abs(i - RAIL.z) > RAIL.fence + 1 && SIDE_STREETS.every((st) => Math.abs(i - st.z) > 4)) nsDashes.push(i);
   const sbDashes: number[] = [];
   for (let i = 8; i < STADIUM_ROAD.x1 - 2; i += 4) sbDashes.push(i);
   for (let i = -8; i > AIRFIELD_ROAD.x0 + 2; i -= 4) sbDashes.push(i);
@@ -1055,10 +1055,11 @@ export default function Town({ font }: { font: string }) {
       <Railway reduce={reduce} />
       <River />
       <GloryBoat reduce={reduce} />
+      <SincilStreets font={font} />
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank" || !inSeason(p, season)) return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks, gatehouse: Gatehouse, yard: Yard, hill: LindumHill, flyover: PelhamBridge, bonfire: Bonfire, venue: Venue, architecture: Architecture, lawn: Lawn }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks, gatehouse: Gatehouse, yard: Yard, hill: LindumHill, flyover: PelhamBridge, venue: Venue, architecture: Architecture, lawn: Lawn }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />

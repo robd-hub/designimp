@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "bonfire" | "venue" | "architecture" | "lawn";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "venue" | "architecture" | "lawn";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -22,7 +22,7 @@ export type Place = {
   intro: string[];
   items?: PlaceItem[];
   link?: { href: string; label: string; external?: boolean };
-  season?: "xmas" | "bonfire"; // only in town at its time of year (or with ?season=xmas / ?season=bonfire while developing)
+  season?: "xmas"; // only in town at its time of year (or with ?season=xmas while developing)
 };
 
 // What a plot's sign says once a visitor has typed their business name there.
@@ -567,7 +567,7 @@ export const PLACES: Place[] = [
     kicker: "Shop to let on the south road",
     nav: "To let (South Rd east 3)",
     x: 13,
-    z: 87,
+    z: 82, // north of Portland Street
     w: 6,
     d: 7,
     h: 0,
@@ -1201,44 +1201,15 @@ export const PLACES: Place[] = [
     ],
     link: { href: "https://www.visitlincoln.com/", label: "See what's on at Visit Lincoln", external: true },
   },
-  {
-    id: "bonfire-night",
-    kind: "bonfire",
-    season: "bonfire",
-    name: "Bonfire Night",
-    kicker: "Remember, remember, the fifth of November",
-    nav: "Bonfire Night",
-    // an open field east of the south road, level with the gap between the two terraces of houses (z 78.5 to 83.5);
-    // the door is on the west, towards the road
-    x: 34,
-    z: 81,
-    w: 8,
-    d: 8,
-    h: 4,
-    wall: 0xff7a1a,
-    roof: 0x5a3a22,
-    roofType: "flat",
-    rot: -Math.PI / 2,
-    intro: [
-      "Every 5 November people light bonfires and watch fireworks, remembering the Gunpowder Plot of 1605, when Guy Fawkes and his friends were caught with barrels of gunpowder under the Houses of Parliament.",
-      "This field is made up for Imp's High Street, so it isn't a real Lincoln display. Keep back behind the rope, and come after dark for the fireworks.",
-    ],
-  },
 ];
 
-// Seasonal places, like the Christmas market and the Bonfire Night field, are only in town at their time of year:
-// the market all December, the bonfire from 30 October to 9 November around the 5th.
-// ?season=xmas or ?season=bonfire previews one any time while developing, ?season=off shows neither.
-export type Season = "xmas" | "bonfire" | null;
+// Seasonal places, like the Christmas market, are only in town at their time of year: the market all December.
+// ?season=xmas previews it any time while developing, ?season=off hides it.
+export type Season = "xmas" | null;
 export function currentSeason(): Season {
   const ask = process.env.NODE_ENV !== "production" ? new URLSearchParams(window.location.search).get("season") : null;
-  if (ask) return ask === "xmas" || ask === "bonfire" ? ask : null;
-  const now = new Date(),
-    m = now.getMonth(),
-    d = now.getDate();
-  if (m === 11) return "xmas";
-  if ((m === 9 && d >= 30) || (m === 10 && d <= 9)) return "bonfire";
-  return null;
+  if (ask) return ask === "xmas" ? ask : null;
+  return new Date().getMonth() === 11 ? "xmas" : null;
 }
 export const inSeason = (p: Place, season: Season) => !p.season || p.season === season;
 
