@@ -28,6 +28,7 @@ import { Mill, Park, Market as XmasMarket } from "./MoreLandmarks";
 import { Bonfire } from "./Bonfire";
 import { Venue } from "./EngineShed";
 import { Architecture } from "./Architecture";
+import { GloryBoat } from "./GloryHole";
 import { Gatehouse, Yard, MinsterGrounds, SETTS } from "./MinsterYard";
 import { LindumHill, PelhamBridge } from "./LindumHill";
 import { Crowd, Chant } from "./Matchday";
@@ -1052,6 +1053,7 @@ export default function Town({ font }: { font: string }) {
       <Cars reduce={reduce} />
       <Railway reduce={reduce} />
       <River />
+      <GloryBoat reduce={reduce} />
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank" || !inSeason(p, season)) return null;

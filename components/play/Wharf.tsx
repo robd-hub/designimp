@@ -28,12 +28,12 @@ const brayford = PLACES.find((p) => p.kind === "water")!;
 const POOL_LAMPS = [-36, -24, -12, 12].map((x) => [brayford.x + x, brayford.z + BRAYFORD.water.z1 + 1.2] as const);
 // Mooring bollards along the quay edge, between the lamps.
 const BOLLARDS = Array.from({ length: 12 }, (_, i) => WHARF.x0 + 3 + i * 1.4).filter((x) => QUAY_LAMPS.every(([lx]) => Math.abs(x - lx) > 0.8) && x < WHARF.x1 - 0.5);
-// Narrowboats tied up on the river between the lamps, two along the quay and one on the far side by High Bridge,
+// Narrowboats tied up on the river between the lamps, two along the quay and one east of High Bridge,
 // leaving the water under each lamp clear for its reflection. side is -1 for the north half of the river.
 const BOATS = [
   { x: (QUAY_LAMPS[0][0] + QUAY_LAMPS[1][0]) / 2, len: 4.4, color: 0x7a2b3e, cabin: 0xf2e2c4, side: 1 },
   { x: (QUAY_LAMPS[1][0] + QUAY_LAMPS[2][0]) / 2, len: 4, color: 0x1f6b4a, cabin: 0xf2d06b, side: 1 },
-  { x: WHARF.x1 + 1.5, len: 3.4, color: 0x2b59c3, cabin: 0xfff8e7, side: -1 },
+  { x: 10, len: 3.4, color: 0x2b59c3, cabin: 0xfff8e7, side: 1 }, // east of High Bridge, in the south half, clear of the boat that cruises the north half
 ];
 
 // One frontage of a bar: the glazed ground floor and door, its name board over a striped awning, and a
