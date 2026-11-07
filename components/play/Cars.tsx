@@ -2,7 +2,7 @@ import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Part, geo, toon, LAMP } from "./toon";
-import { BOUND, BUS_STATION, CROSSING, EAST, RAIL, ROUNDABOUT, SOUTH } from "./colliders";
+import { BOUND, BUS_STATION, CROSSING, EAST, RAIL, ROUNDABOUT, SOUTH, TRITTON } from "./colliders";
 import { groundY } from "./terrain";
 import { game } from "./store";
 import { npcPos } from "./npcs";
@@ -50,7 +50,36 @@ function viaBusStation(): Pt[] {
   ];
 }
 
-type Route = { color: number; route: Pt[]; bus?: { decker: boolean } };
+// Down Tritton Road to the retail park: in from the west, round the north side of the roundabout and off south, over
+// the level crossing, along the coffee drive-through (stopping at its window), down the east side of the car park,
+// back along the aisle, and up Tritton Road and round the roundabout to go back out west.
+const TX = TRITTON.x,
+  EDGE = ROUNDABOUT.edge;
+const DRIVE_Z = TRITTON.pod.z1 + 2.3;
+const WINDOW_X = (TRITTON.pod.x0 + TRITTON.pod.x1) / 2 - 0.8;
+const AISLE_Z = 41.2,
+  EAST_LANE = TRITTON.park.x1 - 1.6;
+const toTritton: Pt[] = [
+  [-BOUND - OFF, -LANE],
+  [RX - EDGE, -LANE],
+  ...arc(RX, RZ, AROUND, (3 * Math.PI) / 2 + tilt, 3 * Math.PI - tilt), // round the north and east sides, off south
+  [TX + LANE, RZ + EDGE],
+  [TX + LANE, DRIVE_Z - 2],
+  [TX + LANE + 2, DRIVE_Z],
+  [WINDOW_X, DRIVE_Z],
+  [EAST_LANE - 1.5, DRIVE_Z],
+  [EAST_LANE, DRIVE_Z + 1.5],
+  [EAST_LANE, AISLE_Z - 1.5],
+  [EAST_LANE - 1.5, AISLE_Z],
+  [TX - LANE + 2, AISLE_Z],
+  [TX - LANE, AISLE_Z - 2],
+  [TX - LANE, RZ + EDGE],
+  ...arc(RX, RZ, AROUND, Math.PI + tilt, (3 * Math.PI) / 2 - tilt), // round the west side, off west
+  [RX - EDGE, LANE],
+  [-BOUND - OFF, LANE],
+];
+
+type Route = { color: number; route: Pt[]; bus?: { decker: boolean }; stop?: Pt };
 const ROUTES: Route[] = [
   // through town westbound and out past the roundabout
   { color: 0xe03a3e, route: [[EAST + OFF, LANE], [RX + ROUNDABOUT.edge, LANE], ...westbound, [RX - ROUNDABOUT.edge, LANE], [-BOUND - OFF, LANE]] },
@@ -70,6 +99,9 @@ const ROUTES: Route[] = [
     bus: { decker: true },
     route: [[-LANE, SOUTH + OFF], ...arc(3, 3, 4.5, (3 * Math.PI) / 2, 2 * Math.PI), ...viaBusStation(), ...arc(6, 6, 4.5, 0, -Math.PI / 2), [LANE, SOUTH + OFF]],
   },
+  // two cars out to Tritton Retail Park and its drive-through, one behind the other
+  { color: 0x1fb5a8, route: toTritton, stop: [WINDOW_X, DRIVE_Z] },
+  { color: 0xf4f1ea, route: toTritton, stop: [WINDOW_X, DRIVE_Z] },
 ];
 const BUS_LEN = 8;
 const BUS_DWELL = 6; // seconds waiting at the bay
@@ -85,6 +117,13 @@ const PATHS = ROUTES.map(({ route, bus }) => {
   const bays = bus ? at[route.findIndex(([x, z]) => Math.abs(x - BX0 - 3) < 1e-6 && Math.abs(z - BAY) < 1e-6)] - BX0 - 3 : NaN;
   return { route, at, len: at.at(-1)!, bays: BUS_STATION.stops.map((x) => bays + x) };
 });
+// A car with a stop on its route (the drive-through window) pulls up there like a bus at its bay.
+PATHS.forEach((path, i) => {
+  const stop = ROUTES[i].stop;
+  if (!stop) return;
+  const k = path.route.findIndex(([x, z]) => Math.abs(x - stop[0]) < 1e-6 && Math.abs(z - stop[1]) < 1e-6);
+  path.bays = [path.at[k]];
+});
 
 function pointAt(i: number, d: number, out: THREE.Vector3) {
   const { route, at } = PATHS[i];
@@ -97,6 +136,7 @@ function pointAt(i: number, d: number, out: THREE.Vector3) {
 }
 
 const onCrossing = (p: THREE.Vector3) => Math.abs(p.x) < RAIL.crossing && Math.abs(p.z - RAIL.z) < RAIL.fence + 0.3;
+const onTritton = (p: THREE.Vector3) => Math.abs(p.x - TRITTON.x) < RAIL.crossing && Math.abs(p.z - RAIL.z) < RAIL.fence + 0.3;
 const inTown = (p: THREE.Vector3) => p.x > -BOUND - 2 && p.x < EAST + 2 && p.z < SOUTH + 4;
 
 // A small hatchback, built facing +x.
@@ -175,7 +215,7 @@ export default function Cars({ reduce }: { reduce: boolean }) {
   // d is the distance along the route, v the speed, wait the pause before setting off again and dwell the time
   // left at the bus stop; they start spread out along their routes so the roads aren't empty when the town loads,
   // the buses a little way short of the bus station
-  const st = useRef(PATHS.map((p, i) => ({ d: ROUTES[i].bus ? p.bays[0] - 30 - (i % 2) * 45 : p.len * (0.25 + i * 0.2), v: SPEED, wait: 0, dwell: 0, bay: -1, stopped: false })));
+  const st = useRef(PATHS.map((p, i) => ({ d: ROUTES[i].bus ? p.bays[0] - 30 - (i % 2) * 45 : ROUTES[i].stop ? p.bays[0] - 8 - (i % 2) * 40 : p.len * (0.25 + i * 0.2), v: SPEED, wait: 0, dwell: 0, bay: -1, stopped: false })));
   const tmp = useRef({ a: new THREE.Vector3(), b: new THREE.Vector3(), c: new THREE.Vector3() }).current;
 
   useFrame((_, delta) => {
@@ -197,10 +237,10 @@ export default function Cars({ reduce }: { reduce: boolean }) {
       else {
         // look a few steps up the road for anything in the way
         let clear = true;
-        const here = body[i].some(onCrossing);
+        const here = body[i].some((q) => onCrossing(q) || onTritton(q));
         for (let ahead = HALF[i] + 0.1; ahead <= HALF[i] + 2.9 && clear; ahead += 0.7) {
           const p = pointAt(i, c.d + ahead, tmp.a);
-          if (CROSSING.closed && !here && onCrossing(p)) clear = false;
+          if (!here && ((CROSSING.closed && onCrossing(p)) || (CROSSING.tritton && onTritton(p)))) clear = false;
           else if (people.some((q) => Math.hypot(q.x - p.x, q.z - p.z) < 1.3)) clear = false;
           // another vehicle: if each is in the other's way, the one further down the list waits
           else if (
@@ -216,6 +256,7 @@ export default function Cars({ reduce }: { reduce: boolean }) {
         }
         // a bus picks the bay furthest along that no other bus is using as it turns in, and slows to a halt there
         const { bays } = PATHS[i];
+        if (ROUTES[i].stop && c.bay < 0 && !c.stopped && c.d > bays[0] - 25) c.bay = 0;
         if (ROUTES[i].bus && c.bay < 0 && !c.stopped && c.d > bays[0] - 25) {
           const taken = (k: number) => cars.some((o, j) => j !== i && o.bay === k && o.d < PATHS[j].bays[k] + BUS_LEN);
           c.bay = bays.length - 1;

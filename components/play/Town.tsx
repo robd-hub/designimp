@@ -29,7 +29,7 @@ import { Venue } from "./EngineShed";
 import { Architecture } from "./Architecture";
 import { GloryBoat } from "./GloryHole";
 import SincilStreets from "./SincilStreets";
-import { TrittonPark } from "./TrittonPark";
+import { TrittonPark, TrittonShell } from "./TrittonPark";
 import { Lawn } from "./Lawn";
 import { Gatehouse, Yard, MinsterGrounds, SETTS } from "./MinsterYard";
 import { LindumHill, PelhamBridge } from "./LindumHill";
@@ -575,6 +575,8 @@ function Display({ type, colour }: { type: ShopType; colour: number }) {
 function Lot({ p, font }: { p: Place; font: string }) {
   const mine = usePlay((st) => (st.shop?.lot === p.id ? st.shop : null));
   const shop = mine?.name.trim() ?? "";
+  // the retail park's to-let unit is an empty shell rather than an open plot, and their name goes on its fascia
+  if (p.id === "tritton-unit") return <TrittonShell p={p} font={font} name={shop} colour={mine?.colour} />;
   if (shop) {
     return (
       <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
