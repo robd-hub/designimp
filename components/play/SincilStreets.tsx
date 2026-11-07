@@ -3,7 +3,7 @@
 import { useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { geo, toon, outlineMat, WINDOW, LAMP } from "./toon";
-import { CANWICK, SIDE, SIDE_STREETS, SINCIL, STADIUM_ROAD, TERRACE, TERRACES } from "./colliders";
+import { CANWICK, DYKE, DYKE_CULVERTS, DYKE_RUNS, SIDE, SIDE_STREETS, SINCIL, STADIUM_ROAD, TERRACE, TERRACES } from "./colliders";
 import { Sign, useRoof, useSign } from "./MoreLandmarks";
 
 // The terraced streets down to Sincil Bank (laid out in colliders.ts): Canwick Road on south from the foot of Pelham
@@ -100,6 +100,45 @@ const BULBS = LAMPS.map(([x, z]): Item => ({ at: [x, 3.3, z], rot: 0 }));
 // dashes down the middle of Canwick Road, clear of the junctions
 const DASHES = Array.from({ length: Math.floor((CANWICK.z1 - CANWICK.z0) / 4) }, (_, i) => CANWICK.z0 + 2 + i * 4).filter((z) => SIDE_STREETS.every((st) => Math.abs(z - st.z) > SIDE.pave + 1));
 
+// The dyke's culverts: where a road crosses, the water goes into a dark opening under a low stone parapet on each
+// side of the road (just the openings under the railway, whose fences stand there already).
+const BANK = 0x9c8d6e;
+const WATER = 0x3aa6e8;
+const CULVERTS = [
+  ...DYKE_CULVERTS.a.flatMap(([g0, g1]) => [
+    { x: DYKE.x, z: g0, s: -1, wall: true },
+    { x: DYKE.x, z: g1, s: 1, wall: true },
+  ]),
+  ...DYKE_CULVERTS.c.flatMap(([g0, g1], i) => [
+    { x: DYKE.east, z: g0, s: -1, wall: i === 0 },
+    { x: DYKE.east, z: g1, s: 1, wall: i === 0 },
+  ]),
+];
+
+function Dyke() {
+  return (
+    <>
+      {DYKE_RUNS.map((r, i) => {
+        const along = r.z1 - r.z0 > r.x1 - r.x0;
+        const w = r.x1 - r.x0,
+          d = r.z1 - r.z0;
+        return (
+          <group key={i} position={[(r.x0 + r.x1) / 2, 0, (r.z0 + r.z1) / 2]}>
+            <mesh geometry={geo.box(along ? w + 0.8 : w, 0.3, along ? d : d + 0.8)} material={toon(BANK)} position-y={0.08} receiveShadow />
+            <mesh geometry={geo.box(w, 0.12, d)} material={toon(WATER)} position-y={0.2} />
+          </group>
+        );
+      })}
+      {CULVERTS.map((c) => (
+        <group key={`${c.x},${c.z}`} position={[c.x, 0, c.z]}>
+          <mesh geometry={geo.box(DYKE.half * 2 - 0.1, 0.32, 0.06)} material={toon(0x1a1320)} position={[0, 0.3, c.s * 0.04]} />
+          {c.wall && <mesh geometry={geo.box(DYKE.half * 2 + 0.9, 0.7, 0.3)} material={toon(0xb8a888)} position={[0, 0.35, -c.s * 0.15]} castShadow />}
+        </group>
+      ))}
+    </>
+  );
+}
+
 function Flat({ w, d, color, x, z, y }: { w: number; d: number; color: number; x: number; z: number; y: number }) {
   return <mesh geometry={geo.box(w, 0.04, d)} material={toon(color)} position={[x, y, z]} receiveShadow />;
 }
@@ -136,6 +175,8 @@ export default function SincilStreets({ font }: { font: string }) {
       {DASHES.map((z) => (
         <Flat key={z} w={0.25} d={1.8} color={0xffd23f} x={CANWICK.x} z={z} y={0.05} />
       ))}
+
+      <Dyke />
 
       {/* the terraced houses */}
       {P.bodies.map((list, i) => (

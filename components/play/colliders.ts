@@ -645,7 +645,10 @@ export function overRailway([fx, fz]: [number, number], [tx, tz]: [number, numbe
 
 // Waypoints for a walk across the river, the railway or both, in the order it comes to them.
 // Out of a pocket on the Witham's west bank first, if setting off from one, and into one last.
-export function crossings(from: [number, number], to: [number, number]) {
+export function crossings(from: [number, number], to: [number, number]): [number, number][] {
+  const off = leaveDyke(from, to),
+    on = leaveDyke(to, from).reverse();
+  if (off.length || on.length) return aroundDyke([from, ...off, ...crossings(off.at(-1) ?? from, on[0] ?? to), ...on, to]).slice(1, -1);
   const a = pocket(...from),
     b = pocket(...to);
   if (a && a === b) return [];
@@ -658,7 +661,7 @@ export function crossings(from: [number, number], to: [number, number]) {
     pts.push(...p);
     at = p.at(-1) ?? at;
   }
-  return throughGate([from, ...pts, ...end, to]).slice(1, -1);
+  return throughGate(aroundDyke([from, ...pts, ...end, to])).slice(1, -1);
 }
 
 // The roundabout on the main road out west with the tank memorial in the middle, as at the start of
@@ -722,7 +725,87 @@ export const SINCIL_PAVED = [
   { x0: SINCIL.x - SIDE.pave, x1: SINCIL.x + SIDE.pave, z0: SINCIL.z0, z1: SINCIL.z1 },
   { x0: CANWICK.x - CANWICK.pave, x1: CANWICK.x + CANWICK.pave, z0: CANWICK.z0, z1: CANWICK.z1 },
 ];
-const nearSincil = (x: number, z: number, pad: number) => [...SINCIL_PAVED, ...TERRACES.map(terraceBox)].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
+const nearSincil = (x: number, z: number, pad: number) => [...SINCIL_PAVED, ...TERRACES.map(terraceBox), ...DYKE_RUNS].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
+
+// The Sincil Dyke: water in stone banks down the west side of Sincil Bank (the street), north up to the railway, east
+// behind the station's south platform and on under Pelham Bridge, then north under the railway and the main road to
+// join the Witham east of Broadgate, near Stamp End. It goes through a culvert under each road it meets, which is
+// where it can be crossed on foot. x is the stretch beside Sincil Bank, z the stretch behind the station, east the
+// stretch up to the river.
+export const DYKE = { half: 1, x: SINCIL.x - SIDE.pave - 1.4, z: 25.6, east: 100, north: RIVER.z + RIVER.half - 0.4 };
+const DYKE_A_GAPS: [number, number][] = [...SIDE_STREETS.map((st): [number, number] => [st.z - SIDE.pave, st.z + SIDE.pave]), [STADIUM_ROAD.z - 4.3, STADIUM_ROAD.z + 4.3]];
+const DYKE_C_GAPS: [number, number][] = [
+  [-ROAD_EDGE, ROAD_EDGE],
+  [RAIL.z - RAIL.fence - 0.3, RAIL.z + RAIL.fence + 0.3],
+];
+export const DYKE_CULVERTS = { a: DYKE_A_GAPS, c: DYKE_C_GAPS };
+// the open water from a to b, broken where gaps cross it
+const between = (a: number, b: number, gaps: [number, number][]) => {
+  const cuts = [a, ...gaps.flatMap(([g0, g1]) => [g0, g1]), b];
+  return Array.from({ length: cuts.length / 2 }, (_, i): [number, number] => [cuts[2 * i], cuts[2 * i + 1]]);
+};
+const DH = DYKE.half;
+export const DYKE_RUNS = [
+  ...between(DYKE.z - DH, SOUTH + 6, DYKE_A_GAPS).map(([z0, z1]) => ({ x0: DYKE.x - DH, x1: DYKE.x + DH, z0, z1 })),
+  { x0: DYKE.x - DH, x1: DYKE.east + DH, z0: DYKE.z - DH, z1: DYKE.z + DH }, // runs on under Pelham Bridge, high above it
+  ...between(DYKE.north, DYKE.z + DH, DYKE_C_GAPS).map(([z0, z1]) => ({ x0: DYKE.east - DH, x1: DYKE.east + DH, z0, z1 })),
+];
+// Solid like the river's banks, bar under Pelham Bridge, where the Imp walks over it on the deck.
+const DYKE_BOXES = DYKE_RUNS.flatMap((r) => {
+  const box = { x0: r.x0 - 0.3, x1: r.x1 + 0.3, z0: r.z0 - 0.3, z1: r.z1 + 0.3 };
+  if (r.z1 - r.z0 > r.x1 - r.x0) return [box];
+  return [
+    { ...box, x1: PELHAM.x0 },
+    { ...box, x0: PELHAM.x1 },
+  ];
+});
+// Which side of the dyke a point is on: past the stretch beside Sincil Bank (the side streets' east ends, Canwick Road
+// and beyond), or past the stretch up to the river (between the main road and the Witham, east of it).
+const eastOfA = ([x, z]: [number, number]) => x > DYKE.x && z > DYKE.z + DH;
+const eastOfC = ([x, z]: [number, number]) => x > DYKE.east && z > DYKE.north && z < RAIL.z;
+// Leaving one of those for anywhere else: over the dyke at the culvert that's least out of the way first.
+// Along its street to the culvert (the stadium road's only for the ground's own entrance side), then over.
+function leaveDyke(p: [number, number], other: [number, number]): [number, number][] {
+  if (eastOfA(p) && !eastOfA(other)) {
+    const oz = Math.max(other[1], DYKE.z);
+    const ways = DYKE_A_WAYS.filter((c) => c !== STADIUM_ROAD.z || p[0] < stadium.x0 + 1);
+    const c = ways.reduce((m, c) => (2 * Math.abs(p[1] - c) + Math.abs(oz - c) < 2 * Math.abs(p[1] - m) + Math.abs(oz - m) ? c : m));
+    const along: [number, number][] = p[0] > DYKE.x + 3.5 && Math.abs(p[1] - c) > 0.5 ? [[p[0], c]] : [];
+    return [...along, [DYKE.x + 3, c], [DYKE.x - 3, c]];
+  }
+  if (eastOfC(p) && !eastOfC(other))
+    return [
+      [DYKE.east + 3, 0],
+      [DYKE.east - 3, 0],
+    ];
+  return [];
+}
+// Waypoints round the dyke: a walk that would still cross it away from a culvert goes over the nearest one instead.
+const DYKE_A_WAYS = DYKE_A_GAPS.map(([g0, g1]) => (g0 + g1) / 2);
+function aroundDyke(route: [number, number][]) {
+  const out: [number, number][] = [route[0]];
+  const cross = (a: [number, number], b: [number, number], x: number) => a[1] + ((x - a[0]) / (b[0] - a[0])) * (b[1] - a[1]);
+  for (const b of route.slice(1)) {
+    const a = out.at(-1)!;
+    if ((a[0] - DYKE.x) * (b[0] - DYKE.x) < 0) {
+      const z = cross(a, b, DYKE.x);
+      if (z > DYKE.z - DH - 0.5 && !DYKE_A_GAPS.some(([g0, g1]) => z > g0 + 0.6 && z < g1 - 0.6)) {
+        const c = DYKE_A_WAYS.reduce((m, c) => (Math.abs(a[1] - c) + Math.abs(b[1] - c) < Math.abs(a[1] - m) + Math.abs(b[1] - m) ? c : m));
+        const s = Math.sign(a[0] - DYKE.x);
+        out.push([DYKE.x + s * 3, c], [DYKE.x - s * 3, c]);
+      }
+    }
+    if ((a[0] - DYKE.east) * (b[0] - DYKE.east) < 0) {
+      const z = cross(a, b, DYKE.east);
+      if (z > DYKE.north - 0.5 && z < DYKE.z + DH + 0.5 && Math.abs(z) > ROAD_EDGE - 0.6) {
+        const s = Math.sign(a[0] - DYKE.east);
+        out.push([DYKE.east + s * 3, 0], [DYKE.east - s * 3, 0]);
+      }
+    }
+    out.push(b);
+  }
+  return out;
+}
 
 // The seasonal market adds its own solid parts while it's in town (MoreLandmarks.tsx).
 const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehouse", "lawn"].includes(p.kind ?? "shop")).flatMap((p) => {
@@ -760,7 +843,7 @@ const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehous
     return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES, DYKE_BOXES);
 
 const HIGH_STREET = { x0: -HIGH_ST, x1: HIGH_ST, z0: hill.z1, z1: -4.3 };
 const onRoad = (x: number, z: number) =>
