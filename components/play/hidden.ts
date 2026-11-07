@@ -7,4 +7,5 @@ export const HIDDEN: { id: string; x: number; z: number }[] = [
   { id: "south-road", x: 0, z: 62 },
   { id: "far-corner", x: 68, z: 66 },
   { id: "south-west", x: -50, z: 44 },
+  { id: "the-lawn", x: -82, z: -125 }, // on the green at The Lawn, round the west end of the main building
 ];

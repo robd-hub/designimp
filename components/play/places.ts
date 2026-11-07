@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "bonfire" | "venue" | "architecture";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "bonfire" | "venue" | "architecture" | "lawn";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -1044,6 +1044,27 @@ export const PLACES: Place[] = [
     rot: 0,
     intro: [
       "The Architecture building is a white, modern teaching building on the University of Lincoln's Brayford campus, standing apart from the main building.",
+    ],
+  },
+  {
+    id: "the-lawn",
+    kind: "lawn",
+    name: "The Lawn",
+    kicker: "Union Road, west of the castle",
+    nav: "The Lawn",
+    // a hedged green west of the castle, its gate on the south side onto the path in from the castle footpath
+    x: -72,
+    z: -120,
+    w: 26,
+    d: 20,
+    h: 5.2,
+    wall: 0x6cc86a,
+    roof: 0x5b6470,
+    roofType: "pitch",
+    rot: 0,
+    intro: [
+      "The Lawn on Union Road, just west of the castle, was built in the early 1800s as Lincoln's asylum.",
+      "Beside it, the Sir Joseph Banks Conservatory is a tropical glasshouse named after the botanist who sailed with Captain Cook. Keep your eyes open on the green: there's an imp hiding somewhere.",
     ],
   },
   {
