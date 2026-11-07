@@ -182,6 +182,27 @@ export const NPCS: Npc[] = [
       "I like to stop by the Brayford on the way and say hello to the swans.",
     ],
   },
+  {
+    // a shopper doing laps of Tritton Retail Park's car park, made up for the game
+    id: "pat",
+    name: "Pat",
+    shirt: 0x2f8f5b,
+    legs: 0x2b3a55,
+    skin: 0xf2d0b5,
+    hair: 0xb8b0a6,
+    path: [
+      [-79, 59.5],
+      [-50.2, 59.5],
+      [-50.2, 37.6],
+      [-79, 37.6],
+    ],
+    speed: 1.1,
+    lines: [
+      "Paint, a flat-pack shelf and a bag of dog food. Now to remember where I parked.",
+      "The coffee place by the way in does a decent flat white, if you don't mind queueing with the cars.",
+      "That empty unit at the end has been to let for a while. Somebody ought to open something in it.",
+    ],
+  },
 ];
 
 // What townsfolk say when they stop to chat with each other, by speaker then listener. Anyone else

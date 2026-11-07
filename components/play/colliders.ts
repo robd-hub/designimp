@@ -492,7 +492,8 @@ const BAY_ROWS = [
 const bayRand = seeded(91);
 export const TRITTON = {
   x: TRITTON_X,
-  road: { half: 3, pave: 4.3, z0: 4.3, z1: 92 },
+  road: { half: 3, pave: 4.3, z0: 4.3, z1: SOUTH }, // on south over the Witham on a road bridge, to the edge of the map
+  bridge: { z: 100, half: 2.6 }, // where it crosses the Witham's westward stretch
   park: TRITTON_PARK,
   units: [
     { name: "DIY", x0: -79, x1: -66, z0: 63, z1: 73, face: "n", color: 0xe8732a },
@@ -503,19 +504,39 @@ export const TRITTON = {
 
   ],
   pod: { name: "Coffee", x0: -71, x1: -65, z0: 20, z1: 25, color: 0x7a4a2e },
+  // round the back of the south row: a lorry unloading at the DIY unit's loading bay
+  lorry: { x0: -78.5, x1: -65.5, z0: 75.8, z1: 78.2 },
+  // a planted island with a tree at the east end of the double row of bays, trolley shelters on it and on the
+  // pavement in front of the DIY unit, and a bus stop on Tritton Road by the way in
+  island: { x0: -53.6, x1: -52.6, z0: 46.5, z1: 56.5 },
+  shelters: [
+    { x: -53.1, z: 53.5, rot: Math.PI / 2 },
+    { x: -73, z: 61.9, rot: 0 },
+  ],
+  busStop: { x: -89.6, z: 34, rot: Math.PI / 2 },
+  // the to-let unit is an empty shell with its own frontage, solid like the rest (in its own coordinates)
+  shell: { x0: -5.7, x1: 5.7, z0: -4.75, z1: 3.4 },
   bays: BAY_ROWS.flatMap((r) => BAY_XS.map((x) => ({ x, z: r.z, face: r.face }))),
   cars: [] as { x: number; z: number; face: number; k: number }[],
 };
 TRITTON.cars = TRITTON.bays.filter(() => bayRand() < 0.6).map((b, k) => ({ ...b, k }));
 export const TRITTON_CAR = { w: 1.5, len: 3.3 };
+export const TRITTON_SHELTER = { w: 2.6, d: 1.1 };
 const TRITTON_BOXES = [
   ...TRITTON.units.map((u) => ({ x0: u.x0, x1: u.x1, z0: u.z0, z1: u.z1 })),
   { x0: TRITTON.pod.x0, x1: TRITTON.pod.x1, z0: TRITTON.pod.z0, z1: TRITTON.pod.z1 },
+  TRITTON.lorry,
+  ...[...TRITTON.shelters, TRITTON.busStop].map((sh) => {
+    const side = Math.abs(Math.sin(sh.rot)) > 0.5;
+    const [hx, hz] = side ? [TRITTON_SHELTER.d / 2, TRITTON_SHELTER.w / 2] : [TRITTON_SHELTER.w / 2, TRITTON_SHELTER.d / 2];
+    return { x0: sh.x - hx, x1: sh.x + hx, z0: sh.z - hz, z1: sh.z + hz };
+  }),
   ...TRITTON.cars.map((c) => ({ x0: c.x - TRITTON_CAR.w / 2, x1: c.x + TRITTON_CAR.w / 2, z0: c.z - TRITTON_CAR.len / 2, z1: c.z + TRITTON_CAR.len / 2 })),
 ];
 const TRITTON_PAVED = [
   { x0: TRITTON_X - TRITTON.road.pave, x1: TRITTON_X + TRITTON.road.pave, z0: TRITTON.road.z0, z1: TRITTON.road.z1 },
   { x0: TRITTON_PARK.x0, x1: -38.5, z0: 20, z1: 73 },
+  { x0: -79, x1: -64, z0: 73, z1: 80 }, // the loading yard
 ];
 const nearTritton = (x: number, z: number, pad: number) => TRITTON_PAVED.some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
 export const atBarrier = (x: number, z: number) =>
@@ -600,7 +621,10 @@ export const WITHAM_RUNS = [
 ]
   .map(([z0, z1]) => ({ x0: W0, x1: WITHAM.x + WITHAM.half, z0, z1 }))
   .concat({ x0: -BOUND - 4, x1: WITHAM.x + WITHAM.half, z0: WITHAM.bend - WITHAM.half, z1: WITHAM.bend + WITHAM.half });
-const WITHAM_BOXES = WITHAM_RUNS.map((r) => ({ ...r, x0: r.x0 - 0.3, x1: r.x1 + 0.3, z1: r.z1 === WITHAM.bend + WITHAM.half ? r.z1 + 0.3 : r.z1 }));
+const WITHAM_BOXES = WITHAM_RUNS.map((r) => ({ ...r, x0: r.x0 - 0.3, x1: r.x1 + 0.3, z1: r.z1 === WITHAM.bend + WITHAM.half ? r.z1 + 0.3 : r.z1 })).flatMap((b) =>
+  // open where Tritton Road's bridge crosses the westward stretch
+  b.z1 > WITHAM.bend && b.x0 < TRITTON_X ? [{ ...b, x1: TRITTON_X - TRITTON.road.pave }, { ...b, x0: TRITTON_X + TRITTON.road.pave }] : [b],
+);
 // The two pockets of ground on the Witham's west bank, closed in by the river, the pool and the Fossdyke or the
 // railway: n north of the railway, reached over the road bridge or the University Bridge, and s south of it, reached
 // over the footbridge. For each, the points either side of its bridge, east bank first.
