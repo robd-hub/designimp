@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "venue" | "architecture" | "lawn";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "venue" | "architecture" | "lawn" | "retailpark";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -1200,6 +1200,49 @@ export const PLACES: Place[] = [
       "Uphill Lincoln still glows at Christmas, with festive lights, makers' markets and events around Castle Square and Bailgate.",
     ],
     link: { href: "https://www.visitlincoln.com/", label: "See what's on at Visit Lincoln", external: true },
+  },
+  {
+    id: "tritton-park",
+    kind: "retailpark",
+    name: "Tritton Retail Park",
+    kicker: "Big shops off Tritton Road",
+    nav: "Tritton Retail Park",
+    // south of the tank roundabout down Tritton Road, on the west side of the Witham: the car park and the units round
+    // it (drawn in TrittonPark.tsx from TRITTON in colliders.ts). The door is on Tritton Road, at the way in.
+    x: -58.5,
+    z: 47,
+    w: 54,
+    d: 42,
+    h: 7,
+    wall: 0x8a8494,
+    roof: 0xffffff,
+    roofType: "flat",
+    rot: -Math.PI / 2,
+    intro: [
+      "Tritton Retail Park is Lincoln's out-of-town shopping, down Tritton Road from the roundabout past the University.",
+      "Big units round a big car park, for the trips that need a boot. The shops here are generic stand-ins for Imp's High Street, not the real ones.",
+    ],
+  },
+  {
+    id: "tritton-unit",
+    kind: "lot",
+    name: "To Let",
+    kicker: "Unit to let at Tritton Retail Park",
+    nav: "To let (Tritton Retail Park)",
+    // at the south end of the east row, facing west onto the car park, by the walkway from the river
+    x: -43.25,
+    z: 53.5,
+    w: 12,
+    d: 9.5,
+    h: 0,
+    wall: 0x7a1f3d,
+    roof: 0xffd23f,
+    roofType: "flat",
+    rot: -Math.PI / 2,
+    intro: [
+      "An empty unit at Tritton Retail Park, ready for a new business. Tell me a little about yours and I'll design a free mockup of your new website before you spend a penny.",
+    ],
+    link: { href: "/get-started", label: "Open the full form" },
   },
 ];
 

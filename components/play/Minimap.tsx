@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex, inSeason } from "./places";
-import { EXCHEQUER, MINSTER, AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, ST_MARKS, WEST_BANK, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, WHARF_BARS, WITHAM, WITHAM_RUNS, barBox, streetHouses, toWorld, LINDUM, lindumBox, SINCIL_PAVED, TERRACES, terraceBox, DYKE_RUNS } from "./colliders";
+import { EXCHEQUER, MINSTER, AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, ST_MARKS, WEST_BANK, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, WHARF_BARS, WITHAM, WITHAM_RUNS, barBox, streetHouses, toWorld, LINDUM, lindumBox, SINCIL_PAVED, TERRACES, terraceBox, DYKE_RUNS, TRITTON } from "./colliders";
 import { RISE } from "./terrain";
 import { game, usePlay, walkTo } from "./store";
 import s from "./play.module.css";
@@ -87,6 +87,8 @@ export default function Minimap() {
         <rect key={i} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill={i ? "#6b6573" : "#e8dcc2"} pointerEvents="none" />
       ))}
       <circle cx={ROUNDABOUT.x} cy={ROUNDABOUT.z} r={ROUNDABOUT.ring} fill="#6b6573" />
+      {/* Tritton Road, south off the tank roundabout to the retail park */}
+      <rect x={TRITTON.x - TRITTON.road.half} y={TRITTON.road.z0} width={TRITTON.road.half * 2} height={TRITTON.road.z1 - TRITTON.road.z0} fill="#6b6573" pointerEvents="none" />
       {/* the streets down to Sincil Bank and their terraces */}
       {SINCIL_PAVED.map((r, i) => (
         <rect key={`sb${i}`} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill="#6b6573" pointerEvents="none" />
