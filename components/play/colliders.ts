@@ -37,9 +37,10 @@ export function streetHouses(p: { x: number; z: number; w: number; d: number }) 
 // RAF Scampton, in short terraces either side with to-let plots between them. Each faces the road.
 export const HOUSE = { w: 5, d: 5, h: 3.4 };
 export const HOUSE_X = 12.5;
+// On the east side they make way for the side streets to Sincil Bank (Portland, Monson and Scorer Streets).
 export const HOUSES = [-1, 1].flatMap((side) =>
-  [58, 64, 70, 76, 98, 104, 110, 116].map((z, i) => ({ x: side * HOUSE_X, z, side, i })),
-).filter((h) => !(h.side > 0 && h.z === 116)); // Scorer Street comes in there
+  (side < 0 ? [58, 64, 70, 76, 98, 104, 110, 116] : [56, 69, 75, 98, 104, 110]).map((z, i) => ({ x: side * HOUSE_X, z, side, i })),
+);
 
 // The paved High Street, from the main road to the foot of Steep Hill: half its width, as wide as the
 // Stonebow, so the shopfronts either side and the gate's walkway arches all open onto it.
@@ -675,18 +676,18 @@ export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 })
 
 // The terraced streets east of the south road, down towards the football ground, as in real Lincoln. Canwick Road
 // carries on south from the foot of Pelham Bridge. Tentercroft Street (nearest the railway, at the foot of the bridge),
-// Portland Street and Scorer Street (just north of the ground) each run east from the south road, across Sincil Bank,
+// Portland Street, Monson Street and Scorer Street (just north of the ground) each run east from the south road, across Sincil Bank,
 // to Canwick Road. Sincil Bank runs south past the ground's west side, where the turnstiles are. half is the road's
 // half width, pave the pavement's outer edge. Each house is in its own coordinates, front (the door) at +z, turned by
 // rot to face its street.
 export const SIDE = { half: 2.6, pave: 3.3 };
 export const CANWICK = { x: (PELHAM.x0 + PELHAM.x1) / 2, half: 3, pave: (PELHAM.x1 - PELHAM.x0) / 2, z0: PELHAM.z1 - 2, z1: SOUTH };
 export const SINCIL = { x: 24, z0: 32.4, z1: 160 };
-export const SIDE_STREETS = [
-  { name: "Tentercroft Street", z: 35.75 },
-  { name: "Portland Street", z: 91 },
-  { name: "Scorer Street", z: 117 },
-].map((st) => ({ ...st, x0: 0, x1: CANWICK.x }));
+// Tentercroft and Scorer Streets fixed at either end, the four evenly spaced between them.
+const STREET_N = 35.75,
+  STREET_S = 117,
+  SIDE_GAP = (STREET_S - STREET_N) / 3;
+export const SIDE_STREETS = ["Tentercroft Street", "Portland Street", "Monson Street", "Scorer Street"].map((name, i) => ({ name, z: STREET_N + i * SIDE_GAP, x0: 0, x1: CANWICK.x }));
 export const TERRACE = { w: 4.4, d: 4, h: 3.6, gap: 0.1, alley: 2.6 };
 const TERRACE_SET = SIDE.pave + 0.3 + TERRACE.d / 2; // from the street's centre line to the middle of a house
 type TerraceHouse = { x: number; z: number; rot: number; k: number };
@@ -709,11 +710,12 @@ const ROW_X0 = SINCIL.x + SIDE.pave + 2.4,
   ROW_X1 = CANWICK.x - CANWICK.pave - 0.8;
 export const TERRACES: TerraceHouse[] = SIDE_STREETS.flatMap((st, i) => [
   ...terraceRow(ROW_X0, ROW_X1, (x) => [x, st.z - TERRACE_SET], 0, i * 40), // north side, facing south onto the street
-  ...terraceRow(i === 2 ? stadiumEnd : ROW_X0, ROW_X1, (x) => [x, st.z + TERRACE_SET], Math.PI, i * 40 + 20),
-]).concat(
-  // and a row along Sincil Bank's east side between Tentercroft and Portland Streets, facing west
-  terraceRow(SIDE_STREETS[0].z + TERRACE_SET + TERRACE.d / 2 + 2.5, SIDE_STREETS[1].z - TERRACE_SET - TERRACE.d / 2 - 2.5, (z) => [SINCIL.x + TERRACE_SET, z], -Math.PI / 2, 200),
-);
+  ...terraceRow(st.name === "Scorer Street" ? stadiumEnd : ROW_X0, ROW_X1, (x) => [x, st.z + TERRACE_SET], Math.PI, i * 40 + 20),
+  // and a pair along Sincil Bank's east side between this street and the next, facing west
+  ...(i < SIDE_STREETS.length - 1
+    ? terraceRow(st.z + TERRACE_SET + TERRACE.d / 2 + 1, SIDE_STREETS[i + 1].z - TERRACE_SET - TERRACE.d / 2 - 1, (z) => [SINCIL.x + TERRACE_SET, z], -Math.PI / 2, 200 + i * 10)
+    : []),
+]);
 export const terraceBox = (h: TerraceHouse) => {
   const side = Math.abs(Math.sin(h.rot)) > 0.5;
   const [hx, hz] = side ? [TERRACE.d / 2, TERRACE.w / 2] : [TERRACE.w / 2, TERRACE.d / 2];
