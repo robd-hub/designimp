@@ -182,6 +182,43 @@ export const NPCS: Npc[] = [
       "I like to stop by the Brayford on the way and say hello to the swans.",
     ],
   },
+  // plane-spotters at the airfield fence, by the east end of the runway
+  {
+    id: "ken",
+    name: "Ken",
+    shirt: 0x4a5a3a,
+    legs: 0x2b2633,
+    skin: 0xf2d0b5,
+    hat: 0x2b3a55,
+    path: [
+      [-27.2, 122.5],
+      [-27.2, 127],
+    ],
+    speed: 0.5,
+    lines: [
+      "Keep your eyes on the sky. When the jet on the apron taxis out, the whole team won't be far behind.",
+      "Nine of them, wingtip to wingtip. You hear them before you see them.",
+      "When that jet's on the runway, it's closed. Even to imps.",
+    ],
+  },
+  {
+    id: "val",
+    name: "Val",
+    shirt: 0xd0202e,
+    legs: 0x1f2a4a,
+    skin: 0xd9a37a,
+    hair: 0x33211a,
+    path: [
+      [-27.2, 129.5],
+      [-27.2, 132.5],
+    ],
+    speed: 0.45,
+    lines: [
+      "Red smoke on the left, blue on the right and white down the middle. I never get tired of it.",
+      "Pop in to the Nissen hut by the hangar. It's all about 617 Squadron, who flew from here in the war.",
+      "The windsock tells you which way they'll take off. Mind you, here it's always west.",
+    ],
+  },
   {
     // a shopper doing laps of Tritton Retail Park's car park, made up for the game
     id: "pat",
