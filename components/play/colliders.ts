@@ -60,16 +60,39 @@ export const BRAYFORD = {
 const stadium = footprint(PLACES.find((p) => p.kind === "stadium")!);
 export const STADIUM_ROAD = { z: (stadium.z0 + stadium.z1) / 2, x0: 0, x1: stadium.x0 };
 
-// RAF Scampton in its own coordinates (front faces the road, so +x is north): a runway along
-// the north edge, the hangar in the middle with its doors onto the apron, and a drive to the gate.
+// RAF Scampton in its own coordinates (front faces the road, so +x is north and +z is east, towards the road): a
+// runway along the north edge, the hangar at the west end of the apron with its doors onto it, the control tower and
+// a car park south of the apron, a Nissen hut for 617 Squadron's heritage centre in the south-west corner, and a drive
+// in from the gate, with its guardhouse and barrier. A fence runs right round, with the gap for the drive.
+// The jet stands on the apron at stand, nose north, and taxis up the taxiway to the runway.
 export const AIRFIELD = {
-  runway: { x0: 8.5, x1: 13.5, z0: -14, z1: 14 },
-  taxiway: { x0: 7, x1: 8.5, z0: 3, z1: 5.4 },
-  apron: { x0: -5, x1: 7, z0: -5, z1: 9 },
-  drive: { x0: -3, x1: 3, z0: 9, z1: 15 },
-  hangar: { x0: -4, x1: 6, z0: -14, z1: -5 },
-  parked: { x0: 1.1, x1: 6.7, z0: -3.6, z1: 1.6 },
+  runway: { x0: 12, x1: 17.5, z0: -18, z1: 21 },
+  taxiway: { x0: 6, x1: 12, z0: -2.5, z1: 0.5 },
+  apron: { x0: -6, x1: 6, z0: -11, z1: 10 },
+  drive: { x0: -3, x1: 3, z0: 10, z1: 22.5 },
+  hangar: { x0: -4, x1: 6, z0: -21, z1: -11 },
+  stand: { x: 3.7, z: -1 }, // off to the side of the way in from the gate
+  parked: { x0: 1.4, x1: 7, z0: -3.7, z1: 1.7 },
+  tower: { x0: -13, x1: -9, z0: 1, z1: 5 },
+  heritage: { x0: -18.5, x1: -13, z0: -20, z1: -13 },
+  guard: { x0: -6.8, x1: -4.3, z0: 16.5, z1: 19.5 },
+  carpark: { x0: -18, x1: -8, z0: 10, z1: 21 },
+  cars: [
+    { x: -15.5, z: 11.5, k: 0 },
+    { x: -15.5, z: 15.9, k: 1 },
+    { x: -15.5, z: 18.1, k: 2 },
+    { x: -10.5, z: 13.7, k: 3 },
+    { x: -10.5, z: 18.1, k: 4 },
+  ],
+  windsock: { x: 9.5, z: -15 },
+  fence: 0.3, // in from the edge
+  gate: 3.2, // half the gap in the fence for the drive
+  barrier: 21, // z of the barrier across the drive
 };
+export const AIRFIELD_CAR = { w: 1.5, len: 3.3 }; // len along x
+// What the jet is doing, set every frame by the airfield: the runway (and the taxiway up to it) is closed to walkers
+// while the jet is using it, and its stand is solid only while it's parked there.
+export const AIRFIELD_STATE = { runway: false, parked: true };
 // A rect in a place's own coordinates, turned and moved into world coordinates.
 export function toWorld(p: { x: number; z: number; rot: number }, r: { x0: number; x1: number; z0: number; z1: number }) {
   const c = Math.round(Math.cos(p.rot)),
@@ -80,8 +103,85 @@ export function toWorld(p: { x: number; z: number; rot: number }, r: { x0: numbe
 }
 
 // The road west off the south road to RAF Scampton, opposite the one to Sincil Bank.
-const airfield = footprint(PLACES.find((p) => p.kind === "airfield")!);
+const airfieldPlace = PLACES.find((p) => p.kind === "airfield")!;
+const airfield = footprint(airfieldPlace);
 export const AIRFIELD_ROAD = { z: (airfield.z0 + airfield.z1) / 2, x0: airfield.x1, x1: 0 };
+// The same in world coordinates. The fence, as thin solid boxes with the gap for the drive on the road side; the
+// gate's points just outside and inside it, which walks in or out go through; and the closable runway and stand.
+const AF = AIRFIELD,
+  half = { x: airfieldPlace.w / 2 - AF.fence, z: airfieldPlace.d / 2 - AF.fence };
+export const AIRFIELD_FENCE = [
+  { x0: -half.x, x1: half.x, z0: -half.z - 0.15, z1: -half.z + 0.15 },
+  { x0: -half.x - 0.15, x1: -half.x + 0.15, z0: -half.z, z1: half.z },
+  { x0: half.x - 0.15, x1: half.x + 0.15, z0: -half.z, z1: half.z },
+  { x0: -half.x, x1: -AF.gate, z0: half.z - 0.15, z1: half.z + 0.15 },
+  { x0: AF.gate, x1: half.x, z0: half.z - 0.15, z1: half.z + 0.15 },
+];
+const fenceWorld = toWorld(airfieldPlace, { x0: -half.x, x1: half.x, z0: -half.z, z1: half.z });
+const gateAt = (z: number) => {
+  const w = toWorld(airfieldPlace, { x0: 0, x1: 0, z0: z, z1: z });
+  return [w.x0, w.z0] as [number, number];
+};
+const AF_OUT = gateAt(half.z + 2.6),
+  AF_IN = gateAt(half.z - 4);
+export const AIRFIELD_GATE = gateAt(AF.barrier);
+const RUNWAY_BOX = (() => {
+  const r = toWorld(airfieldPlace, AF.runway),
+    t = toWorld(airfieldPlace, { x0: AF.parked.x0, x1: AF.runway.x0, z0: AF.parked.z0, z1: AF.parked.z1 });
+  return [r, t];
+})();
+const STAND_BOX = toWorld(airfieldPlace, AF.parked);
+// Whether the Imp is on the runway or the jet's way up to it (with a margin), so the jet waits before using it.
+export const onRunway = (x: number, z: number, pad = 1) => RUNWAY_BOX.some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
+const inAirfield = ([x, z]: [number, number]) => x > fenceWorld.x0 && x < fenceWorld.x1 && z > fenceWorld.z0 && z < fenceWorld.z1;
+const nearAirfield = (x: number, z: number, pad: number) => x > airfield.x0 - pad && x < airfield.x1 + pad && z > airfield.z0 - pad && z < airfield.z1 + pad;
+// Round the airfield's fence, by its north or south side, whichever is shorter, for any leg that would cut across it.
+function crossesBox(a: [number, number], b: [number, number], r: { x0: number; x1: number; z0: number; z1: number }) {
+  let t0 = 0,
+    t1 = 1;
+  const d = [b[0] - a[0], b[1] - a[1]];
+  for (const [p, q] of [
+    [-d[0], a[0] - r.x0],
+    [d[0], r.x1 - a[0]],
+    [-d[1], a[1] - r.z0],
+    [d[1], r.z1 - a[1]],
+  ]) {
+    if (p === 0) {
+      if (q < 0) return false;
+    } else {
+      const t = q / p;
+      if (p < 0) t0 = Math.max(t0, t);
+      else t1 = Math.min(t1, t);
+    }
+  }
+  return t0 < t1;
+}
+// Any leg of a route that cuts across box goes round it instead: round one of the corners (pad out from it), or two
+// next to each other, whichever clear way is shortest. skip leaves a leg alone.
+function aroundBox(route: [number, number][], box: { x0: number; x1: number; z0: number; z1: number }, pad: number, skip?: (a: [number, number], b: [number, number]) => boolean) {
+  const corners: [number, number][] = [
+    [box.x0 - pad, box.z0 - pad],
+    [box.x1 + pad, box.z0 - pad],
+    [box.x1 + pad, box.z1 + pad],
+    [box.x0 - pad, box.z1 + pad],
+  ];
+  const len = (pts: [number, number][]) => pts.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
+  const out: [number, number][] = [route[0]];
+  for (const b of route.slice(1)) {
+    const a = out.at(-1)!;
+    if (!skip?.(a, b) && crossesBox(a, b, box)) {
+      const ways = [...corners.map((c) => [c]), ...corners.flatMap((c, i) => [corners[(i + 1) % 4], corners[(i + 3) % 4]].map((d) => [c, d]))];
+      const clear = ways.filter((w) => [...w, b].every((p, i, all) => !crossesBox(i ? all[i - 1] : a, p, box)));
+      const best = clear.sort((x, y) => len([a, ...x, b]) - len([a, ...y, b]))[0];
+      if (best) out.push(...best);
+    }
+    out.push(b);
+  }
+  return out;
+}
+// Round the airfield's fence from outside it, and round the jet on its stand inside.
+const aroundAirfield = (route: [number, number][]) => aroundBox(route, airfield, 2.5, (a, b) => inAirfield(a) || inAirfield(b));
+const aroundStand = (route: [number, number][]) => aroundBox(route, STAND_BOX, 0.8);
 
 // Footpaths in world coordinates: one runs north from the main road past the university and
 // the Brayford's east quay, then climbs the hill alongside the castle wall to its gate on Castle Square.
@@ -539,9 +639,11 @@ const TRITTON_PAVED = [
   { x0: -79, x1: -64, z0: 73, z1: 80 }, // the loading yard
 ];
 const nearTritton = (x: number, z: number, pad: number) => TRITTON_PAVED.some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
+// (and the airfield's runway while the jet is using it: walkers wait at its edge, and one caught on it can walk off)
 export const atBarrier = (x: number, z: number) =>
-  Math.abs(z - RAIL.z) < RAIL.fence + 0.4 &&
-  ((CROSSING.closed && Math.abs(x) < RAIL.crossing) || (CROSSING.wharf && Math.abs(x - WHARF_CROSSING.x) < WHARF_CROSSING.half) || (CROSSING.tritton && Math.abs(x - TRITTON_X) < RAIL.crossing));
+  (AIRFIELD_STATE.runway && onRunway(x, z, 0)) ||
+  (Math.abs(z - RAIL.z) < RAIL.fence + 0.4 &&
+    ((CROSSING.closed && Math.abs(x) < RAIL.crossing) || (CROSSING.wharf && Math.abs(x - WHARF_CROSSING.x) < WHARF_CROSSING.half) || (CROSSING.tritton && Math.abs(x - TRITTON_X) < RAIL.crossing)));
 // Lincoln Central, just east of the crossing as in real Lincoln: the station building on the main road,
 // a platform along each track and a covered footbridge between them at the east end. edge is the
 // platform edges' offset from the line's centre, and the fences are left out alongside the platforms.
@@ -721,10 +823,20 @@ export function overRailway([fx, fz]: [number, number], [tx, tz]: [number, numbe
 
 // Waypoints for a walk across the river, the railway or both, in the order it comes to them.
 // Out of a pocket on the Witham's west bank first, if setting off from one, and into one last.
+// In or out of the airfield, through its gate; and round its fence otherwise.
 export function crossings(from: [number, number], to: [number, number]): [number, number][] {
+  const a = inAirfield(from),
+    b = inAirfield(to);
+  const outside = (f: [number, number], t: [number, number]) => aroundAirfield([f, ...townCrossings(f, t), t]).slice(1, -1);
+  if (a && b) return aroundStand([from, to]).slice(1, -1);
+  if (a) return [...aroundStand([from, AF_IN]).slice(1), AF_OUT, ...outside(AF_OUT, to)];
+  if (b) return [...outside(from, AF_OUT), AF_OUT, ...aroundStand([AF_IN, to]).slice(0, -1)];
+  return outside(from, to);
+}
+function townCrossings(from: [number, number], to: [number, number]): [number, number][] {
   const off = leaveDyke(from, to),
     on = leaveDyke(to, from).reverse();
-  if (off.length || on.length) return aroundDyke([from, ...off, ...crossings(off.at(-1) ?? from, on[0] ?? to), ...on, to]).slice(1, -1);
+  if (off.length || on.length) return aroundDyke([from, ...off, ...townCrossings(off.at(-1) ?? from, on[0] ?? to), ...on, to]).slice(1, -1);
   const a = pocket(...from),
     b = pocket(...to);
   if (a && a === b) return [];
@@ -926,8 +1038,10 @@ const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehous
   }
   if (p.kind === "oldhouse") return [f]; // fills its plot in the row exactly, like the houses either side
   if (p.kind === "airfield") {
-    // the runway and apron are walkable; only the hangar and the parked jet are solid
-    return [AIRFIELD.hangar, AIRFIELD.parked].map((b) => toWorld(p, b));
+    // the runway and apron are walkable; the buildings, the cars and the fence are solid (the parked jet only while it's
+    // there, in blocked)
+    const cars = AIRFIELD.cars.map((c) => ({ x0: c.x - AIRFIELD_CAR.len / 2, x1: c.x + AIRFIELD_CAR.len / 2, z0: c.z - AIRFIELD_CAR.w / 2, z1: c.z + AIRFIELD_CAR.w / 2 }));
+    return [AIRFIELD.hangar, AIRFIELD.tower, AIRFIELD.heritage, AIRFIELD.guard, ...cars, ...AIRFIELD_FENCE].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
 }).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), TRITTON_BOXES, STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES, DYKE_BOXES);
@@ -946,7 +1060,7 @@ const nearBuilding = (x: number, z: number, pad: number) =>
   [...[...WHARF_BARS, ...ST_MARKS.units].map(barBox), ...MINSTER.south.map(yardBox), ...LINDUM.houses.map(lindumBox)].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   PLACES.some((p) => {
     if (p.id.startsWith("tritton-")) return false; // added later, and cleared of trees afterwards instead
-    const f = footprint(p);
+    const f = p.kind === "airfield" ? OLD_AIRFIELD : footprint(p); // the airfield grew later; as for Tritton
     const door = p.kind === "lot" ? 0 : 4; // keep the approach to each entrance clear
     const side = Math.abs(Math.sin(p.rot)) > 0.5; // entrance on an east or west face
     const dx = side ? door : 0,
@@ -957,6 +1071,7 @@ const nearBuilding = (x: number, z: number, pad: number) =>
 // Trees scattered everywhere that isn't road, building or doorway. The first lot are laid out as they were before the
 // map was widened west (so they haven't moved), then a second lot fill the new strip.
 const OLD_BOUND = 76;
+const OLD_AIRFIELD = { x0: -59, x1: -29, z0: 126, z1: 154 };
 export const TREES: [number, number, number][] = (() => {
   const out: [number, number, number][] = [];
   const free = (x: number, z: number) =>
@@ -977,7 +1092,7 @@ export const TREES: [number, number, number][] = (() => {
     }
   }
   // the streets down to Sincil Bank came later: the trees already there stay put, bar any in their way
-  return [...out.filter(([x, z]) => !nearSincil(x, z, 2) && !nearTritton(x, z, 2)), ...YARD_TREES];
+  return [...out.filter(([x, z]) => !nearSincil(x, z, 2) && !nearTritton(x, z, 2) && !nearAirfield(x, z, 3.5)), ...YARD_TREES];
 })();
 
 const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));
@@ -988,6 +1103,7 @@ export const EXTRA_BOXES = new Map<string, { x0: number; x1: number; z0: number;
 // barrier: whether the level crossing counts as blocked while its barriers are down.
 export function blocked(x: number, z: number, barrier = true) {
   if (barrier && atBarrier(x, z)) return true;
+  if (AIRFIELD_STATE.parked && x > STAND_BOX.x0 && x < STAND_BOX.x1 && z > STAND_BOX.z0 && z < STAND_BOX.z1) return true;
   if (x < -BOUND || x > EAST || z > SOUTH || z < NORTH) return true;
   if (Math.hypot(x - ROUNDABOUT.x, z - ROUNDABOUT.z) < ROUNDABOUT.island) return true;
   for (const c of circles) if (Math.hypot(x - c.cx, z - c.cz) < c.r) return true;

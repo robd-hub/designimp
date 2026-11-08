@@ -142,9 +142,10 @@ export default function Minimap() {
         <rect key={`${h.side}${h.i}`} x={h.x - HOUSE.d / 2} y={h.z - HOUSE.w / 2} width={HOUSE.d} height={HOUSE.w} fill="#b5523b" pointerEvents="none" />
       ))}
       {PLACES.filter((p) => p.kind === "airfield").flatMap((p) =>
-        (["runway", "apron", "hangar"] as const).map((k) => {
+        (["taxiway", "apron", "drive", "carpark", "runway", "hangar", "tower", "heritage"] as const).map((k) => {
           const r = toWorld(p, AIRFIELD[k]);
-          return <rect key={k} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill={k === "runway" ? "#55505e" : k === "apron" ? "#c9c2b4" : hex(p.wall)} pointerEvents="none" />;
+          const fill = { runway: "#55505e", carpark: "#6b6573", taxiway: "#c9c2b4", apron: "#c9c2b4", drive: "#c9c2b4", hangar: hex(p.wall), tower: "#f2efe6", heritage: "#6b7a5e" }[k];
+          return <rect key={k} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} fill={fill} pointerEvents="none" />;
         }),
       )}
       <g ref={me}>

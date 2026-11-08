@@ -22,6 +22,7 @@ export const WINDOW = 0xbff0ff;
 export const LAMP = 0xfff1a8;
 export const STONE = 0xd9cbb0;
 export const STONE_DARK = 0xc4b393;
+export const SIGNAL_GREEN = 0x4fbf6a; // the green lights across a runway's ends
 
 // At night windows and lamps glow and the cathedral is floodlit gold.
 const GLOW: [number, number, number][] = [
@@ -29,6 +30,7 @@ const GLOW: [number, number, number][] = [
   [LAMP, 0xffe08a, 1],
   [STONE, 0xffb347, 0.75],
   [STONE_DARK, 0xffa52e, 0.7],
+  [SIGNAL_GREEN, 0x5dff8a, 1],
 ];
 export function setNightGlow(on: boolean) {
   for (const [c, e, i] of GLOW) {
