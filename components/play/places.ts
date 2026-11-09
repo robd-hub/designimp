@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "venue" | "architecture" | "lawn" | "retailpark";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "venue" | "architecture" | "lawn" | "retailpark" | "firestation" | "ambulance";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -1065,6 +1065,48 @@ export const PLACES: Place[] = [
     intro: [
       "The Lawn on Union Road, just west of the castle, was built in the early 1800s as Lincoln's asylum.",
       "Beside it, the Sir Joseph Banks Conservatory is a tropical glasshouse named after the botanist who sailed with Captain Cook. Keep your eyes open on the green: there's an imp hiding somewhere.",
+    ],
+  },
+  // Behind the stadium, facing Canwick Road: the fire station and, next door on the same site, the ambulance station.
+  // Their engine and ambulance go out on calls now and then (EmergencyServices.tsx).
+  {
+    id: "fire-station",
+    kind: "firestation",
+    name: "Fire Station",
+    kicker: "Lincolnshire Fire and Rescue",
+    nav: "Fire Station",
+    x: 66,
+    z: 137,
+    w: 18,
+    d: 10,
+    h: 4.4,
+    wall: 0xa64b3a,
+    roof: 0x4a4f5c,
+    roofType: "flat",
+    rot: Math.PI / 2,
+    intro: [
+      "Behind the stadium, off Canwick Road, the fire station and the ambulance station share a site.",
+      "Every so often the bay doors roll up and an engine heads out on a call with its blue lights flashing. Keep the forecourt clear!",
+    ],
+  },
+  {
+    id: "ambulance-station",
+    kind: "ambulance",
+    name: "Ambulance Station",
+    kicker: "East Midlands Ambulance Service",
+    nav: "Ambulance Station",
+    x: 66.5,
+    z: 156,
+    w: 11,
+    d: 9,
+    h: 3.6,
+    wall: 0xe8e1d0,
+    roof: 0x4a4f5c,
+    roofType: "flat",
+    rot: Math.PI / 2,
+    intro: [
+      "Next door to the fire station, on the same site behind the stadium, is the ambulance station.",
+      "When a call comes in, an ambulance pulls out onto Canwick Road with its lights on and its siren going.",
     ],
   },
   {

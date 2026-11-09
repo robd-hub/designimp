@@ -6,6 +6,7 @@ import { Canvas, useFrame, type ThreeEvent, type ThreeElements } from "@react-th
 import { PLACES, hex, inSeason, shopSign, type Place } from "./places";
 import { Part, geo, toon, INK, signTexture, WINDOW, LAMP, STONE, STONE_DARK, setNightGlow } from "./toon";
 import { Castle, SteepHill, Brayford, Campus, Stonebow, HighBridge, NewportArch, OldHouse, Gallery, Ruins, River } from "./Landmarks";
+import { FireStation, AmbulanceStation, EmergencyCalls } from "./EmergencyServices";
 import { Airfield } from "./Scampton";
 import { EXTRA_BOXES, toWorld, TREES, BOUND, EAST, MID_X, NORTH, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, CLOSE, BAILGATE, STALL, STALLS, CORNHILL, STONEBOW_STREETS, STADIUM_ROAD, SIDE_STREETS, AIRFIELD_ROAD, FOOTPATHS, RING_PATHS, RAIL, RIVER, ROUNDABOUT, BUS_STATION, crossings, seeded } from "./colliders";
 import { Strip, groundY, groundTilt } from "./terrain";
@@ -1056,6 +1057,7 @@ export default function Town({ font }: { font: string }) {
       <Roads />
       <Roundabout reduce={reduce} />
       <Cars reduce={reduce} />
+      <EmergencyCalls reduce={reduce} />
       <Railway reduce={reduce} />
       <River />
       <GloryBoat reduce={reduce} />
@@ -1063,7 +1065,7 @@ export default function Town({ font }: { font: string }) {
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank" || !inSeason(p, season)) return null;
-          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks, gatehouse: Gatehouse, yard: Yard, hill: LindumHill, flyover: PelhamBridge, venue: Venue, architecture: Architecture, lawn: Lawn, retailpark: TrittonPark }[p.kind ?? "shop"];
+          const C = { cathedral: Cathedral, lot: Lot, stadium: Stadium, shop: Building, castle: Castle, street: SteepHill, water: Brayford, campus: Campus, airfield: Airfield, gate: Stonebow, station: Station, bridge: HighBridge, arch: NewportArch, oldhouse: OldHouse, gallery: Gallery, ruins: Ruins, busstation: BusStation, exchange: CornExchange, mall: Waterside, pub: Pub, mill: Mill, park: Park, market: XmasMarket, retail: StMarks, gatehouse: Gatehouse, yard: Yard, hill: LindumHill, flyover: PelhamBridge, venue: Venue, architecture: Architecture, lawn: Lawn, retailpark: TrittonPark, firestation: FireStation, ambulance: AmbulanceStation }[p.kind ?? "shop"];
           return (
             <group key={p.id} position-y={groundY(p.z)}>
               <C p={p} font={font} reduce={reduce} />

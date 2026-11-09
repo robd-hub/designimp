@@ -16,6 +16,7 @@ export const AUDIO = {
   crossing: false, // the barrier lamps are flashing
   ghost: { on: false, x: 0, z: 0 },
   jet: { on: false, x: 0, z: 0, loud: 0 }, // the loudest of the Red Arrows at the moment
+  siren: { on: false, x: 0, z: 0 }, // a fire engine or ambulance out on a call
 };
 
 const KEY = "imp-sound";
@@ -31,7 +32,7 @@ let white: AudioBufferSourceNode;
 let wind: GainNode, hum: GainNode;
 const cars: { v: Voice; o1: OscillatorNode; o2: OscillatorNode; lp: BiquadFilterNode; tyre: GainNode }[] = [];
 let train: { v: Voice; o1: OscillatorNode; o2: OscillatorNode; roar: GainNode; clack: GainNode };
-let jet: Voice;
+let jet: Voice, siren: Voice;
 let alarm: Voice, river: Voice, crowd: Voice & { swell: GainNode }, ghost: Voice;
 // listener: where the Imp stands, and which way is right on screen
 let lx = 0,
@@ -292,6 +293,14 @@ function build() {
     o.connect(filter("lowpass", 3200)).connect(gain(0.04)).connect(jet.gain);
   }
 
+  // a siren: two notes, high and low, a second each
+  siren = voice();
+  {
+    const o = osc("square", 700);
+    lfo(0.5, 100, o.frequency, "square");
+    o.connect(filter("lowpass", 1800)).connect(gain(0.35)).connect(siren.gain);
+  }
+
   // the level crossing's warble while the lamps flash
   alarm = voice();
   {
@@ -468,6 +477,7 @@ export function soundFrame(camera: THREE.Camera, dt: number, dir: THREE.Vector3)
     horn(tr.head);
   }
   place(jet, AUDIO.jet.x, AUDIO.jet.z, AUDIO.jet.on ? 0.5 * AUDIO.jet.loud : 0, 12, 160);
+  place(siren, AUDIO.siren.x, AUDIO.siren.z, AUDIO.siren.on ? 0.5 : 0, 10, 140);
   place(alarm, 0, RAIL.z, AUDIO.crossing ? 0.25 : 0, 6, 70);
   place(river, clamp(lx, RIVER.x0, RIVER.x1), RIVER.z, 0.25, 3, 28);
 

@@ -182,6 +182,25 @@ export const NPCS: Npc[] = [
       "I like to stop by the Brayford on the way and say hello to the swans.",
     ],
   },
+  // a firefighter on the fire station's forecourt
+  {
+    id: "dev",
+    name: "Dev",
+    shirt: 0x1f2a4a,
+    legs: 0x1f2a4a,
+    skin: 0xc68e5e,
+    hair: 0x1a1320,
+    path: [
+      [74.5, 142.3],
+      [74.5, 145.2],
+    ],
+    speed: 0.5,
+    lines: [
+      "Kettle's just boiled. Watch, that's usually when the call comes in.",
+      "Keep the forecourt clear, little one. When those doors go up, we're out in seconds.",
+      "We check the kit every morning: hoses, ladders, breathing sets. The crew next door check their ambulances too.",
+    ],
+  },
   // plane-spotters at the airfield fence, by the east end of the runway
   {
     id: "ken",
