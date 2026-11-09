@@ -880,11 +880,34 @@ export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 })
 export const SIDE = { half: 2.6, pave: 3.3 };
 export const CANWICK = { x: (PELHAM.x0 + PELHAM.x1) / 2, half: 3, pave: (PELHAM.x1 - PELHAM.x0) / 2, z0: PELHAM.z1 - 2, z1: SOUTH };
 export const SINCIL = { x: 24, z0: 32.4, z1: 160 };
+// The fire station and the ambulance station behind the stadium, both facing Canwick Road across a forecourt that runs
+// out to its pavement. bays are the z of each bay door along their fronts; lanes are the driving lines' offsets from a
+// road's centre (on the left, as in the UK) on Canwick Road and on the narrower streets.
+const firePlace = PLACES.find((p) => p.id === "fire-station")!,
+  ambPlace = PLACES.find((p) => p.id === "ambulance-station")!;
+const fireBox = footprint(firePlace),
+  ambBox = footprint(ambPlace);
+export const EMERGENCY = {
+  front: fireBox.x1, // both fronts line up
+  fire: { ...fireBox, bays: [fireBox.z0 + 2.6, fireBox.z0 + 6.6, fireBox.z0 + 10.6] },
+  amb: { ...ambBox, bays: [ambBox.z0 + 2.2, ambBox.z0 + 5.8] },
+  forecourts: [
+    { x0: fireBox.x1, x1: CANWICK.x - CANWICK.pave, z0: fireBox.z0, z1: fireBox.z1 },
+    { x0: ambBox.x1, x1: CANWICK.x - CANWICK.pave, z0: ambBox.z0, z1: ambBox.z1 },
+  ],
+  lane: 1.5,
+  sideLane: 1.2,
+};
+const nearEmergency = (x: number, z: number, pad: number) =>
+  [fireBox, ambBox, ...EMERGENCY.forecourts].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
 // Tentercroft and Scorer Streets fixed at either end, the four evenly spaced between them.
 const STREET_N = 35.75,
   STREET_S = 117,
   SIDE_GAP = (STREET_S - STREET_N) / 3;
 export const SIDE_STREETS = ["Tentercroft Street", "Portland Street", "Monson Street", "Scorer Street"].map((name, i) => ({ name, z: STREET_N + i * SIDE_GAP, x0: 0, x1: CANWICK.x }));
+// Walks to either come down Canwick Road to the corner of Scorer Street, then across the forecourt, clear of the
+// street's terraces.
+APPROACH["fire-station"] = APPROACH["ambulance-station"] = [[CANWICK.x - CANWICK.pave + 0.8, SIDE_STREETS[3].z]];
 export const TERRACE = { w: 4.4, d: 4, h: 3.6, gap: 0.1, alley: 2.6 };
 const TERRACE_SET = SIDE.pave + 0.3 + TERRACE.d / 2; // from the street's centre line to the middle of a house
 type TerraceHouse = { x: number; z: number; rot: number; k: number };
@@ -1059,7 +1082,7 @@ const nearBuilding = (x: number, z: number, pad: number) =>
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
   [...[...WHARF_BARS, ...ST_MARKS.units].map(barBox), ...MINSTER.south.map(yardBox), ...LINDUM.houses.map(lindumBox)].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   PLACES.some((p) => {
-    if (p.id.startsWith("tritton-")) return false; // added later, and cleared of trees afterwards instead
+    if (p.id.startsWith("tritton-") || EMERGENCY_IDS.includes(p.id)) return false; // added later, and cleared of trees afterwards instead
     const f = p.kind === "airfield" ? OLD_AIRFIELD : footprint(p); // the airfield grew later; as for Tritton
     const door = p.kind === "lot" ? 0 : 4; // keep the approach to each entrance clear
     const side = Math.abs(Math.sin(p.rot)) > 0.5; // entrance on an east or west face
@@ -1071,6 +1094,7 @@ const nearBuilding = (x: number, z: number, pad: number) =>
 // Trees scattered everywhere that isn't road, building or doorway. The first lot are laid out as they were before the
 // map was widened west (so they haven't moved), then a second lot fill the new strip.
 const OLD_BOUND = 76;
+const EMERGENCY_IDS = ["fire-station", "ambulance-station"];
 const OLD_AIRFIELD = { x0: -59, x1: -29, z0: 126, z1: 154 };
 export const TREES: [number, number, number][] = (() => {
   const out: [number, number, number][] = [];
@@ -1092,7 +1116,7 @@ export const TREES: [number, number, number][] = (() => {
     }
   }
   // the streets down to Sincil Bank came later: the trees already there stay put, bar any in their way
-  return [...out.filter(([x, z]) => !nearSincil(x, z, 2) && !nearTritton(x, z, 2) && !nearAirfield(x, z, 3.5)), ...YARD_TREES];
+  return [...out.filter(([x, z]) => !nearSincil(x, z, 2) && !nearTritton(x, z, 2) && !nearAirfield(x, z, 3.5) && !nearEmergency(x, z, 2)), ...YARD_TREES];
 })();
 
 const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));
