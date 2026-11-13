@@ -747,6 +747,14 @@ APPROACH.architecture = [
 ];
 // Tritton Retail Park: its door is on Tritton Road at the end of the aisle between the parking rows, and the to-let
 // unit's at the east end of that aisle, by the walkway off the Witham footbridge.
+// Bullwhip sits behind Front Desk with its door on the Brayford Wharf East path: in off the main road at the top of
+// the path and down it over the wharf's own level crossing, rather than through Front Desk from the High Street. Both
+// points stay up on the main road so a walk from south of the railway joins the path at its top as well (a point down
+// by the door would be the nearest one, and the walk to it would cut across Front Desk).
+APPROACH.bullwhip = [
+  [WHARF_CROSSING.x, 0],
+  [WHARF_CROSSING.x, ROAD_EDGE - 1.3],
+];
 APPROACH["tritton-park"] = [[-78, 42]];
 APPROACH["tritton-unit"] = [
   [-44, 43.5],
