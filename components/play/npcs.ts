@@ -55,7 +55,7 @@ export const NPCS: Npc[] = [
     legs: 0x1a1320,
     skin: 0xb0b0b8,
     hat: 0xffd23f,
-    path: [[-19, 42], [-16.8, 42]],
+    path: [[-24, 24.2], [-20.8, 24.2]],
     speed: 0.9,
     lines: [
       "I hand out independent A to F grades for AI agents, judged on Reppo's evaluation network.",
@@ -69,7 +69,7 @@ export const NPCS: Npc[] = [
     legs: 0x1a1320,
     skin: 0xb0b0b8,
     hat: 0xffb627,
-    path: [[-11.2, 42], [-9, 42]],
+    path: [[-24, 31.8], [-20.8, 31.8]],
     speed: 0.9,
     lines: [
       "I always try a cheap model first, and only call in an expensive one if a check fails.",
