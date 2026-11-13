@@ -3,12 +3,16 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { PLACES, hex, shopSign, type Place } from "./places";
-import { usePlay, walkTo, zoomBy, keepHover, leaveCard } from "./store";
+import { PLACES, hex, inSeason, currentSeason, shopSign, type Place } from "./places";
+import { usePlay, walkTo, zoomBy, keepHover, leaveCard, autoWalking, hasShopLink } from "./store";
 import { HIDDEN } from "./hidden";
 import PlayLeadForm from "./PlayLeadForm";
+import { TravelToggle, TaxiRide } from "./Taxi";
+import { WeatherChip } from "./Weather";
+import { mockupHref } from "./shop";
 import Minimap from "./Minimap";
 import Joystick from "./Joystick";
+import { useSound } from "./sound";
 import s from "./play.module.css";
 
 // First sentence of a place's intro, for the hover card.
@@ -31,7 +35,7 @@ function useMedia(q: string) {
 }
 
 export default function Hud() {
-  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, street, toggleStreet, found, badge, setBadge, hover, setHover } = usePlay();
+  const { open, near, nearNpc, talk, ready, openPlace, close, startTalk, nextLine, night, toggleNight, street, toggleStreet, found, badge, setBadge, hover, setHover, season } = usePlay();
   const openShop = usePlay((st) => (open && st.shop?.lot === open.id ? st.shop.name : ""));
   const total = HIDDEN.length;
   const spotter = found.length >= total;
@@ -42,7 +46,28 @@ export default function Hud() {
   const navRef = useRef<HTMLElement>(null);
   // The Imp's hello, once per visit, pointing straight at a client's shop.
   const { welcome, setWelcome } = usePlay();
+  const { on: sound, toggle: toggleSound } = useSound();
   const greet = welcome && ready && !open && !talk;
+  // "Walk up to a door" nudge, for an E pressed with nothing in reach
+  const [nudge, setNudge] = useState(false);
+  const nudgeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // The hello steps aside by itself after a few seconds, so it never sits over the street for long.
+  useEffect(() => {
+    if (!greet) return;
+    const t = setTimeout(() => setWelcome(false), 8000);
+    return () => clearTimeout(t);
+  }, [greet, setWelcome]);
+
+  // Fold the Go to list away on a click or tap anywhere else.
+  useEffect(() => {
+    if (!navOpen) return;
+    const away = (e: PointerEvent) => {
+      if (!navRef.current?.contains(e.target as Node)) setNavOpen(false);
+    };
+    window.addEventListener("pointerdown", away);
+    return () => window.removeEventListener("pointerdown", away);
+  }, [navOpen]);
 
   // Keep the joystick sitting just above the Go to box, however tall it gets.
   useEffect(() => {
@@ -55,9 +80,29 @@ export default function Hud() {
 
   useEffect(() => {
     usePlay.getState().hydrate();
-    const id = new URLSearchParams(window.location.search).get("place");
-    const p = PLACES.find((x) => x.id === id);
+    useSound.getState().hydrate();
+    const asked = new URLSearchParams(window.location.search).get("place");
+    // links shared before a place was renamed
+    const id = asked === "jews-house" ? "normans-house" : asked;
+    const p = PLACES.find((x) => x.id === id && inSeason(x, currentSeason()));
     if (p) usePlay.getState().openPlace(p);
+  }, []);
+
+  // Sent here by a prospect link: once the town is up, the Imp walks to their shop and its card opens on arrival.
+  const sentToShop = useRef(false);
+  useEffect(() => {
+    if (!ready || sentToShop.current || !hasShopLink() || new URLSearchParams(window.location.search).has("place")) return;
+    sentToShop.current = true;
+    const lot = usePlay.getState().shop?.lot;
+    const p = PLACES.find((x) => x.id === lot);
+    if (p) walkTo(p);
+  }, [ready]);
+
+  // The taxi rank in town opens Go to, set to taxis.
+  useEffect(() => {
+    const go = () => setNavOpen(true);
+    window.addEventListener("imp:goto", go);
+    return () => window.removeEventListener("imp:goto", go);
   }, []);
 
   useEffect(() => {
@@ -67,11 +112,18 @@ export default function Hud() {
         st.setBadge(false);
         st.close();
         st.endTalk();
+        setNavOpen(false);
       }
       if (e.key.toLowerCase() !== "e" || st.open || e.repeat) return;
       if (st.talk) st.nextLine();
+      else if (autoWalking()) return; // on the way somewhere: don't go into whatever we're passing
       else if (st.nearNpc) st.startTalk(st.nearNpc);
       else if (st.near) st.openPlace(st.near);
+      else {
+        setNudge(true);
+        clearTimeout(nudgeTimer.current);
+        nudgeTimer.current = setTimeout(() => setNudge(false), 2000);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -90,19 +142,34 @@ export default function Hud() {
         <button className={s.card} onClick={toggleNight} aria-label={night ? "Switch to day" : "Switch to night"} title={night ? "Day" : "Night"}>
           {night ? "☾" : "☀"}
         </button>
+        <button className={s.card} onClick={toggleSound} aria-pressed={sound} aria-label="Sound" title={sound ? "Sound on" : "Sound off"}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" />
+            {sound ? <path d="M16.5 8.5a5 5 0 0 1 0 7M19.5 5.5a9 9 0 0 1 0 13" /> : <path d="M17 9l5 6M22 9l-5 6" />}
+          </svg>
+        </button>
         <button className={s.card} onClick={toggleStreet} aria-pressed={street} title={street ? "Back to map view" : "Street view"}>
           {narrow ? (street ? "Map" : "Street") : street ? "Map view" : "Street view"}
         </button>
         <span className={`${s.card} ${spotter ? s.spotter : ""}`} aria-live="polite">
-          {spotter ? "Imp Spotter ★" : `Imps found ${found.length}/${total}`}
+          {/* shorter on phones, to leave room for the minimap */}
+          {spotter ? (narrow ? "Spotter ★" : "Imp Spotter ★") : `${narrow ? "Imps" : "Imps found"} ${found.length}/${total}`}
         </span>
       </div>
+      <WeatherChip narrow={narrow} />
       <nav ref={navRef} className={`${s.card} ${s.places} ${navOpen ? "" : s.shut}`} aria-label="Places">
         <button className={s.lbl} onClick={() => setNavOpen(!navOpen)} aria-expanded={navOpen}>
           Go to {navOpen ? "▴" : "▾"}
         </button>
-        {navOpen && PLACES.map((p) => (
-          <button key={p.id} onClick={() => walkTo(p)}>
+        {navOpen && <TravelToggle />}
+        {navOpen && PLACES.filter((p) => inSeason(p, season)).map((p) => (
+          <button
+            key={p.id}
+            onClick={() => {
+              setNavOpen(false);
+              walkTo(p);
+            }}
+          >
             <i style={{ background: hex(p.wall) }} />
             {p.nav ?? (p.kicker.startsWith("Case study") ? p.name : p.kicker)}
           </button>
@@ -127,7 +194,7 @@ export default function Hud() {
             className={s.cta}
             onClick={() => {
               setBadge(false);
-              openPlace(PLACES.find((p) => p.id === "tolet-east")!);
+              openPlace(PLACES.find((p) => p.id === "tolet-west")!);
             }}
           >
             Get my free mockup →
@@ -202,13 +269,17 @@ export default function Hud() {
           <kbd>E</kbd>
           <span>Talk to {nearNpc.name}</span>
         </button>
+      ) : near && !open ? (
+        <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
+          <kbd>E</kbd>
+          <span>{["lot", "tank", "gate", "bridge", "arch", "oldhouse", "ruins", "mill"].includes(near.kind ?? "shop") ? "Look at" : "Enter"} {near.name}</span>
+        </button>
       ) : (
-        near &&
+        nudge &&
         !open && (
-          <button className={`${s.card} ${s.prompt}`} onClick={() => openPlace(near)}>
-            <kbd>E</kbd>
-            <span>{near.kind === "lot" || near.kind === "tank" ? "Look at" : "Enter"} {near.name}</span>
-          </button>
+          <div className={`${s.card} ${s.nudge}`} role="status">
+            Walk up to a door to go in
+          </div>
         )
       )}
       <aside
@@ -236,25 +307,39 @@ export default function Hud() {
               <ul>
                 {open.items.map((i) => (
                   <li key={i.title}>
-                    <b>{i.title}</b>
-                    <span>{i.detail}</span>
+                    {i.href ? (
+                      // an exhibit: a picture of the site, linking to its case study
+                      <Link className={s.exhibit} href={i.href}>
+                        {i.image && <Image src={i.image} alt="" width={800} height={500} sizes="340px" />}
+                        <b>{i.title} →</b>
+                        <span>{i.detail}</span>
+                      </Link>
+                    ) : (
+                      <>
+                        <b>{i.title}</b>
+                        <span>{i.detail}</span>
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
-            {open.kind === "lot" && <PlayLeadForm lot={open.id} />}
-            {open.link.external ? (
+            {open.kind === "lot" && <PlayLeadForm lot={open.id} styler />}
+            {open.link?.external ? (
               <a className={s.cta} href={open.link.href} target="_blank" rel="noopener noreferrer">
                 {open.link.label} ↗
               </a>
             ) : (
-              <Link className={s.cta} href={open.link.href}>
-                {open.link.label} →
-              </Link>
+              open.link && (
+                <Link className={s.cta} href={open.kind === "lot" ? mockupHref(openShop) : open.link.href}>
+                  {open.link.label} →
+                </Link>
+              )
             )}
           </div>
         )}
       </aside>
+      <TaxiRide />
     </>
   );
 }

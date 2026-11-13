@@ -64,11 +64,12 @@
   padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-width: 44vw;
+  gap: 4px;
+  max-width: min(220px, 44vw);
 }
 .places {
-  max-height: calc(100vh - 220px);
+  /* stops short of the minimap in the bottom corner (220px tall, 14px in) */
+  max-height: calc(100vh - 270px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
 }
 .shut {
@@ -88,9 +89,9 @@
   padding: 0 4px;
 }
 .places button {
-  font: 700 14px var(--body);
+  font: 700 13px var(--body);
   text-align: left;
-  padding: 6px 10px;
+  padding: 4px 8px;
   border: 2px solid var(--ink);
   border-radius: 9px;
   background: #fff;
@@ -146,6 +147,17 @@
   border-radius: 6px;
   padding: 0 7px;
   margin-right: 6px;
+}
+/* E pressed with nothing in reach: a quiet word where the prompt would be */
+.nudge {
+  position: fixed;
+  left: 50%;
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  font: 700 14px var(--body);
+  white-space: nowrap;
+  pointer-events: none;
 }
 @keyframes bob {
   to {
@@ -245,6 +257,25 @@
   font-size: 13px;
   color: var(--muted);
 }
+.exhibit {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.exhibit img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: center 20%;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.exhibit:hover b {
+  text-decoration: underline;
+}
 .shot {
   display: block;
   width: 100%;
@@ -323,19 +354,20 @@
   position: fixed;
   right: calc(14px + env(safe-area-inset-right, 0px));
   bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-  width: 150px;
-  height: 150px;
+  /* about twice as tall as wide: the town runs north up the hill and a long way down the south road */
+  width: 129px;
+  height: 220px;
   padding: 0;
   overflow: hidden;
   box-sizing: border-box;
 }
-.minimap rect[fill]:not(:first-child) {
+.minimap rect[fill]:not(:first-of-type) {
   cursor: pointer;
 }
 
 .zoom {
   position: fixed;
-  right: calc(176px + env(safe-area-inset-right, 0px));
+  right: calc(175px + env(safe-area-inset-right, 0px));
   bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
@@ -380,7 +412,7 @@
 
 .joy {
   position: fixed;
-  right: calc(232px + env(safe-area-inset-right, 0px));
+  right: calc(249px + env(safe-area-inset-right, 0px));
   bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   width: 112px;
   height: 112px;
@@ -496,14 +528,14 @@
   .minimap {
     top: calc(84px + env(safe-area-inset-top, 0px));
     bottom: auto;
-    width: 96px;
-    height: 96px;
+    width: 80px;
+    height: 137px;
   }
   .places {
-    max-height: 40vh;
+    max-height: 34vh;
   }
   .zoom {
-    top: calc(190px + env(safe-area-inset-top, 0px));
+    top: calc(229px + env(safe-area-inset-top, 0px));
     bottom: auto;
     right: calc(14px + env(safe-area-inset-right, 0px));
     flex-direction: row;
@@ -534,8 +566,11 @@
     font-size: 12px;
     padding: 4px 8px;
   }
-  .prompt {
+  .prompt,
+  .nudge {
     bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+  .prompt {
     font-size: 19px;
   }
   .speech {
@@ -572,21 +607,22 @@
   left: 50%;
   bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
-  width: min(460px, calc(100% - 28px));
+  width: min(340px, calc(100% - 28px));
   box-sizing: border-box;
-  padding: 12px 16px 14px;
-  font: 600 16px/1.45 var(--body);
+  padding: 10px 14px 12px;
+  font: 600 14px/1.4 var(--body);
   color: var(--ink);
 }
 .welcome b {
-  font: 400 22px var(--display);
+  font: 400 19px var(--display);
   color: var(--tomato);
 }
 .welcome p {
-  margin: 2px 0 10px;
+  margin: 2px 0 8px;
 }
 .welcome .cta {
   margin: 0 12px 0 0;
+  font-size: 17px;
   cursor: pointer;
 }
 .welcome .skip {

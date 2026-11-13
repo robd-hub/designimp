@@ -1,0 +1,148 @@
+/* Your shop, taxis and the weather. Kept apart from play.module.css; uses its variables (set on .root). */
+
+/* Walk / Taxi, at the top of Go to */
+.travel {
+  display: flex;
+  gap: 4px;
+  padding: 2px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: #fff;
+}
+.travel button[type="button"] {
+  flex: 1;
+  font: 800 12px var(--body);
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  justify-content: center;
+}
+.travel button[type="button"][aria-pressed="true"] {
+  background: var(--sun);
+}
+
+/* the ride: fade out, a taxi across, fade back in at the door */
+.ride {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  background: var(--sky, #7ccaff);
+  color: var(--ink);
+  font: 400 26px var(--display);
+  animation: rideFade var(--ride, 1600ms) ease-in-out both;
+  pointer-events: all;
+}
+.ride p {
+  margin: 8px 0 0;
+}
+.car {
+  animation: rideDrive var(--ride, 1600ms) ease-in-out both;
+}
+@keyframes rideFade {
+  0% {
+    opacity: 0;
+  }
+  30%,
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes rideDrive {
+  0% {
+    transform: translateX(-60vw);
+  }
+  45%,
+  55% {
+    transform: translateX(0) translateY(-2px);
+  }
+  100% {
+    transform: translateX(60vw);
+  }
+}
+
+/* "Lincoln now", under the status buttons */
+.weather {
+  position: fixed;
+  top: calc(140px + env(safe-area-inset-top, 0px));
+  left: calc(14px + env(safe-area-inset-left, 0px));
+  font: 800 13px var(--body);
+  padding: 5px 10px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+}
+.weather span {
+  font-size: 15px;
+}
+.off {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+/* shop type and colour, in the plot's form */
+.style {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pick,
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pick button {
+  font: 800 13px var(--body);
+  padding: 5px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+.pick button[aria-pressed="true"] {
+  background: var(--sun);
+}
+.swatches button {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.swatches button[aria-pressed="true"] {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
+}
+.mockup {
+  align-self: flex-start;
+  font: 800 14px var(--body);
+  color: var(--ink);
+}
+
+@media (max-width: 600px) {
+  .weather {
+    top: calc(126px + env(safe-area-inset-top, 0px));
+    padding: 4px 8px;
+  }
+  .ride {
+    font-size: 21px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .car {
+    animation: none;
+  }
+}

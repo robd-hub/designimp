@@ -1,0 +1,82 @@
+import { useEffect, useMemo } from "react";
+import * as THREE from "three";
+import type { ThreeElements } from "@react-three/fiber";
+import { PLACES, footprint } from "./places";
+import { toon } from "./toon";
+import { PELHAM, RIVER } from "./colliders";
+
+// Uphill Lincoln: the ground climbs Steep Hill to the cathedral and castle on the hilltop,
+// while the high street, the Brayford and everything south of them stay down by the river.
+// The slope stretches right across the map from east to west, so height only depends on z.
+const hill = footprint(PLACES.find((p) => p.kind === "street")!);
+export const RISE = { z0: hill.z1 + 2, z1: hill.z0 - 2, h: 16 }; // from the foot of the hill (south) to the top (north): about 1 in 2 at its steepest
+// Past Castle Square the ground keeps climbing, gently, up Bailgate to Newport Arch.
+const arch = PLACES.find((p) => p.kind === "arch")!;
+export const BAIL_RISE = { z0: hill.z0 - 13, z1: arch.z - 4, h: 1.4 };
+const SLOPES = [RISE, BAIL_RISE];
+
+const along = (z: number, r: typeof RISE) => Math.min(1, Math.max(0, (r.z0 - z) / (r.z0 - r.z1)));
+
+export function groundY(z: number) {
+  return SLOPES.reduce((y, r) => {
+    const t = along(z, r);
+    return y + r.h * t * t * (3 - 2 * t);
+  }, 0);
+}
+
+// The footbridges over the Witham are humped high enough for the narrowboats to pass under: flat on top over the
+// water, with a ramp down to each bank. humpY gives the deck's height at dz from the middle of the river.
+export const FOOT_HUMP = { top: 1.65, flat: 1.7, half: 4.2 };
+export function humpY(dz: number) {
+  const t = Math.abs(dz),
+    H = FOOT_HUMP;
+  if (t >= H.half) return 0;
+  if (t <= H.flat) return H.top;
+  const k = (H.half - t) / (H.half - H.flat);
+  return H.top * k * k * (3 - 2 * k);
+}
+const FOOTBRIDGES = RIVER.bridges.filter((b) => b.foot);
+
+// How high a bridge deck stands above the ground at a point (Pelham Bridge's road, or a footbridge's hump): zero
+// anywhere off them.
+export function deckY(x: number, z: number) {
+  const P = PELHAM;
+  const dz = z - RIVER.z;
+  if (Math.abs(dz) < FOOT_HUMP.half) for (const b of FOOTBRIDGES) if (x > b.x0 - 0.1 && x < b.x1 + 0.1) return humpY(dz);
+  if (x < P.x0 - 0.1 || x > P.x1 + 0.1 || z <= P.a || z >= P.d) return 0;
+  if (z < P.b) return (P.h * (z - P.a)) / (P.b - P.a);
+  if (z > P.c) return (P.h * (P.d - z)) / (P.d - P.c);
+  return P.h;
+}
+
+// Rotation about x that lays something flat on the slope at z.
+export function groundTilt(z: number) {
+  const dydz = SLOPES.reduce((s, r) => {
+    const t = along(z, r);
+    return s + (t > 0 && t < 1 ? (-r.h * 6 * t * (1 - t)) / (r.z0 - r.z1) : 0);
+  }, 0);
+  return -Math.atan(dydz);
+}
+
+// A flat rectangle that follows the ground. wz is the world z of the parent's origin, for strips
+// drawn inside a place that has already been lifted to the ground at its own z.
+export function Strip({
+  w,
+  d,
+  color,
+  x = 0,
+  z = 0,
+  y = 0,
+  wz = 0,
+  ...mesh
+}: { w: number; d: number; color: number; x?: number; z?: number; y?: number; wz?: number } & Omit<ThreeElements["mesh"], "geometry" | "material">) {
+  const geometry = useMemo(() => {
+    const g = new THREE.PlaneGeometry(w, d, 1, Math.max(1, Math.ceil(d / 1.5))).rotateX(-Math.PI / 2);
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) p.setY(i, groundY(wz + z + p.getZ(i)) - groundY(wz) + y);
+    g.computeVertexNormals();
+    return g;
+  }, [w, d, z, y, wz]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return <mesh geometry={geometry} material={toon(color)} position={[x, 0, z]} receiveShadow {...mesh} />;
+}

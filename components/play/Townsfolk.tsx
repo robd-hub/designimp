@@ -1,11 +1,22 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
-import { Part, geo, INK } from "./toon";
-import { NPCS, npcPos, type Npc } from "./npcs";
+import { Part, geo, INK, toon } from "./toon";
+import { NPCS, npcPos, chatLine, type Npc } from "./npcs";
 import { game, usePlay, walkToNpc } from "./store";
+import { groundY, deckY } from "./terrain";
+import { atBarrier } from "./colliders";
 
 const tmp = new THREE.Vector3();
+
+// Townsfolk who pass each other stop for a quick chat: they turn to face each other and take turns to
+// speak, each waving as they do, then walk on. A pair won't stop again until again seconds have passed.
+// Switched off for now (no stopping, waving or speech bubbles between townsfolk); set on: true to bring it back.
+const CHAT = { on: false, near: 1.8, secs: 5, again: 25 };
+const chats = new Map<string, { with: Npc; t0: number; first: boolean }>();
+const lastChat = new Map<string, number>();
+const pairKey = (a: Npc, b: Npc) => [a.id, b.id].sort().join();
 
 function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
   const body = useRef<THREE.Group>(null!);
@@ -14,6 +25,9 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
   const armL = useRef<THREE.Group>(null!);
   const armR = useRef<THREE.Group>(null!);
   const st = useRef({ leg: 1, walkT: 0, face: 0 });
+  const [say, setSay] = useState<string | null>(null);
+  const skirt = SKIRT[npc.id];
+  const saying = useRef<string | null>(null);
 
   useFrame(({ clock }, delta) => {
     const dt = Math.min(delta, 0.05);
@@ -22,8 +36,32 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
     const talking = usePlay.getState().talk?.npc === npc;
     let moving = false;
     let want = s.face;
+    const now = clock.elapsedTime;
+    let chat = chats.get(npc.id);
+    if (chat && now - chat.t0 > CHAT.secs) {
+      chats.delete(npc.id);
+      lastChat.set(pairKey(npc, chat.with), now);
+      chat = undefined;
+    }
+    if (CHAT.on && !chat && !talking) {
+      for (const o of NPCS) {
+        if (o === npc || chats.has(o.id) || usePlay.getState().talk?.npc === o) continue;
+        if (now - (lastChat.get(pairKey(npc, o)) ?? -Infinity) < CHAT.again || npcPos.get(o.id)!.distanceTo(pos) > CHAT.near) continue;
+        chat = { with: o, t0: now, first: true };
+        chats.set(npc.id, chat);
+        chats.set(o.id, { with: npc, t0: now, first: false });
+        break;
+      }
+    }
+    // the first to speak has the first half of the chat, the other the second
+    const speaking = !talking && !!chat && now - chat.t0 < CHAT.secs / 2 === chat.first;
+    const line = speaking ? chatLine(npc, chat!.with, chat!.first) : null;
+    if (line !== saying.current) setSay((saying.current = line));
     if (talking) {
       want = Math.atan2(game.pos.x - pos.x, game.pos.z - pos.z);
+    } else if (chat) {
+      const o = npcPos.get(chat.with.id)!;
+      want = Math.atan2(o.x - pos.x, o.z - pos.z);
     } else {
       const [tx, tz] = npc.path[s.leg];
       tmp.set(tx - pos.x, 0, tz - pos.z);
@@ -31,9 +69,13 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
       if (dist < 0.1) s.leg = (s.leg + 1) % npc.path.length;
       else {
         const step = Math.min(dist, npc.speed * dt);
-        pos.addScaledVector(tmp.normalize(), step);
+        tmp.normalize();
         want = Math.atan2(tmp.x, tmp.z);
-        moving = true;
+        // townsfolk wait at the level crossing too
+        if (atBarrier(pos.x, pos.z) || !atBarrier(pos.x + tmp.x * step, pos.z + tmp.z * step)) {
+          pos.addScaledVector(tmp, step);
+          moving = true;
+        }
       }
     }
     let d = want - s.face;
@@ -46,9 +88,10 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
     legR.current.rotation.x = -sw;
     armL.current.rotation.x = -sw * 0.8;
     // wave hello while chatting
-    armR.current.rotation.x = talking ? Math.PI : sw * 0.8;
-    armR.current.rotation.z = talking && !reduce ? Math.sin(clock.elapsedTime * 8) * 0.35 : 0;
-    body.current.position.set(pos.x, moving ? Math.abs(Math.sin(s.walkT)) * 0.08 : 0, pos.z);
+    const wave = talking || speaking;
+    armR.current.rotation.x = wave ? Math.PI : sw * 0.8;
+    armR.current.rotation.z = wave && !reduce ? Math.sin(clock.elapsedTime * 8) * 0.35 : 0;
+    body.current.position.set(pos.x, groundY(pos.z) + deckY(pos.x, pos.z) + (moving ? Math.abs(Math.sin(s.walkT)) * 0.08 : 0), pos.z);
     body.current.rotation.y = s.face;
   });
 
@@ -67,25 +110,116 @@ function Person({ npc, reduce }: { npc: Npc; reduce: boolean }) {
       ))}
       <Part geometry={geo.cyl(0.36, 0.46, 0.75)} color={npc.shirt} outline={0.06} position={[0, 1, 0]} />
       <Part geometry={geo.sphere(0.46)} color={npc.shirt} outline={0.06} position={[0, 0.64, 0]} scale={[1, 0.4, 1]} />
+      {FLORAL.has(npc.id) &&
+        BLOSSOM.map(([a, y], i) => (
+          <mesh key={i} geometry={geo.sphere(0.04)} position={[Math.sin(a) * (0.47 - (y - 0.7) * 0.13), y, Math.cos(a) * (0.47 - (y - 0.7) * 0.13)]} scale={[1, 1, 0.4]} rotation-y={a}>
+            <meshBasicMaterial color={0xffffff} />
+          </mesh>
+        ))}
+      {skirt !== undefined && (
+        <>
+          {/* a V neckline, and a little A-line mini skirt with polka dots */}
+          <mesh geometry={geo.cone(0.16, 0.36, 3)} material={toon(npc.skin)} position={[0, 1.2, 0.38]} rotation={[Math.PI - 0.13, 0, 0]} scale={[1, 1, 0.15]} />
+          <Part geometry={geo.cyl(0.44, 0.53, 0.5)} color={skirt} outline={0.05} position={[0, 0.72, 0]} />
+          {DOTS.map(([a, y], i) => (
+            <mesh key={i} geometry={geo.sphere(0.035, 8, 6)} position={[Math.sin(a) * (0.545 - (y - 0.47) * 0.18), y, Math.cos(a) * (0.545 - (y - 0.47) * 0.18)]} scale={[1, 1, 0.4]} rotation-y={a}>
+              <meshBasicMaterial color={0x1f2a4a} />
+            </mesh>
+          ))}
+        </>
+      )}
       {[-0.46, 0.46].map((x, i) => (
         <group key={x} ref={i ? armR : armL} position={[x, 1.28, 0]}>
-          <Part geometry={geo.cyl(0.09, 0.1, 0.5, 8)} color={npc.shirt} outline={0.04} position={[0, -0.25, 0]} />
+          <Part geometry={geo.cyl(0.09, 0.1, 0.5, 8)} color={SLEEVELESS.has(npc.id) ? npc.skin : npc.shirt} outline={0.04} position={[0, -0.25, 0]} />
           <Part geometry={geo.sphere(0.12)} color={npc.skin} outline={0.03} position={[0, -0.55, 0]} />
         </group>
       ))}
       <Head npc={npc} reduce={reduce} />
+      {npc.dog !== undefined && <Dog color={npc.dog} reduce={reduce} />}
+      {say && (
+        <Html position={[0, 3.4, 0]} center zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
+          <div className="max-w-[220px] w-max rounded-2xl border-2 border-[#1a1320] bg-white px-3 py-1.5 text-center text-xs font-semibold leading-snug text-[#1a1320] shadow-[0_3px_0_#1a1320]">
+            {say}
+          </div>
+        </Html>
+      )}
     </group>
   );
 }
 
+// A fluffy little dog trotting at its owner's left side on a lead from her hand, in the owner's own
+// coordinates so it follows her round. Its tail wags all the time.
+const DOG = { x: -0.85, z: 0.55 };
+const HAND = new THREE.Vector3(-0.46, 0.73, 0);
+const COLLAR = new THREE.Vector3(DOG.x, 0.62, DOG.z + 0.3);
+const LEAD = (() => {
+  const d = COLLAR.clone().sub(HAND);
+  return {
+    len: d.length(),
+    at: HAND.clone().add(COLLAR).multiplyScalar(0.5),
+    q: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()),
+  };
+})();
+function Dog({ color, reduce }: { color: number; reduce: boolean }) {
+  const tail = useRef<THREE.Group>(null!);
+  useFrame(({ clock }) => {
+    if (!reduce) tail.current.rotation.z = Math.sin(clock.elapsedTime * 14) * 0.5;
+  });
+  return (
+    <>
+      <mesh geometry={geo.cyl(0.015, 0.015, LEAD.len, 4)} position={LEAD.at} quaternion={LEAD.q}>
+        <meshBasicMaterial color={0xe03a3e} />
+      </mesh>
+      <group position={[DOG.x, 0, DOG.z]}>
+        <Part geometry={geo.sphere(0.24)} color={color} outline={0.04} position-y={0.42} scale={[0.85, 0.8, 1.35]} />
+        {[-1, 1].flatMap((sx) =>
+          [-1, 1].map((sz) => <Part key={`${sx}${sz}`} geometry={geo.cyl(0.06, 0.06, 0.28, 6)} color={color} outline={0.03} position={[sx * 0.11, 0.14, sz * 0.18]} />),
+        )}
+        <group position={[0, 0.62, 0.32]}>
+          <Part geometry={geo.sphere(0.19)} color={color} outline={0.04} />
+          <Part geometry={geo.sphere(0.09)} color={color} outline={0.03} position={[0, -0.05, 0.17]} />
+          <mesh geometry={geo.sphere(0.04)} position={[0, -0.02, 0.26]}>
+            <meshBasicMaterial color={INK} />
+          </mesh>
+          {[-1, 1].map((sx) => (
+            <group key={sx}>
+              <mesh geometry={geo.sphere(0.03)} position={[sx * 0.08, 0.05, 0.16]}>
+                <meshBasicMaterial color={INK} />
+              </mesh>
+              {/* floppy curly ears */}
+              <Part geometry={geo.sphere(0.09)} color={color} outline={0.03} position={[sx * 0.17, -0.06, -0.02]} scale={[0.7, 1.4, 0.9]} />
+            </group>
+          ))}
+        </group>
+        <group ref={tail} position={[0, 0.52, -0.3]}>
+          <Part geometry={geo.sphere(0.08)} color={color} outline={0.03} position={[0, 0.08, -0.04]} scale={[1, 1.3, 1]} />
+        </group>
+      </group>
+    </>
+  );
+}
+
 // Hair styles; anyone in a hat keeps it on.
-const STYLE: Record<string, "long" | "bun" | "pony" | "bob"> = {
-  christine: "long",
+const STYLE: Record<string, "long" | "straight" | "bun" | "pony" | "bob" | "fringe"> = {
+  christine: "straight",
   justyna: "bun",
-  priya: "pony",
+  elizabeth: "fringe",
   elsie: "bun",
   bea: "bob",
 };
+// and anyone here wears sunglasses
+const SHADES = new Set(["elizabeth", "alan"]);
+// Little white blossoms scattered over a dark top, as [angle round the body, height].
+const FLORAL = new Set(["elizabeth"]);
+const BLOSSOM = [
+  [-0.9, 0.8], [-0.3, 0.75], [0.35, 0.82], [0.95, 0.76], [-0.6, 1.05], [0.05, 1.02], [0.65, 1.08],
+  [-0.95, 1.25], [-0.25, 1.28], [0.4, 1.24], [1.0, 1.22], [2.2, 1], [-2.2, 1.1], [3.1, 0.9], [2.7, 1.25], [-2.7, 0.8],
+] as const;
+// Who goes bare-armed, and who wears a skirt (of this colour, with navy polka dots) over bare legs.
+const SLEEVELESS = new Set(["christine"]);
+const SKIRT: Record<string, number> = { christine: 0xf6f3ec };
+// polka dots in staggered rows round the skirt, as [angle round the body, height]
+const DOTS = [0.55, 0.72, 0.89].flatMap((y, row) => Array.from({ length: 11 }, (_, i) => [((i + (row % 2) / 2) / 11) * Math.PI * 2, y] as const));
 const BLUSH = 0xff8fa3;
 const HY = 2.05; // head centre
 
@@ -120,6 +254,17 @@ function Head({ npc, reduce }: { npc: Npc; reduce: boolean }) {
       <mesh geometry={geo.smile(0.09, 0.025)} position={[0, HY - 0.16, 0.66]}>
         <meshBasicMaterial color={INK} />
       </mesh>
+      {SHADES.has(npc.id) &&
+        [-1, 1].map((sx) => (
+          <mesh key={sx} geometry={geo.sphere(0.17)} position={[sx * 0.25, HY + 0.05, 0.64]} scale={[1.25, 0.85, 0.35]} rotation-z={sx * 0.2}>
+            <meshBasicMaterial color={INK} />
+          </mesh>
+        ))}
+      {SHADES.has(npc.id) && (
+        <mesh geometry={geo.box(0.2, 0.05, 0.05)} position={[0, HY + 0.1, 0.69]}>
+          <meshBasicMaterial color={INK} />
+        </mesh>
+      )}
       {npc.hat !== undefined ? (
         <>
           <Part geometry={geo.dome(0.73)} color={npc.hat} outline={0.05} position-y={HY + 0.08} />
@@ -137,11 +282,30 @@ function Hair({ color, style }: { color: number; style?: string }) {
     <>
       <Part geometry={geo.dome(0.74)} color={color} outline={0.05} position={[0, HY + 0.02, -0.04]} rotation-x={-0.3} />
       {style === "long" && <Part geometry={geo.cyl(0.55, 0.62, 1, 16)} color={color} outline={0.05} position={[0, HY - 0.35, -0.28]} />}
+      {style === "straight" && (
+        <>
+          {/* long and straight, worn down past the shoulders, with a lock falling in front of each one */}
+          <Part geometry={geo.cyl(0.56, 0.6, 1.25, 16)} color={color} outline={0.05} position={[0, HY - 0.47, -0.3]} scale={[1, 1, 0.8]} />
+          {[-1, 1].map((sx) => (
+            <Part key={sx} geometry={geo.sphere(0.13)} color={color} outline={0.04} position={[sx * 0.5, HY - 0.62, 0.14]} scale={[0.75, 3.4, 0.8]} rotation-z={sx * 0.1} />
+          ))}
+        </>
+      )}
       {style === "bun" && <Part geometry={geo.sphere(0.28)} color={color} outline={0.05} position={[0, HY + 0.78, -0.12]} />}
       {style === "pony" && (
         <>
           <Part geometry={geo.sphere(0.24)} color={color} outline={0.05} position={[0, HY + 0.25, -0.78]} />
           <Part geometry={geo.cone(0.2, 0.7, 10)} color={color} outline={0.04} position={[0, HY - 0.2, -0.85]} rotation-x={Math.PI} />
+        </>
+      )}
+      {style === "fringe" && (
+        <>
+          {/* shoulder-length at the back and sides, with a fringe across the forehead */}
+          <Part geometry={geo.cyl(0.56, 0.62, 0.8, 16)} color={color} outline={0.05} position={[0, HY - 0.3, -0.36]} />
+          {[-1, 1].map((sx) => (
+            <Part key={sx} geometry={geo.sphere(0.28)} color={color} outline={0.05} position={[sx * 0.64, HY - 0.28, -0.12]} scale={[0.55, 1.5, 0.9]} />
+          ))}
+          <Part geometry={geo.sphere(0.5)} color={color} outline={0.04} position={[0, HY + 0.46, 0.3]} scale={[1.2, 0.3, 0.75]} />
         </>
       )}
       {style === "bob" &&

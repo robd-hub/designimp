@@ -22,6 +22,7 @@ export const WINDOW = 0xbff0ff;
 export const LAMP = 0xfff1a8;
 export const STONE = 0xd9cbb0;
 export const STONE_DARK = 0xc4b393;
+export const SIGNAL_GREEN = 0x4fbf6a; // the green lights across a runway's ends
 
 // At night windows and lamps glow and the cathedral is floodlit gold.
 const GLOW: [number, number, number][] = [
@@ -29,6 +30,7 @@ const GLOW: [number, number, number][] = [
   [LAMP, 0xffe08a, 1],
   [STONE, 0xffb347, 0.75],
   [STONE_DARK, 0xffa52e, 0.7],
+  [SIGNAL_GREEN, 0x5dff8a, 1],
 ];
 export function setNightGlow(on: boolean) {
   for (const [c, e, i] of GLOW) {
@@ -60,6 +62,24 @@ export const geo = {
   // the lower half of a ring, for smiles
   smile: (r: number, t: number) => cached(`m${r},${t}`, () => new THREE.TorusGeometry(r, t, 6, 16, Math.PI).rotateZ(Math.PI)),
   cone: (r: number, h: number, s = 12) => cached(`k${r},${h},${s}`, () => new THREE.ConeGeometry(r, h, s)),
+  // a wall w wide and h tall with round-headed archways through it, extruded to depth d and centred on
+  // its foot; each opening is [centre x, span, height at which its head springs, and optionally the
+  // rise of a flatter segmental head in place of a round one]
+  arches: (w: number, h: number, d: number, openings: (readonly [number, number, number, number?])[]) =>
+    cached(`a${w},${h},${d},${openings.join(";")}`, () => {
+      const shape = new THREE.Shape().moveTo(-w / 2, 0);
+      for (const [x, span, spring, rise] of [...openings].sort((a, b) => a[0] - b[0])) {
+        shape.lineTo(x - span / 2, 0).lineTo(x - span / 2, spring);
+        if (rise) {
+          const r = (span * span) / 4 / (2 * rise) + rise / 2,
+            a = Math.asin(span / 2 / r);
+          shape.absarc(x, spring + rise - r, r, Math.PI / 2 + a, Math.PI / 2 - a, true);
+        } else shape.absarc(x, spring, span / 2, Math.PI, 0, true);
+        shape.lineTo(x + span / 2, 0);
+      }
+      shape.lineTo(w / 2, 0).lineTo(w / 2, h).lineTo(-w / 2, h).closePath();
+      return new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false, curveSegments: 14 }).translate(0, 0, -d / 2);
+    }),
   // side profile of a WW1 rhomboid tank's track frame, extruded to track width
   tankSide: () =>
     cached("tank", () => {

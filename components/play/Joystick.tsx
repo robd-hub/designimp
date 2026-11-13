@@ -22,6 +22,8 @@ export default function Joystick() {
     setKnob({ x, y });
     game.joy = { x: x / R, z: y / R };
     game.target = null;
+    game.pending = null;
+    game.pendingNpc = null;
   };
   const end = (e: React.PointerEvent) => {
     if (e.pointerId !== id.current) return;

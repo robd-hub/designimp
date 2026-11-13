@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { FOOTPATH_ROUTE } from "./colliders";
+import { FOOTPATH_ROUTE, ROUNDABOUT } from "./colliders";
 
 // Townsfolk who stroll the streets. Walk up to one and press E to chat.
 export type Npc = {
@@ -10,6 +10,7 @@ export type Npc = {
   skin: number;
   hat?: number;
   hair?: number;
+  dog?: number; // walks a dog of this colour on a lead
   path: [number, number][]; // walked as a loop
   speed: number;
   lines: string[];
@@ -19,10 +20,10 @@ export const NPCS: Npc[] = [
   {
     id: "christine",
     name: "Christine",
-    shirt: 0xff6fa8,
-    legs: 0x1a1320,
+    shirt: 0x1d1c20,
+    legs: 0xd9a37a, // bare legs under a white polka-dot skirt
     skin: 0xd9a37a,
-    hair: 0x1a1320,
+    hair: 0x33211a,
     path: [[-19, -6], [-16.8, -6]],
     speed: 0.9,
     lines: [
@@ -47,17 +48,33 @@ export const NPCS: Npc[] = [
     ],
   },
   {
-    id: "priya",
-    name: "Priya",
-    shirt: 0xff5a3c,
+    id: "elizabeth",
+    name: "Elizabeth",
+    shirt: 0x1f2a4a,
     legs: 0x2b3a8c,
-    skin: 0x9a6a4a,
-    hair: 0x1a1320,
-    path: [[3.7, -8], [3.7, -40], [-3.7, -40], [-3.7, -8]],
+    skin: 0xf2d0b5,
+    hair: 0xe3c37e,
+    dog: 0x8a5a3c, // a brown cavapoo
+    path: [[3.7, -8], [3.7, -116], [-3.7, -116], [-3.7, -8]],
     speed: 2.2,
     lines: [
       "Morning! Have you been up to the cathedral yet? Keep walking north.",
       "They say there's a little stone imp hiding up there. I've never spotted him.",
+    ],
+  },
+  {
+    id: "alan",
+    name: "Alan",
+    shirt: 0x1c2340,
+    legs: 0xd9d3c3,
+    skin: 0xf2d0b5,
+    hat: 0xc9c4b2,
+    // Elizabeth's loop the other way round, so the two of them keep meeting for a chat
+    path: [[3.7, -116], [3.7, -8], [-3.7, -8], [-3.7, -116]],
+    speed: 2.2,
+    lines: [
+      "Afternoon! Lovely day for a stroll up the High Street.",
+      "Mind how you go on Steep Hill. It's called that for a reason.",
     ],
   },
   {
@@ -81,7 +98,7 @@ export const NPCS: Npc[] = [
     legs: 0x1a1320,
     skin: 0xf2d0b5,
     hair: 0xd6cfe0,
-    path: [[-8, -3.7], [-64, -3.7], [-64, 3.7], [-8, 3.7]],
+    path: [[-8, -3.7], [-52, -3.7], [-52, 3.7], [-8, 3.7]], // turning back short of the roundabout
     speed: 1.6,
     lines: [
       "Over half of visitors give up on a website if it takes more than 3 seconds to load. I'd give up too!",
@@ -89,13 +106,13 @@ export const NPCS: Npc[] = [
     ],
   },
   {
-    id: "sam",
-    name: "Sam",
-    shirt: 0xffb627,
+    id: "steve",
+    name: "Steve",
+    shirt: 0xa9c4e0, // a light blue Oxford shirt
     legs: 0x2b2633,
-    skin: 0x6b4a32,
-    hat: 0xff5a3c,
-    path: [[-3.7, 8], [-3.7, 64], [3.7, 64], [3.7, 8]],
+    skin: 0xf2d0b5,
+    hair: 0x3a2a20,
+    path: [[-3.7, 8], [-3.7, 124], [3.7, 124], [3.7, 8]],
     speed: 2.4,
     lines: [
       "88% of people won't come back after a bad experience on a website. Harsh, but fair.",
@@ -111,7 +128,8 @@ export const NPCS: Npc[] = [
     hair: 0xc8973a,
     path: Array.from({ length: 12 }, (_, i) => {
       const a = (i / 12) * Math.PI * 2;
-      return [Math.cos(a) * 5.6, Math.sin(a) * 5.6] as [number, number];
+      // round the pavement on the outside of the tank's roundabout
+      return [ROUNDABOUT.x + Math.cos(a) * 7.5, ROUNDABOUT.z + Math.sin(a) * 7.5] as [number, number];
     }),
     speed: 1.4,
     lines: [
@@ -127,7 +145,7 @@ export const NPCS: Npc[] = [
     legs: 0x4a3a2a,
     skin: 0xf2d0b5,
     hat: 0x1a1320,
-    path: [[-10, -43], [10, -43]],
+    path: [[25, -123], [32.5, -123]], // up and down Minster Yard's forecourt, in front of the west door
     speed: 1.2,
     lines: [
       "Lovely, isn't she? Building started on this cathedral over 900 years ago.",
@@ -156,6 +174,7 @@ export const NPCS: Npc[] = [
     legs: 0x1a1320,
     skin: 0xffc39e,
     hat: 0x8a5a33,
+    dog: 0xf4efe4,
     path: [...FOOTPATH_ROUTE.slice().reverse(), ...FOOTPATH_ROUTE.slice(1, -1)],
     speed: 1.3,
     lines: [
@@ -163,7 +182,95 @@ export const NPCS: Npc[] = [
       "I like to stop by the Brayford on the way and say hello to the swans.",
     ],
   },
+  // a firefighter on the fire station's forecourt
+  {
+    id: "dev",
+    name: "Dev",
+    shirt: 0x1f2a4a,
+    legs: 0x1f2a4a,
+    skin: 0xc68e5e,
+    hair: 0x1a1320,
+    path: [
+      [74.5, 142.3],
+      [74.5, 145.2],
+    ],
+    speed: 0.5,
+    lines: [
+      "Kettle's just boiled. Watch, that's usually when the call comes in.",
+      "Keep the forecourt clear, little one. When those doors go up, we're out in seconds.",
+      "We check the kit every morning: hoses, ladders, breathing sets. The crew next door check their ambulances too.",
+    ],
+  },
+  // plane-spotters at the airfield fence, by the east end of the runway
+  {
+    id: "ken",
+    name: "Ken",
+    shirt: 0x4a5a3a,
+    legs: 0x2b2633,
+    skin: 0xf2d0b5,
+    hat: 0x2b3a55,
+    path: [
+      [-27.2, 122.5],
+      [-27.2, 127],
+    ],
+    speed: 0.5,
+    lines: [
+      "Keep your eyes on the sky. When the jet on the apron taxis out, the whole team won't be far behind.",
+      "Nine of them, wingtip to wingtip. You hear them before you see them.",
+      "When that jet's on the runway, it's closed. Even to imps.",
+    ],
+  },
+  {
+    id: "val",
+    name: "Val",
+    shirt: 0xd0202e,
+    legs: 0x1f2a4a,
+    skin: 0xd9a37a,
+    hair: 0x33211a,
+    path: [
+      [-27.2, 129.5],
+      [-27.2, 132.5],
+    ],
+    speed: 0.45,
+    lines: [
+      "Red smoke on the left, blue on the right and white down the middle. I never get tired of it.",
+      "Pop in to the Nissen hut by the hangar. It's all about 617 Squadron, who flew from here in the war.",
+      "The windsock tells you which way they'll take off. Mind you, here it's always west.",
+    ],
+  },
+  {
+    // a shopper doing laps of Tritton Retail Park's car park, made up for the game
+    id: "pat",
+    name: "Pat",
+    shirt: 0x2f8f5b,
+    legs: 0x2b3a55,
+    skin: 0xf2d0b5,
+    hair: 0xb8b0a6,
+    path: [
+      [-79, 59.5],
+      [-50.2, 59.5],
+      [-50.2, 37.6],
+      [-79, 37.6],
+    ],
+    speed: 1.1,
+    lines: [
+      "Paint, a flat-pack shelf and a bag of dog food. Now to remember where I parked.",
+      "The coffee place by the way in does a decent flat white, if you don't mind queueing with the cars.",
+      "That empty unit at the end has been to let for a while. Somebody ought to open something in it.",
+    ],
+  },
 ];
+
+// What townsfolk say when they stop to chat with each other, by speaker then listener. Anyone else
+// just says hello.
+const CHATS: Record<string, Record<string, string>> = {
+  elizabeth: { alan: "There you are, Alan! Shall we stop for a coffee at High Bridge?" },
+  alan: { elizabeth: "Go on then, Elizabeth. I'll get the cakes." },
+  frank: { maya: "Morning, Maya! Mind the hill, it's steeper than it looks." },
+  maya: { frank: "Thanks, Frank! Say hello to the swans for me." },
+};
+export const chatLine = (from: Npc, to: Npc, first: boolean) =>
+  CHATS[from.id]?.[to.id] ?? (first ? `Morning, ${to.name}!` : `Hello, ${to.name}! Lovely day for a walk.`);
 
 // Live positions, written every frame by each townsperson.
 export const npcPos = new Map(NPCS.map((n) => [n.id, new THREE.Vector3(n.path[0][0], 0, n.path[0][1])]));
