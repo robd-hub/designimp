@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 import Hero from "@/components/Hero";
 import LogoBar from "@/components/LogoBar";
 import Work from "@/components/Work";
+import Labs from "@/components/Labs";
 import About from "@/components/About";
 import Team from "@/components/Team";
 import Services from "@/components/Services";
@@ -23,6 +24,7 @@ export default function Home() {
       <Hero />
       <LogoBar />
       <AnimateIn><Work /></AnimateIn>
+      <AnimateIn><Labs /></AnimateIn>
       <AnimateIn><About /></AnimateIn>
       <AnimateIn><Team /></AnimateIn>
       <Services />
