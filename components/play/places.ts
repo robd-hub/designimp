@@ -444,6 +444,27 @@ export const PLACES: Place[] = [
     link: { href: "/get-started", label: "Open the full form" },
   },
   {
+    id: "tolet-danesgate",
+    kind: "lot",
+    name: "To Let",
+    kicker: "Shop to let on Danesgate",
+    nav: "To let (Danesgate)",
+    // at the foot of Danesgate's west side, where the lane levels out, its front onto the cobbles
+    x: 12.9,
+    z: -79.75,
+    w: 4.5,
+    d: 4,
+    h: 0,
+    wall: 0xb36bff,
+    roof: 0xffd23f,
+    roofType: "flat",
+    rot: Math.PI / 2,
+    intro: [
+      "A shop on Danesgate, the quiet old lane climbing the hill beside Steep Hill. Tell me a little about your business and I'll design a free mockup of your new website before you spend a penny.",
+    ],
+    link: { href: "/get-started", label: "Open the full form" },
+  },
+  {
     id: "high-street-east-1",
     kind: "lot",
     name: "To Let",
