@@ -17,7 +17,7 @@ const FAQS = [
   },
   {
     q: "Do you handle hosting?",
-    a: "We set up hosting as part of the project, on fast, reliable providers (typically Vercel or similar), and hand you full control of the account at launch. If you'd rather not deal with it, the £20 a month care plan looks after hosting, updates and small edits for you.",
+    a: "Hosting comes with the £20 a month care plan, along with updates and small edits, on fast, reliable providers (typically Vercel or similar). If you'd rather not have the care plan, you get all of your site's files at launch to host wherever you like.",
   },
   {
     q: "How does payment work?",

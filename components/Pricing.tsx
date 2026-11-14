@@ -64,6 +64,11 @@ export default function Pricing() {
           </div>
         ))}
       </div>
+      <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted">
+        <span className="font-medium text-foreground">The site is yours, with or without a care plan.</span> Skip it and at
+        launch you get all of your site&apos;s files to host wherever you like. Changes after the first 30 days are then
+        quoted one at a time.
+      </p>
       <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
         {EXTRAS.map(([name, price]) => (
           <span key={name}>

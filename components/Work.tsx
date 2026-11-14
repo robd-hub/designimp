@@ -18,15 +18,6 @@ const PROJECTS = [
     cta: "View project →",
     external: false,
   },
-  {
-    name: "Bullwhip",
-    outcome: "News, forum and jobs site for the supply chain and logistics community",
-    href: "https://supply-chain-talent.vercel.app",
-    image: "/work/bullwhip.jpg",
-    cta: "Visit site →",
-    external: true,
-    status: "Building",
-  },
 ];
 
 export default function Work() {
@@ -43,7 +34,7 @@ export default function Work() {
         </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2">
         {PROJECTS.map((project) => (
           <Link
             key={project.name}
@@ -57,14 +48,9 @@ export default function Work() {
                 alt={project.name}
                 fill
                 priority
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                sizes="(max-width: 640px) 100vw, 50vw"
                 className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
-              {project.status && (
-                <span className="absolute top-3 right-3 rounded-full bg-background/80 px-3 py-1 text-sm font-semibold text-accent backdrop-blur-sm">
-                  {project.status}
-                </span>
-              )}
             </div>
             <div className="px-5 py-4">
               <p className="font-semibold text-foreground text-lg">{project.name}</p>

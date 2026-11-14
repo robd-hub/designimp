@@ -26,7 +26,7 @@ export default function LabProject({ lab }: { lab: Lab }) {
 
       <div className="mx-auto max-w-5xl space-y-20 px-6 pb-8 pt-12">
         <div>
-          <Link href="/#labs" className="text-sm text-muted transition-colors hover:text-accent">
+          <Link href="/labs" className="text-sm text-muted transition-colors hover:text-accent">
             ← Labs
           </Link>
           <p className="mb-2 mt-6 text-sm font-semibold uppercase tracking-widest text-accent">{lab.track}</p>

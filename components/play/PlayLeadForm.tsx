@@ -8,7 +8,7 @@ import { NAME_MAX } from "./shop";
 import ShopStyle from "./ShopStyle";
 import s from "./play.module.css";
 
-const BUSINESS_TYPES = ["Hair Salon", "Barbershop", "Spa / Beauty", "Nail Salon", "Other"];
+import { BUSINESS_TYPES } from "../businessTypes";
 
 // The free mockup form from the main site, dressed for the game. Posts to the same /api/lead.
 // With styler, the visitor can also pick a type and colour for the shop that goes up on the plot.
@@ -38,7 +38,7 @@ export default function PlayLeadForm({ lot, styler = false }: { lot: string; sty
   if (state === "sent")
     return (
       <p className={s.sent}>
-        <b>Thanks!</b> Rob will be in touch about your free mockup soon.
+        <b>Thanks!</b> Your free mockup will be in your inbox within 48 hours.
       </p>
     );
 

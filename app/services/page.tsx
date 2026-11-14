@@ -6,7 +6,6 @@ export const metadata: Metadata = {
   description: "Website design and build for small businesses from £100, fixed price, plus monthly add-ons like review replies and an AI chat bot. Pick what you need.",
 };
 import ServicesHero from "@/components/ServicesHero";
-import LogoBar from "@/components/LogoBar";
 import ServicesDetail from "@/components/ServicesDetail";
 import Pricing from "@/components/Pricing";
 import Process from "@/components/Process";
@@ -19,7 +18,6 @@ export default function ServicesPage() {
     <main id="main-content" tabIndex={-1}>
       <Navbar />
       <ServicesHero />
-      <LogoBar />
       <ServicesDetail />
       <Pricing />
       <Process />

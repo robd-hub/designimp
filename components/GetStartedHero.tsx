@@ -5,7 +5,7 @@ export default function GetStartedHero() {
     <PageHero
       eyebrow="Free mockup"
       title="Tell us about your business."
-      subtitle="A few details and we'll put together a free mockup of your new site, using your own photos and pricing. No obligation, no call required."
+      subtitle="A few details and you'll have a free mockup of your new site within 48 hours, using your own photos. No obligation, no call required."
     />
   );
 }

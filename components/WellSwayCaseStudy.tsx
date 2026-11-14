@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import Testimonial from "./Testimonial";
 
 const DELIVERABLES = [
   {
@@ -72,6 +73,10 @@ export default function WellSwayCaseStudy() {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="border-t border-border">
+          <Testimonial id="wellsway" />
         </div>
 
         {/* Visit site */}
