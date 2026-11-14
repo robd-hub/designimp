@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import Testimonial from "./Testimonial";
 
 const STATS = [
   { value: "3 months", label: "From launch to full capacity" },
@@ -109,6 +110,10 @@ export default function AyuriCaseStudy() {
               The results have been strong enough that she&apos;s now planning to open a second salon — a goal she&apos;d never have considered possible before the rebrand.
             </p>
           </div>
+        </div>
+
+        <div className="border-t border-border">
+          <Testimonial id="ayuri" />
         </div>
 
         {/* Visit site */}

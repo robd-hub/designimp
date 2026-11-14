@@ -6,9 +6,7 @@ export const metadata: Metadata = {
   description: "Custom websites for small and medium businesses. Craft-led studio, fixed price, one point of contact.",
 };
 import Hero from "@/components/Hero";
-import LogoBar from "@/components/LogoBar";
 import Work from "@/components/Work";
-import Labs from "@/components/Labs";
 import About from "@/components/About";
 import Team from "@/components/Team";
 import Services from "@/components/Services";
@@ -17,6 +15,7 @@ import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 import AnimateIn from "@/components/AnimateIn";
 import PlayTeaser from "@/components/PlayTeaser";
+import Testimonial from "@/components/Testimonial";
 
 // A thin gold rule between sections.
 const Rule = () => <div aria-hidden="true" className="mx-auto h-px max-w-5xl bg-gradient-to-r from-transparent via-accent/40 to-transparent" />;
@@ -26,9 +25,8 @@ export default function Home() {
     <main id="main-content" tabIndex={-1}>
       <Navbar />
       <Hero />
-      <LogoBar />
       <AnimateIn><Work /></AnimateIn>
-      <AnimateIn><Labs /></AnimateIn>
+      <AnimateIn><Testimonial id="ayuri" /></AnimateIn>
       <AnimateIn><PlayTeaser /></AnimateIn>
       <AnimateIn><About /></AnimateIn>
       <AnimateIn><Team /></AnimateIn>
