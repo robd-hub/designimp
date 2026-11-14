@@ -395,16 +395,20 @@ export const RING_PATHS = [
   { x0: YARD_SPUR_X - 1, x1: YARD_SPUR_X + 1, z0: footprint(yardPlace).z1, z1: P.z0 },
 ];
 export const FOOTPATHS = [
-  { x0: PATH_X - 1, x1: PATH_X + 1, z0: castlePlace.z - 1, z1: -4.3 },
+  { x0: PATH_X - 1, x1: PATH_X + 1, z0: castlePlace.z + 5, z1: -4.3 },
   ...RING_PATHS,
   ...GREESTONE,
   ...EAST_FOOTPATH,
   ...LANDMARK_PATHS,
 ];
 // The walk along it, from the main road to the castle gate.
+// It stops short of the East Gate's south tower and comes round in front of the cannons to walk straight in at the arch.
+const GATE_OUT = castlePlace.x + castlePlace.d / 2 + 5.2;
 export const FOOTPATH_ROUTE: [number, number][] = [
   [PATH_X, -5],
-  [PATH_X, castlePlace.z],
+  [PATH_X, castlePlace.z + 6],
+  [GATE_OUT, castlePlace.z + 6],
+  [GATE_OUT, castlePlace.z],
 ];
 
 // The River Witham, flowing east out of Brayford Pool, under High Bridge on the High Street just
@@ -967,9 +971,9 @@ function townCrossings(from: [number, number], to: [number, number]): [number, n
 const tank = PLACES.find((p) => p.kind === "tank")!;
 export const ROUNDABOUT = { x: tank.x, z: tank.z, island: 4.3, ring: 6.8, edge: 8.2 };
 
-// Two cannons guarding the castle gate, on the right as you face it, clear of the footpath coming up from the south (in
-// the castle's own coordinates).
-export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 }));
+// Two cannons guarding the castle gate, one either side of the way in, out in front of the gate's towers (in the
+// castle's own coordinates).
+export const CANNONS = [-3.4, 3.4].map((x) => ({ x, z: castlePlace.d / 2 + 3.4 }));
 
 // Lincoln Castle's bailey, in the castle's own coordinates: x along the East Gate's wall (+x north), z from the back
 // wall to the front (+z east, the East Gate on Castle Square). The walls and their towers, the two mottes on the south
@@ -978,12 +982,16 @@ export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 })
 // is drawn square-cornered: the real one is an irregular four-sided shape.
 const CHW = castlePlace.w / 2,
   CHD = castlePlace.d / 2;
+// The front wall stands a little in from the front of the plot, so its outer face is clear of the castle footpath
+// coming up alongside it; the East Gate's towers stand out from it, either side of the arch.
+const FZ = CHD - 0.4;
 // The walls are thick enough to walk along the top (the Medieval Wall Walk, see WALL_WALK below): the battlements
 // stand along the outer edge, the walkway inside them.
 const THICK = 2;
 export const CASTLE = {
   hw: CHW,
   hd: CHD,
+  front: FZ, // the front wall's middle line
   wall: 5,
   thick: THICK,
   westGate: 7, // where the West Gate sits along the back wall
@@ -992,13 +1000,16 @@ export const CASTLE = {
   // the round towers at the north corners, Cobb Hall the big one at the north-east; their roofs are on the wall walk,
   // a step up from the walls
   towers: [
-    { x: CHW, z: CHD, r: 2.2 },
+    { x: CHW, z: FZ, r: 2.2 },
     { x: CHW, z: -CHD, r: 1.7 },
   ],
   towerTop: 6.2,
   // the steps up to the wall walk, against the front wall's inside just north of the East Gate, climbing north (+x)
   // from the foot at x0 to a landing at the top
-  stair: { x0: 4.5, x1: 11, z0: CHD - THICK / 2 - 1.6, z1: CHD - THICK / 2 + 0.15, landing: 1.2 },
+  stair: { x0: 4.5, x1: 11, z0: FZ - THICK / 2 - 1.6, z1: FZ - THICK / 2 + 0.15, landing: 1.2 },
+  // the East Gate: a tall middle block with the pointed arch through it, between two round-fronted towers that stand
+  // out from the wall, with the walkway passing behind them through the middle block
+  eastGate: { half: 2.3, open: 1.3, back: FZ - 1.6, face: FZ + 1.4, tower: { x: 2.95, z: FZ + 1.4, r: 1.4, h: 8.8 } },
   // the Victorian prison along the north wall, the Magna Carta Vault beside it, the Crown Court facing the East Gate
   // across the bailey, beside the West Gate
   prison: { x0: CHW - 6.5, x1: CHW - THICK / 2, z0: -3, z1: 7 },
@@ -1020,10 +1031,17 @@ const CASTLE_BOXES = [
   { x0: WG + 1.2, x1: WG + 2.2, z0: -CHD - 1.2, z1: -CHD + 1.2 },
   // front wall either side of the East Gate, the gatehouse deeper but set back inside the wall line, so the footpath up
   // alongside the wall stays clear
-  { x0: -CHW, x1: -1.2, z0: CHD - TH, z1: CHD + TH },
-  { x0: 1.2, x1: CHW, z0: CHD - TH, z1: CHD + TH },
-  { x0: -3.2, x1: -1.2, z0: CHD - 2, z1: CHD + TH },
-  { x0: 1.2, x1: 3.2, z0: CHD - 2, z1: CHD + TH },
+  { x0: -CHW, x1: -1.2, z0: FZ - TH, z1: FZ + TH },
+  { x0: 1.2, x1: CHW, z0: FZ - TH, z1: FZ + TH },
+  ...[-1, 1].flatMap((s) => {
+    const g = CASTLE.eastGate,
+      t = g.tower;
+    const [a, b] = s < 0 ? [-g.half, -g.open] : [g.open, g.half];
+    return [
+      { x0: a, x1: b, z0: g.back, z1: g.face },
+      { x0: s * t.x - t.r, x1: s * t.x + t.r, z0: t.z - t.r, z1: t.z + t.r },
+    ];
+  }),
   // round towers at the north corners, Cobb Hall the big one at the north-east (the south corners are the mottes')
   ...CASTLE.towers.map((t) => sq(t.x, t.z, t.r + 0.1)),
   // the mottes, too steep to walk up
@@ -1040,7 +1058,7 @@ const castleAt = (x: number, z: number): [number, number] => {
   return [b.x0, b.z0];
 };
 const CASTLE_GATES = [
-  { out: castleAt(0, CHD + 2.4), in: castleAt(0, CHD - 3.4) },
+  { out: castleAt(0, CASTLE.eastGate.tower.z + 1.6), in: castleAt(0, FZ - 3) },
   { out: castleAt(WG, -CHD - 2.4), in: castleAt(WG, -CHD + 7.5) }, // in past the Crown Court's front
 ];
 const inBailey = ([x, z]: [number, number]) => x > castle.x0 + 1.5 && x < castle.x1 - 1.5 && z > castle.z0 + 1.5 && z < castle.z1 - 1.5;
@@ -1072,17 +1090,17 @@ const WALKWAY = [
   { x0: CHW - BAND.in, x1: CHW + BAND.out, z0: -CHD, z1: CHD }, // north wall
   { x0: -CHW - BAND.out, x1: -CHW + BAND.in, z0: -CHD, z1: CHD }, // south wall
   { x0: -CHW, x1: CHW, z0: -CHD - BAND.out, z1: -CHD + BAND.in }, // back wall
-  { x0: -CHW, x1: CHW, z0: CHD - BAND.in, z1: CHD + BAND.out }, // front wall
+  { x0: -CHW, x1: CHW, z0: FZ - BAND.in, z1: FZ + BAND.out }, // front wall
 ];
 export const WALL_WALK = {
   level: "ground" as WalkLevel,
   walkway: WALKWAY,
   // the walkway's middle line round the walls, corner to corner: NE (Cobb Hall), NW, SW (Lucy Tower), SE
   ring: [
-    [CHW - 0.5, CHD - 0.5],
+    [CHW - 0.5, FZ - 0.5],
     [CHW - 0.5, -CHD + 0.5],
     [-CHW + 0.5, -CHD + 0.5],
-    [-CHW + 0.5, CHD - 0.5],
+    [-CHW + 0.5, FZ - 0.5],
   ] as [number, number][],
 };
 const toCastle = (x: number, z: number): [number, number] => [castlePlace.z - z, x - castlePlace.x];
@@ -1129,7 +1147,7 @@ export function settleLevel(wx: number, wz: number) {
 const STAIR_Z = (ST.z0 + ST.z1) / 2 - 0.2;
 const STAIR_FOOT = castleAt(ST.x0 - 0.8, STAIR_Z);
 const STAIR_HEAD = castleAt(ST.x1 - ST.landing / 2, STAIR_Z);
-const WALL_IN = castleAt(ST.x1 - ST.landing / 2, CHD - 0.5);
+const WALL_IN = castleAt(ST.x1 - ST.landing / 2, FZ - 0.5);
 // Along the walkway from a to b (both up on the walls, in world coordinates), the shorter way round: the corners
 // passed on the way, then b's nearest point on the walkway's middle line.
 function alongWalls(a: [number, number], b: [number, number]): [number, number][] {
