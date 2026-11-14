@@ -35,7 +35,7 @@ export default function Services() {
   const reduced = useReducedMotion();
 
   return (
-    <section id="services" className="mx-auto max-w-7xl px-6 py-28">
+    <section id="services" className="mx-auto max-w-7xl px-6 py-20">
       <motion.div
         className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
         initial={reduced ? false : { opacity: 0, y: 16 }}
@@ -68,7 +68,7 @@ export default function Services() {
           <motion.div
             key={f.title}
             variants={reduced ? undefined : cardVariants}
-            className="rounded-2xl border border-border bg-card p-6 transition-colors hover:border-foreground/20"
+            className="rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_24px_60px_-24px_rgba(200,151,58,0.45)]"
           >
             <p className="mb-4 text-sm font-semibold text-accent">0{i + 1}</p>
             <p className="mb-3 font-semibold text-foreground text-xl leading-snug">

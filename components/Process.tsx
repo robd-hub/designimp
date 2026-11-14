@@ -33,7 +33,7 @@ export default function Process() {
   const reduced = useReducedMotion();
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-28">
+    <section className="mx-auto max-w-7xl px-6 py-20">
       <motion.div
         className="mb-12"
         initial={reduced ? false : { opacity: 0, y: 16 }}
