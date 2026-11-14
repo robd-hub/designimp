@@ -48,16 +48,3 @@ export default function Testimonial({ id }: { id: Id }) {
     </figure>
   );
 }
-
-// Several quotes side by side, for the home page.
-export function Testimonials({ ids }: { ids: Id[] }) {
-  return (
-    <section aria-label="What clients say" className="mx-auto grid max-w-7xl gap-6 px-6 py-16 md:grid-cols-2">
-      {ids.map((id) => (
-        <figure key={id} className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8">
-          <QuoteBody q={QUOTES[id]} large={false} />
-        </figure>
-      ))}
-    </section>
-  );
-}

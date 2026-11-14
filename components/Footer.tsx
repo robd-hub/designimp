@@ -1,86 +1,47 @@
 import Link from "next/link";
 
-const FOUNDER_LINKS = [
-  { label: "rob@designimp.com", href: "mailto:rob@designimp.com" },
+const COLUMNS = [
+  [
+    { label: "rob@designimp.com", href: "mailto:rob@designimp.com" },
+    { label: "Book a call", href: "https://cal.com/rob-doughty/30min" },
+  ],
+  [
+    { label: "Work", href: "/#work" },
+    { label: "Pricing", href: "/#pricing" },
+    { label: "Services", href: "/services" },
+    { label: "About", href: "/about" },
+  ],
+  [
+    { label: "Take a walk round Imp's High Street", href: "/play" },
+    { label: "Labs: AI experiments", href: "/labs" },
+  ],
+  [
+    { label: "Privacy", href: "/privacy" },
+    { label: "Terms", href: "/terms" },
+  ],
 ];
 
-const COMPANY_LINKS = [
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services" },
-  { label: "Work", href: "/#work" },
-  { label: "Imp's High Street", href: "/play" },
-  { label: "Labs", href: "/labs" },
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Book a Call", href: "https://cal.com/rob-doughty/30min" },
-];
+const link = "text-base text-muted transition-colors hover:text-foreground";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border mt-auto">
-      <div className="mx-auto max-w-7xl px-6 py-16">
-
-        <div className="flex flex-col gap-12 md:flex-row md:items-start">
-          {/* Work with us — left, takes ~half the width */}
-          <div className="md:flex-1">
-            <p className="mb-3 text-base text-muted">
-              Work with us
-            </p>
-            <p className="text-2xl font-semibold text-foreground leading-snug max-w-sm">
-              Start with a free mockup.
-            </p>
-            <Link
-              href="/get-started"
-              className="mt-6 inline-flex items-center gap-3 rounded-full border border-foreground/20 px-5 py-3 text-base font-medium text-foreground hover:bg-foreground hover:text-background transition-colors"
-            >
-              Get your free mockup
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-background text-sm">
-                →
-              </span>
-            </Link>
-          </div>
-
-          {/* Link columns — right side */}
-          <div className="flex gap-16 md:gap-20">
-            <div>
-              <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-muted">
-                Rob Doughty
-              </p>
-              <ul className="space-y-3">
-                {FOUNDER_LINKS.map((l) => (
-                  <li key={l.label}>
-                    <Link href={l.href} className="text-base text-muted hover:text-foreground transition-colors">
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-muted">
-                Company
-              </p>
-              <ul className="space-y-3">
-                {COMPANY_LINKS.map((l) => (
-                  <li key={l.label}>
-                    <Link href={l.href} className="text-base text-muted hover:text-foreground transition-colors">
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom bar */}
-        <div className="mt-16 flex flex-col gap-2 border-t border-border pt-8 text-sm text-muted md:flex-row md:items-center md:justify-between">
-          <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
-          </div>
-          <p>© {new Date().getFullYear()} Design Imp. All rights reserved.</p>
-        </div>
+    <footer className="mt-auto border-t border-border">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4">
+        {COLUMNS.map((col, i) => (
+          <ul key={i} className="space-y-3">
+            {i === 0 && <li className="text-base font-semibold text-foreground">Rob Doughty</li>}
+            {col.map((l) => (
+              <li key={l.label}>
+                <Link href={l.href} className={link}>
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+            {i === COLUMNS.length - 1 && (
+              <li className="text-sm text-muted">© {new Date().getFullYear()} Design Imp</li>
+            )}
+          </ul>
+        ))}
       </div>
     </footer>
   );

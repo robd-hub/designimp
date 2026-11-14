@@ -15,18 +15,18 @@ export default function CTA() {
           className="font-semibold text-foreground"
           style={{ fontSize: "clamp(2.2rem, 4vw, 3.5rem)", lineHeight: 1.15 }}
         >
-          Ready to level up your online presence?
+          See your new website before you pay a penny.
         </h2>
 
         <p className="mx-auto mt-6 max-w-xl text-lg text-muted leading-loose">
-          Tell us a bit about your business and we&apos;ll put together a free mockup, no call required. If you like it, we&apos;ll talk next steps.
+          A free mockup in your inbox within 48 hours.
         </p>
 
       <Link
         href="/get-started"
         className="btn-shine mt-10 inline-flex items-center gap-3 rounded-full bg-foreground px-6 py-3.5 text-base font-medium text-background transition-transform hover:-translate-y-0.5"
       >
-        Get your free mockup
+        Get my free mockup
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-background text-foreground text-xs">
           →
         </span>

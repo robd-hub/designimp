@@ -1,6 +1,6 @@
 // The price menu on the services page: websites at a fixed one-off price, then monthly add-ons to pick and mix,
 // with the three most popular as a bundle. Prices are Rob's; change them here.
-const SITES = [
+export const SITES = [
   {
     name: "One-page site",
     price: "£100",
