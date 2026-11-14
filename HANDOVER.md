@@ -39,7 +39,6 @@ Decisions worth knowing:
 - Analytics on `/play`: which buildings visitors open, how many reach the mockup form.
 - A "your business on the High Street" prospect shopfront: a personalised plot for a named prospect.
 - An Arboretum walk (paths, bandstand, things to find).
-- Castle walls (the castle is currently a gatehouse building).
 - A stadium for Lincoln City.
 - A Bonfire Night mode in the style of the December Christmas market (`season` mechanism in `places.ts`).
 - Pitch the game locally in Lincoln; grow the street per client.

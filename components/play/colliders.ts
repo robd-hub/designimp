@@ -900,6 +900,11 @@ export function overRailway([fx, fz]: [number, number], [tx, tz]: [number, numbe
 // Out of a pocket on the Witham's west bank first, if setting off from one, and into one last.
 // In or out of the airfield, through its gate; and round its fence otherwise.
 export function crossings(from: [number, number], to: [number, number]): [number, number][] {
+  const down = offWalls(from);
+  if (down.length) return [...down, ...groundCrossings(down.at(-1)!, to)];
+  return groundCrossings(from, to);
+}
+function groundCrossings(from: [number, number], to: [number, number]): [number, number][] {
   const a = inAirfield(from),
     b = inAirfield(to);
   const outside = (f: [number, number], t: [number, number]) => aroundAirfield([f, ...townCrossings(f, t), t]).slice(1, -1);
@@ -954,40 +959,54 @@ export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 })
 // is drawn square-cornered: the real one is an irregular four-sided shape.
 const CHW = castlePlace.w / 2,
   CHD = castlePlace.d / 2;
+// The walls are thick enough to walk along the top (the Medieval Wall Walk, see WALL_WALK below): the battlements
+// stand along the outer edge, the walkway inside them.
+const THICK = 2;
 export const CASTLE = {
   hw: CHW,
   hd: CHD,
   wall: 5,
-  thick: 1.2,
+  thick: THICK,
   westGate: 7, // where the West Gate sits along the back wall
   lucy: { x: -CHW + 5.5, z: -CHD + 5.5, r: 6.2, h: 3 },
   observatory: { x: -CHW + 5, z: CHD - 5, r: 4.6, h: 2.5 },
-  // the Victorian prison along the north wall, the Magna Carta Vault beside it, the Crown Court by the West Gate
-  prison: { x0: CHW - 6.5, x1: CHW - 0.6, z0: -3, z1: 7 },
-  vault: { x0: CHW - 5, x1: CHW - 0.6, z0: -10, z1: -4 },
-  court: { x0: -3, x1: 4.5, z0: -CHD + 2, z1: -CHD + 7 },
+  // the round towers at the north corners, Cobb Hall the big one at the north-east; their roofs are on the wall walk,
+  // a step up from the walls
+  towers: [
+    { x: CHW, z: CHD, r: 2.2 },
+    { x: CHW, z: -CHD, r: 1.7 },
+  ],
+  towerTop: 6.2,
+  // the steps up to the wall walk, against the front wall's inside just north of the East Gate, climbing north (+x)
+  // from the foot at x0 to a landing at the top
+  stair: { x0: 4.5, x1: 11, z0: CHD - THICK / 2 - 1.6, z1: CHD - THICK / 2 + 0.15, landing: 1.2 },
+  // the Victorian prison along the north wall, the Magna Carta Vault beside it, the Crown Court facing the East Gate
+  // across the bailey, beside the West Gate
+  prison: { x0: CHW - 6.5, x1: CHW - THICK / 2, z0: -3, z1: 7 },
+  vault: { x0: CHW - 5, x1: CHW - THICK / 2, z0: -10, z1: -4 },
+  court: { x0: -5, x1: 5, z0: -CHD + 2, z1: -CHD + 7.5 },
 };
 const sq = (x: number, z: number, r: number) => ({ x0: x - r, x1: x + r, z0: z - r, z1: z + r });
 const padded = (b: { x0: number; x1: number; z0: number; z1: number }, pad = 0.3) => ({ x0: b.x0 - pad, x1: b.x1 + pad, z0: b.z0 - pad, z1: b.z1 + pad });
 const WG = CASTLE.westGate;
+const TH = THICK / 2;
 const CASTLE_BOXES = [
   // north and south walls
-  { x0: CHW - 0.6, x1: CHW + 0.6, z0: -CHD, z1: CHD },
-  { x0: -CHW - 0.6, x1: -CHW + 0.6, z0: -CHD, z1: CHD },
+  { x0: CHW - TH, x1: CHW + TH, z0: -CHD, z1: CHD },
+  { x0: -CHW - TH, x1: -CHW + TH, z0: -CHD, z1: CHD },
   // back wall either side of the West Gate, its gatehouse a little deeper
-  { x0: -CHW, x1: WG - 1.2, z0: -CHD - 0.6, z1: -CHD + 0.6 },
-  { x0: WG + 1.2, x1: CHW, z0: -CHD - 0.6, z1: -CHD + 0.6 },
+  { x0: -CHW, x1: WG - 1.2, z0: -CHD - TH, z1: -CHD + TH },
+  { x0: WG + 1.2, x1: CHW, z0: -CHD - TH, z1: -CHD + TH },
   { x0: WG - 2.2, x1: WG - 1.2, z0: -CHD - 1.2, z1: -CHD + 1.2 },
   { x0: WG + 1.2, x1: WG + 2.2, z0: -CHD - 1.2, z1: -CHD + 1.2 },
   // front wall either side of the East Gate, the gatehouse deeper but set back inside the wall line, so the footpath up
   // alongside the wall stays clear
-  { x0: -CHW, x1: -1.2, z0: CHD - 0.6, z1: CHD + 0.6 },
-  { x0: 1.2, x1: CHW, z0: CHD - 0.6, z1: CHD + 0.6 },
-  { x0: -3.2, x1: -1.2, z0: CHD - 2.4, z1: CHD + 0.6 },
-  { x0: 1.2, x1: 3.2, z0: CHD - 2.4, z1: CHD + 0.6 },
+  { x0: -CHW, x1: -1.2, z0: CHD - TH, z1: CHD + TH },
+  { x0: 1.2, x1: CHW, z0: CHD - TH, z1: CHD + TH },
+  { x0: -3.2, x1: -1.2, z0: CHD - 2, z1: CHD + TH },
+  { x0: 1.2, x1: 3.2, z0: CHD - 2, z1: CHD + TH },
   // round towers at the north corners, Cobb Hall the big one at the north-east (the south corners are the mottes')
-  sq(CHW, CHD, 2.3),
-  sq(CHW, -CHD, 1.9),
+  ...CASTLE.towers.map((t) => sq(t.x, t.z, t.r + 0.1)),
   // the mottes, too steep to walk up
   sq(CASTLE.lucy.x, CASTLE.lucy.z, CASTLE.lucy.r * 0.85),
   sq(CASTLE.observatory.x, CASTLE.observatory.z, CASTLE.observatory.r * 0.85),
@@ -1021,6 +1040,122 @@ function throughCastle(route: [number, number][]) {
   }
   return out;
 }
+
+// The Medieval Wall Walk, right round the top of the castle walls as at the real castle. The Imp is on the ground, on
+// the steps or up on the walls (WALL_WALK.level), and each has its own walkable ground: off the steps only at their
+// foot, onto the walls only from the landing at the top. Up there the walkway runs along every wall inside the
+// battlements, through both gatehouses at that height and over the tops of the two north towers, a step up from the
+// walls. All in the castle's own coordinates.
+export type WalkLevel = "ground" | "stair" | "wall";
+const ST = CASTLE.stair;
+const BAND = { in: TH - 0.1, out: -0.1 }; // the walkway, from each wall's centre line: in to near the inner face, out to the battlements
+const WALKWAY = [
+  { x0: CHW - BAND.in, x1: CHW + BAND.out, z0: -CHD, z1: CHD }, // north wall
+  { x0: -CHW - BAND.out, x1: -CHW + BAND.in, z0: -CHD, z1: CHD }, // south wall
+  { x0: -CHW, x1: CHW, z0: -CHD - BAND.out, z1: -CHD + BAND.in }, // back wall
+  { x0: -CHW, x1: CHW, z0: CHD - BAND.in, z1: CHD + BAND.out }, // front wall
+];
+export const WALL_WALK = {
+  level: "ground" as WalkLevel,
+  walkway: WALKWAY,
+  // the walkway's middle line round the walls, corner to corner: NE (Cobb Hall), NW, SW (Lucy Tower), SE
+  ring: [
+    [CHW - 0.5, CHD - 0.5],
+    [CHW - 0.5, -CHD + 0.5],
+    [-CHW + 0.5, -CHD + 0.5],
+    [-CHW + 0.5, CHD - 0.5],
+  ] as [number, number][],
+};
+const toCastle = (x: number, z: number): [number, number] => [castlePlace.z - z, x - castlePlace.x];
+const inRect = (b: { x0: number; x1: number; z0: number; z1: number }, x: number, z: number) => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1;
+const onWalkway = (x: number, z: number) => WALKWAY.some((b) => inRect(b, x, z)) || CASTLE.towers.some((t) => Math.hypot(x - t.x, z - t.z) < t.r - 0.3);
+const onStair = (x: number, z: number) => inRect(ST, x, z);
+// How far up the steps (0 at the foot, 1 on the landing), for a point beside them too.
+export const stairT = (x: number) => Math.min(1, Math.max(0, (x - ST.x0) / (ST.x1 - ST.landing - ST.x0)));
+const smooth = (t: number) => t * t * (3 - 2 * t);
+// The walkway's height at a point up on the walls (castle coordinates): the walls' top, stepping up onto a tower's
+// roof over the last stretch before it.
+export function walkwayY(x: number, z: number) {
+  const up = Math.max(0, ...CASTLE.towers.map((t) => 1 - Math.max(0, Math.hypot(x - t.x, z - t.z) - (t.r - 0.2)) / 1.4));
+  return CASTLE.wall + (CASTLE.towerTop - CASTLE.wall) * smooth(Math.min(1, up));
+}
+// How high the Imp stands above the castle's ground at a point on the level it's on.
+export function wallWalkY(wx: number, wz: number, level: WalkLevel) {
+  if (level === "ground") return 0;
+  const [x, z] = toCastle(wx, wz);
+  return level === "stair" ? CASTLE.wall * stairT(x) : walkwayY(x, z);
+}
+// Which level the Imp would be on at a point, coming from the level it's on now, or null if it can't go there.
+function walkLevel(wx: number, wz: number, from: WalkLevel, barrier: boolean): WalkLevel | null {
+  const [x, z] = toCastle(wx, wz);
+  const stair = onStair(x, z),
+    t = stairT(x);
+  if (from === "ground") {
+    if (stair) return t < 0.12 ? "stair" : null; // the steps' side is a solid wall of stone
+    return groundBlocked(wx, wz, barrier) ? null : "ground";
+  }
+  if (from === "stair") {
+    if (stair) return "stair";
+    if (onWalkway(x, z)) return t > 0.88 ? "wall" : null;
+    return t < 0.12 && !groundBlocked(wx, wz, barrier) ? "ground" : null;
+  }
+  if (onWalkway(x, z)) return "wall";
+  return stair && t > 0.88 ? "stair" : null;
+}
+// After a step: the level the Imp is on now.
+export function settleLevel(wx: number, wz: number) {
+  WALL_WALK.level = walkLevel(wx, wz, WALL_WALK.level, false) ?? WALL_WALK.level;
+}
+// Points for walks up and down: the foot of the steps (just off them in the bailey), the landing, and onto the walkway.
+const STAIR_Z = (ST.z0 + ST.z1) / 2 - 0.2;
+const STAIR_FOOT = castleAt(ST.x0 - 0.8, STAIR_Z);
+const STAIR_HEAD = castleAt(ST.x1 - ST.landing / 2, STAIR_Z);
+const WALL_IN = castleAt(ST.x1 - ST.landing / 2, CHD - 0.5);
+// Along the walkway from a to b (both up on the walls, in world coordinates), the shorter way round: the corners
+// passed on the way, then b's nearest point on the walkway's middle line.
+function alongWalls(a: [number, number], b: [number, number]): [number, number][] {
+  const R = WALL_WALK.ring,
+    n = R.length;
+  const seg = (i: number) => [R[i], R[(i + 1) % n]] as const;
+  const lens = R.map((_, i) => {
+    const [p, q] = seg(i);
+    return Math.hypot(q[0] - p[0], q[1] - p[1]);
+  });
+  const total = lens.reduce((s, l) => s + l, 0);
+  const corners = lens.map((_, i) => lens.slice(0, i).reduce((s, l) => s + l, 0));
+  // where a point is round the ring, as a distance from the first corner, and its nearest point on it
+  const at = (w: [number, number]) => {
+    const [x, z] = toCastle(...w);
+    let best = { d: Infinity, s: 0, p: R[0] };
+    R.forEach((_, i) => {
+      const [p, q] = seg(i);
+      const t = Math.min(1, Math.max(0, ((x - p[0]) * (q[0] - p[0]) + (z - p[1]) * (q[1] - p[1])) / (lens[i] * lens[i])));
+      const c: [number, number] = [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
+      const d = Math.hypot(x - c[0], z - c[1]);
+      if (d < best.d) best = { d, s: corners[i] + t * lens[i], p: c };
+    });
+    return best;
+  };
+  const A = at(a),
+    B = at(b);
+  const fwd = (B.s - A.s + total) % total;
+  const dir = fwd <= total / 2 ? 1 : -1;
+  const span = dir > 0 ? fwd : total - fwd;
+  const passed = corners
+    .map((s, i) => ({ i, k: (dir > 0 ? s - A.s + total : A.s - s + total) % total }))
+    .filter((c) => c.k > 0.01 && c.k < span - 0.01)
+    .sort((p, q) => p.k - q.k)
+    .map((c) => castleAt(...R[c.i]));
+  return [...passed, castleAt(...B.p)];
+}
+// Walks starting up on the walls or on the steps come down the steps first, then on from their foot.
+function offWalls(from: [number, number]): [number, number][] {
+  if (WALL_WALK.level === "wall") return [...alongWalls(from, WALL_IN), WALL_IN, STAIR_HEAD, STAIR_FOOT];
+  if (WALL_WALK.level === "stair") return [STAIR_FOOT];
+  return [];
+}
+// Whether the Imp is up on the walls or the steps, so a walk from here can't set off along a path on the ground.
+export const upOnWalls = () => WALL_WALK.level !== "ground";
 
 // The terraced streets east of the south road, down towards the football ground, as in real Lincoln. Canwick Road
 // carries on south from the foot of Pelham Bridge. Tentercroft Street (nearest the railway, at the foot of the bridge),
@@ -1334,7 +1469,11 @@ const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));
 export const EXTRA_BOXES = new Map<string, { x0: number; x1: number; z0: number; z1: number }>();
 
 // barrier: whether the level crossing counts as blocked while its barriers are down.
-export function blocked(x: number, z: number, barrier = true) {
+// Whether the Imp can't stand at a point, on the level it's on (the ground, the castle's steps or its walls).
+export function blocked(x: number, z: number, barrier = true, level = WALL_WALK.level) {
+  return walkLevel(x, z, level, barrier) === null;
+}
+function groundBlocked(x: number, z: number, barrier: boolean) {
   if (barrier && atBarrier(x, z)) return true;
   if (AIRFIELD_STATE.parked && x > STAND_BOX.x0 && x < STAND_BOX.x1 && z > STAND_BOX.z0 && z < STAND_BOX.z1) return true;
   if (x < -BOUND || x > EAST || z > SOUTH || z < NORTH) return true;
