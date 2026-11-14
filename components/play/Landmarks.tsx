@@ -207,11 +207,11 @@ function WalkDoor({ x, z, side }: { x: number; z: number; side: 1 | -1 }) {
 }
 // The steps up to the wall walk against the front wall's inside: solid stone blocks rising to a landing.
 function WallStair() {
-  const { stair: s, wall, thick, hd } = CASTLE;
+  const { stair: s, wall, thick, front } = CASTLE;
   const run = s.x1 - s.landing - s.x0,
     n = 12;
   const z0 = s.z0,
-    z1 = hd - thick / 2;
+    z1 = front - thick / 2;
   return (
     <group position-z={(z0 + z1) / 2}>
       {Array.from({ length: n }, (_, i) => {
@@ -290,11 +290,110 @@ function CrownCourt({ w, d }: { w: number; d: number }) {
     </group>
   );
 }
+// A flag on a pole, flying out to +x from the top. The flags are the castle's: the St George cross and the
+// Lincolnshire flag over the East Gate's towers, and the Union flag over the Observatory Tower.
+const FLAG = { w: 1.5, h: 0.95 };
+function Flag({ kind, pole = 2.6, ...g }: { kind: "george" | "lincs" | "union"; pole?: number; position: [number, number, number] }) {
+  const { w, h } = FLAG;
+  const bar = (len: number, thick: number, color: number, rot = 0, z = 0.03) => (
+    <Part geometry={geo.box(len, thick, 0.03)} color={color} outline={0} position={[w / 2, 0, z]} rotation-z={rot} />
+  );
+  const diag = Math.atan2(h, w),
+    long = Math.hypot(w, h) - 0.05;
+  return (
+    <group {...g}>
+      <Part geometry={geo.cyl(0.05, 0.06, pole, 6)} color={0xe8e4da} outline={0.02} position-y={pole / 2} />
+      <Part geometry={geo.sphere(0.09, 8, 6)} color={0xd4af37} outline={0.02} position-y={pole + 0.05} />
+      <group position-y={pole - h / 2 - 0.08}>
+        {kind === "george" && (
+          <>
+            <Part geometry={geo.box(w, h, 0.03)} color={0xffffff} outline={0.02} position-x={w / 2} />
+            {bar(w, 0.2, 0xd0103a)}
+            <Part geometry={geo.box(0.2, h, 0.03)} color={0xd0103a} outline={0} position={[w / 2, 0, 0.03]} />
+          </>
+        )}
+        {kind === "lincs" && (
+          <>
+            {/* quartered blue and green, a yellow-edged red cross, a yellow fleur-de-lis in the middle */}
+            {[-1, 1].flatMap((sx) =>
+              [-1, 1].map((sy) => (
+                <Part key={`${sx}${sy}`} geometry={geo.box(w / 2, h / 2, 0.03)} color={sx === sy ? 0x2b59c3 : 0x2f8f3a} outline={0.01} position={[w / 2 + (sx * w) / 4, (sy * h) / 4, 0]} />
+              )),
+            )}
+            {bar(w, 0.26, 0xffd23f)}
+            <Part geometry={geo.box(0.26, h, 0.03)} color={0xffd23f} outline={0} position={[w / 2, 0, 0.03]} />
+            {bar(w, 0.14, 0xd0103a, 0, 0.05)}
+            <Part geometry={geo.box(0.14, h, 0.03)} color={0xd0103a} outline={0} position={[w / 2, 0, 0.05]} />
+            <Part geometry={geo.sphere(0.12, 8, 6)} color={0xffd23f} outline={0.01} position={[w / 2, 0, 0.07]} scale={[1, 1, 0.3]} />
+          </>
+        )}
+        {kind === "union" && (
+          <>
+            <Part geometry={geo.box(w, h, 0.03)} color={0x1f2f6b} outline={0.02} position-x={w / 2} />
+            {bar(long, 0.2, 0xffffff, diag)}
+            {bar(long, 0.2, 0xffffff, -diag)}
+            {bar(long, 0.07, 0xd0103a, diag, 0.05)}
+            {bar(long, 0.07, 0xd0103a, -diag, 0.05)}
+            {bar(w, 0.3, 0xffffff, 0, 0.06)}
+            <Part geometry={geo.box(0.3, h, 0.03)} color={0xffffff} outline={0} position={[w / 2, 0, 0.06]} />
+            {bar(w, 0.17, 0xd0103a, 0, 0.08)}
+            <Part geometry={geo.box(0.17, h, 0.03)} color={0xd0103a} outline={0} position={[w / 2, 0, 0.08]} />
+          </>
+        )}
+      </group>
+    </group>
+  );
+}
+// Lincoln Castle's East Gate, as from Castle Square: a tall pointed archway in a deep moulded frame, between two
+// round-fronted towers standing out from the wall with arrow slits and battlements, flags flying over them and the
+// castle's name over the arch. The walkway passes behind the towers, through the middle at the walls' height.
+function EastGate({ sign }: { sign: THREE.Texture }) {
+  const { front, eastGate: g, wall } = CASTLE;
+  const t = g.tower;
+  const depth = g.face - g.back,
+    span = 2 * g.open;
+  return (
+    <group>
+      <mesh geometry={geo.pointed(2 * g.half, 8.4, depth, span, 2.5)} material={toon(CASTLE_STONE)} position={[0, 0, (g.face + g.back) / 2]} castShadow receiveShadow />
+      {/* the moulded frame round the arch, standing proud of the front and opening wider, so the arch steps in */}
+      <mesh geometry={geo.pointed(2 * g.half - 0.2, 6, 0.35, span + 0.7, 2.5)} material={toon(0xcbb98f)} position={[0, 0, g.face + 0.17]} castShadow />
+      <Crenels len={2 * g.half} y={8.75} position={[0, 0, g.face - 0.45]} />
+      <mesh position={[0, 7.2, g.face + 0.02]}>
+        <planeGeometry args={[2 * g.half - 0.4, 1.05]} />
+        <meshBasicMaterial map={sign} toneMapped={false} />
+      </mesh>
+      {/* the dark of the gate passage, behind the arch */}
+      <Part geometry={geo.box(span - 0.05, 3.8, 0.05)} color={0x2a2a30} outline={0} position={[0, 1.9, g.back + 0.05]} />
+      {[-1, 1].map((s) => (
+        <group key={s} position={[s * t.x, 0, t.z]}>
+          <Part geometry={geo.cyl(t.r, t.r + 0.15, t.h, 18)} color={CASTLE_STONE} outline={0.08} position-y={t.h / 2} />
+          <Part geometry={geo.cyl(t.r + 0.12, t.r + 0.12, 0.3, 18)} color={CASTLE_DARK} outline={0.04} position-y={t.h - 0.15} />
+          {Array.from({ length: 8 }, (_, i) => {
+            const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+            return <Part key={i} geometry={geo.box(0.55, 0.65, 0.4)} color={CASTLE_STONE} outline={0.04} position={[Math.cos(a) * t.r, t.h + 0.32, Math.sin(a) * t.r]} rotation-y={-a + Math.PI / 2} />;
+          })}
+          {/* arrow slits looking out over the square */}
+          {[3.2, 6.4].map((y) => (
+            <Part key={y} geometry={geo.box(0.16, 0.75, 0.1)} color={0x2a2a30} outline={0.01} position={[s * 0.5, y, t.r * 0.96]} rotation-y={s * 0.35} />
+          ))}
+          <Flag kind={s < 0 ? "george" : "lincs"} position={[0, t.h, 0]} />
+        </group>
+      ))}
+      {/* doorways at the walkway's height in each side of the middle block, where the wall walk goes through */}
+      {[-1, 1].map((s) => (
+        <WalkDoor key={s} x={s * g.half} z={front - 0.5} side={s as 1 | -1} />
+      ))}
+      <Part geometry={geo.box(2 * g.half - 0.1, 0.04, 0.8)} color={WALKWAY} outline={0} position={[0, wall + 0.02, front - 0.5]} />
+    </group>
+  );
+}
 export function Castle({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, "#5b6b7a", font), [p, font]);
   const { hw, hd, westGate: wg, lucy, observatory: obs, prison, vault, court, towers } = CASTLE;
   const mid = (a: number, b: number) => (a + b) / 2;
-  const walkZ = hd - 0.5; // the wall walk's middle line along the front wall, through the East Gate
+  const walkZ = hd - 0.5; // the wall walk's middle line along the back wall, through the West Gate
+  const front = CASTLE.front,
+    gate = CASTLE.eastGate.half;
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <mesh geometry={geo.box(2 * hw - 1, 0.06, 2 * hd - 1)} material={toon(GRASS)} position-y={0.04} receiveShadow />
@@ -309,23 +408,14 @@ export function Castle({ p, font }: { p: Place; font: string }) {
       <CastleWall len={2 * hd} along="z" out={-1} position={[-hw, 0, 0]} />
       <CastleWall len={wg - 2.2 + hw} along="x" out={-1} position={[mid(-hw, wg - 2.2), 0, -hd]} />
       <CastleWall len={hw - wg - 2.2} along="x" out={-1} position={[mid(wg + 2.2, hw), 0, -hd]} />
-      <CastleWall len={hw - 3.2} along="x" out={1} position={[mid(-hw, -3.2), 0, hd]} />
-      <CastleWall len={hw - 3.2} along="x" out={1} position={[mid(3.2, hw), 0, hd]} />
+      <CastleWall len={hw - gate} along="x" out={1} position={[mid(-hw, -gate), 0, front]} />
+      <CastleWall len={hw - gate} along="x" out={1} position={[mid(gate, hw), 0, front]} />
       <WallStair />
       {/* round towers at the north corners, Cobb Hall the big one at the north-east; the south corners are the mottes' */}
       {towers.map((t) => (
         <RoundTower key={t.z} r={t.r} position={[t.x, 0, t.z]} dirs={[[0, -Math.sign(t.z)], [-1, 0]]} />
       ))}
-      {/* the East Gate, open through its arch, its front flush with the wall's and the name over it; the wall walk goes
-          through it at the walls' height */}
-      <mesh geometry={geo.arches(6.4, 8, 3, [[0, 2.4, 2.4]])} material={toon(CASTLE_DARK)} position={[0, 0, hd - 0.5]} castShadow />
-      <Crenels len={6.4} y={8.35} position={[0, 0, hd + 0.55]} />
-      <mesh position={[0, 6.2, hd + 1.03]}>
-        <planeGeometry args={[5.6, 1.4]} />
-        <meshBasicMaterial map={sign} toneMapped={false} />
-      </mesh>
-      <WalkDoor x={3.2} z={walkZ} side={1} />
-      <WalkDoor x={-3.2} z={walkZ} side={-1} />
+      <EastGate sign={sign} />
       {CANNONS.map((c) => (
         <Cannon key={c.x} position={[c.x, 0, c.z]} />
       ))}
@@ -350,7 +440,19 @@ export function Castle({ p, font }: { p: Place; font: string }) {
         <Part geometry={geo.box(3.4, 6, 3.4)} color={CASTLE_STONE} outline={0.08} position-y={obs.h + 3} />
         <Crenels len={3.4} y={obs.h + 6.35} position={[0, 0, 1.5]} />
         <Crenels len={3.4} y={obs.h + 6.35} position={[0, 0, -1.5]} />
-        <Part geometry={geo.cyl(0.9, 0.9, 1.8, 12)} color={CASTLE_DARK} outline={0.05} position={[1, obs.h + 6.9, 1]} />
+        {/* the round turret on its corner, battlemented, with the Union flag flying over it */}
+        <group position={[0.75, obs.h + 6, 0.75]}>
+          <Part geometry={geo.cyl(0.95, 1, 2.4, 14)} color={CASTLE_DARK} outline={0.05} position-y={1.2} />
+          <Part geometry={geo.cyl(1.1, 1.1, 0.25, 14)} color={CASTLE_STONE} outline={0.03} position-y={2.45} />
+          {Array.from({ length: 7 }, (_, i) => {
+            const a = (i / 7) * Math.PI * 2;
+            return <Part key={i} geometry={geo.box(0.42, 0.45, 0.3)} color={CASTLE_STONE} outline={0.03} position={[Math.cos(a) * 0.95, 2.8, Math.sin(a) * 0.95]} rotation-y={-a + Math.PI / 2} />;
+          })}
+          {[0.3, 1.9].map((a) => (
+            <Part key={a} geometry={geo.box(0.14, 0.6, 0.1)} color={0x2a2a30} outline={0.01} position={[Math.cos(a) * 0.97, 1.3, Math.sin(a) * 0.97]} rotation-y={-a + Math.PI / 2} />
+          ))}
+          <Flag kind="union" position={[0, 2.55, 0]} />
+        </group>
         <Part geometry={geo.box(0.6, 0.9, 0.1)} color={WINDOW} outline={0.03} position={[0, obs.h + 4, 1.75]} />
       </group>
       {/* the Victorian prison, red brick along the north wall, its front facing into the bailey */}

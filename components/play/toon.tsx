@@ -80,6 +80,19 @@ export const geo = {
       shape.lineTo(w / 2, 0).lineTo(w / 2, h).lineTo(-w / 2, h).closePath();
       return new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false, curveSegments: 14 }).translate(0, 0, -d / 2);
     }),
+  // a wall w wide and h tall with one pointed (Gothic) archway through its middle, span wide: each side of the head is
+  // an arc of radius span * sharp, springing at spring and meeting at the top; extruded to depth d and centred on its foot
+  pointed: (w: number, h: number, d: number, span: number, spring: number, sharp = 0.8) =>
+    cached(`p${w},${h},${d},${span},${spring},${sharp}`, () => {
+      const r = span * sharp,
+        c = r - span / 2,
+        top = Math.acos(-c / r);
+      const shape = new THREE.Shape().moveTo(-w / 2, 0).lineTo(-span / 2, 0).lineTo(-span / 2, spring);
+      shape.absarc(c, spring, r, Math.PI, top, true);
+      shape.absarc(-c, spring, r, Math.PI - top, 0, true);
+      shape.lineTo(span / 2, 0).lineTo(w / 2, 0).lineTo(w / 2, h).lineTo(-w / 2, h).closePath();
+      return new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false, curveSegments: 14 }).translate(0, 0, -d / 2);
+    }),
   // side profile of a WW1 rhomboid tank's track frame, extruded to track width
   tankSide: () =>
     cached("tank", () => {
