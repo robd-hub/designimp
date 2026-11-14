@@ -187,10 +187,11 @@ function aroundClose(route: [number, number][]) {
   const south = MINSTER.south.map(yardBox),
     row = { x0: south[0].x0, x1: south.at(-1)!.x1, z0: south[0].z0, z1: south[0].z1 };
   const closed = aroundBox(aroundBox(aroundBox(aroundBox(route, cathedral, P.w / 2 + 0.6), gallery, 2), palace, 2.5), row, 1.5);
-  // and round the runs of terraces along Clasketgate and Monks Road, turning at the road's centre line
-  // (twice over, as the way round one run can cut across another)
-  const pass = (r: [number, number][]) => eastRows().reduce((acc, b) => aroundBox(acc, b, CLASKET.half + 0.4), r);
-  return pass(pass(closed));
+  // and round the two sides of Danesgate and the runs of terraces along Clasketgate and Monks Road, turning on the
+  // middle of the lane or the road (a few times over, as the way round one run can cut across another)
+  const pass = (r: [number, number][]) =>
+    eastRows().reduce((acc, b) => aroundBox(acc, b, CLASKET.half + 0.4), DANES_ROWS.reduce((acc, b) => aroundBox(acc, b, DANESGATE.half), r));
+  return pass(pass(pass(closed)));
 }
 // The runs of houses along Clasketgate and Monks Road as single boxes, a new run wherever there's a gap between houses.
 let EAST_ROWS: { x0: number; x1: number; z0: number; z1: number }[] | null = null;
@@ -375,6 +376,8 @@ export const APPROACH: Record<string, [number, number][]> = {
   ],
   // the gatehouse's doorway on the square: from the top of Steep Hill, clear of Bailgate's shops and the stalls
   "exchequer-gate": [[0, -121]],
+  // the castle: square on to the East Gate, between the cannons, as the footpath comes in
+  castle: [[castlePlace.x + castlePlace.d / 2 + 5.2, castlePlace.z]],
   // through the gate, north up the path along the west front and east along the north side to the spur
   "minster-yard": [
     [0, -121],
@@ -403,7 +406,7 @@ export const FOOTPATHS = [
 ];
 // The walk along it, from the main road to the castle gate.
 // It stops short of the East Gate's south tower and comes round in front of the cannons to walk straight in at the arch.
-const GATE_OUT = castlePlace.x + castlePlace.d / 2 + 5.2;
+const GATE_OUT = castlePlace.x + castlePlace.d / 2 + 5.2; // the same spot as the castle's APPROACH
 export const FOOTPATH_ROUTE: [number, number][] = [
   [PATH_X, -5],
   [PATH_X, castlePlace.z + 6],
@@ -628,6 +631,42 @@ export const SQUARE_FRONTS = [
   { id: "yard-white", x0: 29.2, x1: 32.6, front: YARD_FRONT, d: 4 },
 ];
 export const frontBox = (f: (typeof SQUARE_FRONTS)[number]) => ({ x0: f.x0, x1: f.x1, z0: f.front - f.d, z1: f.front });
+
+// Danesgate: a cobbled lane climbing the hill just east of Steep Hill, as in real Lincoln, from Clasketgate up to the
+// south-east corner of Castle Square. Its west side is a row of shops with a To Let plot at the foot, where the lane
+// levels out, and an alley through to Steep Hill (as Christ's Hospital Terrace does) opposite the gap in Steep Hill's
+// houses; its east side has shops up the hill and older houses lower down, with an alley between them. Each plot is
+// like a Bailgate shop: side -1 (west) or 1 (east), centred at x, z, len along the lane and deep across it, its front
+// onto the lane.
+export const DANESGATE = { x: 17, half: 2.1, z0: CLOSE.z1, z1: CLASKET.z - CLASKET.half };
+const DANES_LOT = footprint(PLACES.find((p) => p.id === "tolet-danesgate")!);
+const DANES_DEEP = 4,
+  DANES_ALLEY = 2.6;
+// each run of plots: [side, z0, z1, plots]
+const DANES_RUNS: [-1 | 1, number, number, number][] = [
+  [-1, -113.5, -103.5 - DANES_ALLEY / 2, 2],
+  [-1, -103.5 + DANES_ALLEY / 2, DANES_LOT.z0, 5],
+  // (the east side starts a little down from the top, so walks turning round its top end clear the Exchequer Gate)
+  [1, -110, -86, 6],
+  [1, -86 + DANES_ALLEY, -63, 5],
+];
+export const DANES_FRONTS = DANES_RUNS.flatMap(([side, z0, z1, n]) =>
+  Array.from({ length: n }, (_, i) => {
+    const len = (z1 - z0) / n;
+    return { side, x: DANESGATE.x + side * (DANESGATE.half + DANES_DEEP / 2), z: z0 + len * (i + 0.5), len, deep: DANES_DEEP };
+  }),
+);
+const danesBox = (h: (typeof DANES_FRONTS)[number]) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 });
+// For planning walks, each side as one block to go round, turning on the middle of the lane, Steep Hill or Clasketgate
+// (the alleys are there to wander through, but a walk somewhere goes round by the ends): on the west, Steep Hill's
+// houses and Danesgate's west side together, from the top of the hill down to the High Street's shops; on the east,
+// the whole side, down to Clasketgate's kerb, where the terraces along Clasketgate carry on from it.
+const DANES_ROWS = [
+  // (with the Magna Carta at its top, its foot clear of the High Street plot's sign)
+  { x0: 2.6, x1: DANESGATE.x - DANESGATE.half, z0: footprint(PLACES.find((p) => p.id === "magna-carta")!).z0, z1: -65.2 },
+  { x0: DANESGATE.x + DANESGATE.half, x1: DANESGATE.x + DANESGATE.half + DANES_DEEP, z0: -110, z1: DANESGATE.z1 },
+];
+export const DANES_ROAD = { x0: DANESGATE.x - DANESGATE.half, x1: DANESGATE.x + DANESGATE.half, z0: DANESGATE.z0, z1: DANESGATE.z1 };
 
 // The Stonebow: the old city gate with the Guildhall above it, spanning the pedestrianised
 // High Street just north of the Post and the Town Hall, partway up to Steep Hill. As on the real
@@ -1281,7 +1320,7 @@ const arbBox = footprint(PLACES.find((p) => p.id === "arboretum")!);
 const CG_N = CLASKET.z - CLASKET.half - UP_SET,
   CG_S = CLASKET.z + CLASKET.half + UP_SET;
 export const EAST_TERRACES: TerraceHouse[] = [
-  ...terraceRow(HIGH_ST + 7.5, EAST_PATH_X - 2, (x) => [x, CG_N], 0, 600),
+  ...terraceRow(DANESGATE.x + DANESGATE.half + 0.4, EAST_PATH_X - 2, (x) => [x, CG_N], 0, 600), // from the corner of Danesgate
   ...terraceRow(EAST_PATH_X + 2, LH.x0 - 3.5, (x) => [x, CG_N], 0, 620),
   ...terraceRow(HIGH_ST + 5.5, EAST_PATH_X - 2, (x) => [x, CG_S], Math.PI, 640),
   ...terraceRow(EAST_PATH_X + 2, LH.x0 - 0.4, (x) => [x, CG_S], Math.PI, 660),
@@ -1423,7 +1462,7 @@ const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehous
     return [AIRFIELD.hangar, AIRFIELD.tower, AIRFIELD.heritage, AIRFIELD.guard, ...cars, ...AIRFIELD_FENCE].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), CASTLE_TERRACES.map(terraceBox), WEST_PARADE_TERRACES.map(terraceBox), EAST_TERRACES.map(terraceBox), SQUARE_FRONTS.map(frontBox), TRITTON_BOXES, STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), [...MINSTER.closeWest, MINSTER.deanery, MINSTER.chancery, ...MINSTER.east].map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES, DYKE_BOXES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), CASTLE_TERRACES.map(terraceBox), WEST_PARADE_TERRACES.map(terraceBox), EAST_TERRACES.map(terraceBox), SQUARE_FRONTS.map(frontBox), DANES_FRONTS.map(danesBox), TRITTON_BOXES, STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), [...MINSTER.closeWest, MINSTER.deanery, MINSTER.chancery, ...MINSTER.east].map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES, DYKE_BOXES);
 
 const HIGH_STREET = { x0: -HIGH_ST, x1: HIGH_ST, z0: hill.z1, z1: -4.3 };
 const onRoad = (x: number, z: number) =>
@@ -1437,6 +1476,7 @@ const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
   SQUARE_FRONTS.map(frontBox).some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
+  [DANES_ROAD, ...DANES_FRONTS.map(danesBox)].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   [...[...WHARF_BARS, ...ST_MARKS.units].map(barBox), ...MINSTER.south.map(yardBox), ...LINDUM.houses.map(lindumBox), OLD_BAILGATE_WEST, OLD_HIGH_ST_TOP, OLD_CLASKET_SHOP].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   PLACES.some((p) => {
     if (p.id.startsWith("tritton-") || EMERGENCY_IDS.includes(p.id)) return false; // added later, and cleared of trees afterwards instead

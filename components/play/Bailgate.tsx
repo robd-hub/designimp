@@ -14,7 +14,8 @@ const SASH = 0xfff8e7;
 // Bailgate's shops, each side listed from Newport Arch down to Castle Square. Made-up names: these stand for the
 // street's pubs, tea rooms and independents, not any real one. Georgian fronts are three storeys of brick or render
 // behind a parapet; Tudor ones have a jettied, timber-framed upper floor under a gable onto the street.
-type Look = { name: string; kind: "pub" | "tea" | "shop"; tudor: boolean; wall: number; front: number };
+// a house has no shopfront: a front door and windows, with front the colour of its door
+export type Look = { name: string; kind: "pub" | "tea" | "shop" | "house"; tudor: boolean; wall: number; front: number };
 const LOOKS: Record<number, Look[]> = {
   [-1]: [
     { name: "The Roman Gate", kind: "pub", tudor: false, wall: 0xa9553f, front: 0x1f4d3a },
@@ -97,8 +98,8 @@ function Lantern({ x, y, z, night }: { x: number; y: number; z: number; night: b
 
 // One of the old shops, its front (+z here) onto Bailgate or Castle Square, w along the front and d deep, turned by rot.
 // It is drawn level, on a plinth that takes up the slope.
-type Spot = { x: number; z: number; w: number; d: number; rot: number };
-function BailgateShop({ at, look, i, font, night }: { at: Spot; look: Look; i: number; font: string; night: boolean }) {
+export type Spot = { x: number; z: number; w: number; d: number; rot: number };
+export function BailgateShop({ at, look, i, font, night }: { at: Spot; look: Look; i: number; font: string; night: boolean }) {
   const fascia = useSign(look.name, "#1a1320", font);
   const hanging = useSign(look.name.replace(/^The /, "").replace(" ", "\n"), "#1a1320", font);
   const w = at.w - 0.15,
@@ -155,20 +156,31 @@ function BailgateShop({ at, look, i, font, night }: { at: Spot; look: Look; i: n
           )}
         </>
       )}
-      {/* the shopfront: a painted frame round the window and door, under a fascia with the name on it */}
-      <Part geometry={geo.box(w - 0.3, GROUND - 0.25, 0.12)} color={look.front} outline={0.04} position={[0, (GROUND - 0.25) / 2, f + 0.06]} />
-      <Part geometry={geo.box(w * 0.5, 1.4, 0.12)} color={WINDOW} outline={0.03} position={[-w * 0.13, 1.15, f + 0.12]} />
-      <Part geometry={geo.box(0.05, 1.4, 0.16)} color={look.front} outline={0} position={[-w * 0.13, 1.15, f + 0.13]} />
-      <Part geometry={geo.box(0.85, 1.9, 0.14)} color={0x3a2a20} outline={0.04} position={[w / 2 - 0.75, 0.95, f + 0.1]} />
-      <Part geometry={geo.box(0.85, 0.3, 0.14)} color={WINDOW} outline={0.02} position={[w / 2 - 0.75, 2.08, f + 0.1]} />
-      <Part geometry={geo.box(Math.min(w - 0.5, 3), 0.56, 0.1)} color={0xfff8e7} outline={0.03} position={[-0.25, 2.5, f + 0.16]} />
-      <mesh position={[-0.25, 2.5, f + 0.22]}>
-        <planeGeometry args={[Math.min(w - 0.6, 2.9), 0.5]} />
-        <meshBasicMaterial map={fascia} toneMapped={false} />
-      </mesh>
+      {look.kind === "house" ? (
+        <>
+          {/* a house: its front door, and a window beside it */}
+          <Part geometry={geo.box(0.95, 2, 0.12)} color={look.front} outline={0.04} position={[w / 2 - 0.85, 1, f + 0.06]} />
+          <Part geometry={geo.box(0.95, 0.3, 0.12)} color={WINDOW} outline={0.02} position={[w / 2 - 0.85, 2.2, f + 0.06]} />
+          <Sash x={-w * 0.15} y={1.4} z={f + 0.04} w={0.8} h={1.1} />
+        </>
+      ) : (
+        <>
+        {/* the shopfront: a painted frame round the window and door, under a fascia with the name on it */}
+        <Part geometry={geo.box(w - 0.3, GROUND - 0.25, 0.12)} color={look.front} outline={0.04} position={[0, (GROUND - 0.25) / 2, f + 0.06]} />
+        <Part geometry={geo.box(w * 0.5, 1.4, 0.12)} color={WINDOW} outline={0.03} position={[-w * 0.13, 1.15, f + 0.12]} />
+        <Part geometry={geo.box(0.05, 1.4, 0.16)} color={look.front} outline={0} position={[-w * 0.13, 1.15, f + 0.13]} />
+        <Part geometry={geo.box(0.85, 1.9, 0.14)} color={0x3a2a20} outline={0.04} position={[w / 2 - 0.75, 0.95, f + 0.1]} />
+        <Part geometry={geo.box(0.85, 0.3, 0.14)} color={WINDOW} outline={0.02} position={[w / 2 - 0.75, 2.08, f + 0.1]} />
+        <Part geometry={geo.box(Math.min(w - 0.5, 3), 0.56, 0.1)} color={0xfff8e7} outline={0.03} position={[-0.25, 2.5, f + 0.16]} />
+        <mesh position={[-0.25, 2.5, f + 0.22]}>
+          <planeGeometry args={[Math.min(w - 0.6, 2.9), 0.5]} />
+          <meshBasicMaterial map={fascia} toneMapped={false} />
+        </mesh>
+        </>
+      )}
       {/* a lantern over the door, and a sign hung out over the street for the pubs and tea rooms */}
       <Lantern x={w / 2 - 0.12} y={1.95} z={f + 0.05} night={night} />
-      {look.kind !== "shop" && <HangingSign sign={hanging} color={look.front} x={-w / 2 + 0.25} y={3.75} z={f} />}
+      {(look.kind === "pub" || look.kind === "tea") && <HangingSign sign={hanging} color={look.front} x={-w / 2 + 0.25} y={3.75} z={f} />}
       {/* the shops put a tub of flowers out under the window */}
       {look.kind === "shop" && (
         <group position={[-w * 0.13, 0, f + 0.45]}>

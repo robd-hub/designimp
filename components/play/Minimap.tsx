@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PLACES, footprint, hex, inSeason } from "./places";
-import { EXCHEQUER, MINSTER, AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, ST_MARKS, WEST_BANK, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, WHARF_BARS, WITHAM, WITHAM_RUNS, barBox, streetHouses, toWorld, LINDUM, lindumBox, SINCIL_PAVED, TERRACES, CASTLE_TERRACES, CASTLE_ROADS, WEST_PARADE, WEST_PARADE_TERRACES, EAST_ROADS, EAST_TERRACES, terraceBox, yardBox, SQUARE_FRONTS, frontBox, DYKE_RUNS, TRITTON, EMERGENCY } from "./colliders";
+import { EXCHEQUER, MINSTER, AIRFIELD, AIRFIELD_ROAD, BUS_STATION, EAST_FOOTPATH, GREESTONE, LANDMARK_PATHS, RIVER, BOUND, EAST, SOUTH, HOUSE, HOUSES, HIGH_ST, SHOPFRONTS, BRAYFORD, BAILGATE, CLOSE, CORNHILL, STONEBOW_STREETS, NORTH, RAIL, ROUNDABOUT, STADIUM_ROAD, STATION, STREET_ROW, ST_MARKS, WEST_BANK, WHARF, WHARF_EAST, WHARF_EAST_SOUTH, WHARF_BARS, WITHAM, WITHAM_RUNS, barBox, streetHouses, toWorld, LINDUM, lindumBox, SINCIL_PAVED, TERRACES, CASTLE_TERRACES, CASTLE_ROADS, WEST_PARADE, WEST_PARADE_TERRACES, EAST_ROADS, EAST_TERRACES, terraceBox, yardBox, SQUARE_FRONTS, frontBox, DANES_FRONTS, DANES_ROAD, DYKE_RUNS, TRITTON, EMERGENCY } from "./colliders";
 import { RISE } from "./terrain";
 import { game, usePlay, walkTo } from "./store";
 import s from "./play.module.css";
@@ -149,7 +149,8 @@ export default function Minimap() {
           <rect key={`${p.id}${h.side}${h.i}`} x={p.x + h.x - STREET_ROW / 2} y={p.z + h.z - h.len / 2} width={STREET_ROW} height={h.len} fill={hex(p.roof)} pointerEvents="none" />
         )),
       )}
-      {SHOPFRONTS.map((h) => (
+      <rect x={DANES_ROAD.x0} y={DANES_ROAD.z0} width={DANES_ROAD.x1 - DANES_ROAD.x0} height={DANES_ROAD.z1 - DANES_ROAD.z0} fill="#d8cdb4" pointerEvents="none" />
+      {[...SHOPFRONTS, ...DANES_FRONTS].map((h) => (
         <rect key={`${h.x},${h.z}`} x={h.x - h.deep / 2} y={h.z - h.len / 2} width={h.deep} height={h.len} fill="#b5523b" pointerEvents="none" />
       ))}
       {[...WHARF_BARS, ...ST_MARKS.units].map(barBox).concat(SQUARE_FRONTS.map(frontBox)).map((b) => (
