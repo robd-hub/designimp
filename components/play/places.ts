@@ -1187,16 +1187,17 @@ export const PLACES: Place[] = [
     name: "The Arboretum",
     kicker: "Victorian park on Monks Road",
     nav: "Arboretum",
-    // out east along Monks Road from the foot of Lindum Hill, as in real Lincoln, its gates opening west onto the road
-    x: 120,
-    z: -50,
+    // out east along Monks Road from the foot of Lindum Hill, on the road's north side as in real Lincoln, its gates
+    // opening south onto it
+    x: 116,
+    z: -72.6,
     w: 30,
     d: 26,
     h: 3,
     wall: 0x5fae55,
     roof: 0x2f6d55,
     roofType: "flat",
-    rot: -Math.PI / 2,
+    rot: 0,
     intro: [
       "Lincoln Arboretum is a Victorian park on the hillside east of the city centre, opened in 1872.",
       "Look out for the bandstand and the stone lion, both from the park's early years, and the ponds and winding paths between the trees.",
