@@ -90,7 +90,7 @@ export function Showcase() {
   );
 }
 
-// "75%" counts up from 0 to 75, "2.6×" from 0.0 to 2.6, keeping whatever comes after the number.
+// "53%" counts up from 0 to 53, "2.5×" from 0.0 to 2.5, keeping whatever comes after the number ("32 pts").
 export function CountUp({ value }: { value: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const seen = useInView(ref, { once: true, margin: "-40px" });

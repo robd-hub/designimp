@@ -1,12 +1,23 @@
 import Link from "next/link";
 import { CountUp, Showcase, WhoFor } from "./HeroLive";
 
+// Each figure with the study it comes from, linked under it. Only figures traced to their original source go here.
 const STATS = [
-  { num: "75%", label: "of users judge credibility by design alone" },
-  { num: "88%", label: "won't return after a bad experience" },
-  { num: "2.6×", label: "avg. revenue lift from good UX" },
-  { num: "53%", label: "abandon if load time exceeds 3 seconds" },
-  { num: "38%", label: "stop engaging with unattractive layouts" },
+  {
+    num: "46%",
+    label: "of people's comments on a site's credibility were about its look",
+    source: { name: "Stanford, 2002", href: "https://advocacy.consumerreports.org/research/how-do-people-evaluate-a-web-sites-credibility" },
+  },
+  {
+    num: "53%",
+    label: "of mobile visits are abandoned if a page takes over 3 seconds to load",
+    source: { name: "Google, 2016", href: "https://blog.google/products/admanager/the-need-for-mobile-speed/" },
+  },
+  {
+    num: "32 pts",
+    label: "faster revenue growth at the most design-led companies",
+    source: { name: "McKinsey, 2018", href: "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/the-business-value-of-design" },
+  },
 ];
 
 export default function Hero() {
@@ -70,7 +81,10 @@ export default function Hero() {
             <div className="text-2xl font-semibold text-accent">
               <CountUp value={s.num} />
             </div>
-            <div className="mt-0.5 text-base text-muted">{s.label}</div>
+            <div className="mt-0.5 max-w-[17rem] text-base text-muted">{s.label}</div>
+            <a href={s.source.href} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-xs text-muted/70 underline-offset-2 hover:text-accent hover:underline">
+              Source: {s.source.name}
+            </a>
           </div>
         ))}
       </div>
