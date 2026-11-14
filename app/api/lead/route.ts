@@ -8,7 +8,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { name, email, businessName, businessType, businessUrl, socials, notes, company } = body;
+  const { name, email, businessName, businessType, businessUrl, notes, company } = body;
 
   // Honeypot: bots fill this hidden field, real users never see it.
   if (company) {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       to: TO_ADDRESS,
       replyTo: email,
       subject: `New mockup request — ${businessName}`,
-      text: `Name: ${name}\nEmail: ${email}\nBusiness: ${businessName}\nType: ${businessType}\nWebsite: ${businessUrl || "—"}\nSocials: ${socials || "—"}\nNotes: ${notes || "—"}`,
+      text: `Name: ${name}\nEmail: ${email}\nBusiness: ${businessName}\nType: ${businessType}\nWork and prices: ${businessUrl || "—"}\nNotes: ${notes || "—"}`,
     });
 
     if (error) {
