@@ -139,9 +139,9 @@ export function Mill({ p, font, reduce }: Props) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// The Arboretum: a railed Victorian park on the hillside, with its gates on the west side, a path in
-// past the stone lion to the octagonal bandstand, a pond and plenty of trees. Drawn in world axes
-// (its lawn follows the slope, which only runs north-south), with its gates facing the door.
+// The Arboretum: a railed Victorian park on the hillside, with its gates facing the door (south onto Monks Road, or
+// west when turned that way), a path in past the stone lion to the octagonal bandstand, a pond and plenty of trees.
+// Drawn in world axes (its lawn follows the slope, which only runs north-south).
 const RAIL_GREEN = 0x2f4a3a;
 const LAWN = 0x7cc46a;
 const GRAVEL = 0xe0d2b4;
@@ -151,7 +151,9 @@ export function Park({ p, font }: Props) {
   const f = footprint(p);
   const hw = (f.x1 - f.x0) / 2,
     hd = (f.z1 - f.z0) / 2;
-  const GATE = 1.8; // half the width of the gateway in the west railings
+  const GATE = 1.8; // half the width of the gateway in the railings
+  const south = Math.abs(p.rot) < 0.1; // gates on the south side, onto Monks Road, rather than the west
+  const ox = south ? -2.5 : 0; // and the layout inside shifted so the path north from the gates is in line with them
   const { posts, rails } = useMemo(() => {
     const posts: Inst[] = [],
       rails: Inst[] = [];
@@ -162,10 +164,10 @@ export function Park({ p, font }: Props) {
     };
     for (let x = -hw; x < hw; x += 1) {
       add(x, -hd, "x");
-      add(x, hd, "x");
+      if (!south || Math.abs(x + 0.5) > GATE) add(x, hd, "x");
     }
     for (let z = -hd; z < hd; z += 1) {
-      if (Math.abs(z + 0.5) > GATE) add(-hw, z, "z");
+      if (south || Math.abs(z + 0.5) > GATE) add(-hw, z, "z");
       add(hw, z, "z");
     }
     return { posts, rails };
@@ -174,7 +176,7 @@ export function Park({ p, font }: Props) {
     const rand = seeded(73);
     const out: { x: number; z: number; s: number }[] = [];
     const clear = (x: number, z: number) =>
-      Math.hypot(x - 2.5, z + 2.5) > 4.2 && Math.hypot(x - 3.5, z - 5.5) > 3.6 && Math.abs(z) > 1.8 && Math.abs(x - 2.5) > 1.6 && !(x < -2 && Math.abs(z - 2.6) < 2);
+      Math.hypot(x - 2.5 - ox, z + 2.5) > 4.2 && Math.hypot(x - 3.5 - ox, z - 5.5) > 3.6 && (south || Math.abs(z) > 1.8) && Math.abs(x - 2.5 - ox) > 1.6 && !(x < -2 + ox && x > -5 + ox && Math.abs(z - 2.6) < 2);
     for (let tries = 0; out.length < Math.round((hw * hd) / 6) && tries < 1200; tries++) {
       const x = -hw + 1.6 + rand() * (2 * hw - 3.2),
         z = -hd + 1.6 + rand() * (2 * hd - 3.2);
@@ -182,26 +184,38 @@ export function Park({ p, font }: Props) {
       out.push({ x, z, s: 0.8 + rand() * 0.6 });
     }
     return out;
-  }, [hw, hd]);
+  }, [hw, hd, south, ox]);
   const trunks = useMemo(() => trees.map((t) => ({ at: [t.x, y(t.z) + 0.8 * t.s, t.z] as V3, scale: [t.s, t.s, t.s] as V3 })), [trees]); // eslint-disable-line react-hooks/exhaustive-deps
   const crowns = useMemo(() => trees.map((t, i) => ({ at: [t.x, y(t.z) + 2.3 * t.s, t.z] as V3, scale: [t.s, t.s * (i % 3 ? 1 : 1.35), t.s] as V3 })), [trees]); // eslint-disable-line react-hooks/exhaustive-deps
-  const band = { x: 2.5, z: -2.5 },
-    lion = { x: -3.5, z: 2.6 },
-    pond = { x: 3.5, z: 5.5 };
+  const band = { x: 2.5 + ox, z: -2.5 },
+    lion = { x: -3.5 + ox, z: 2.6 },
+    pond = { x: 3.5 + ox, z: 5.5 };
   return (
     <group position={[p.x, 0, p.z]} {...placeEvents(p)}>
       <Strip w={2 * hw} d={2 * hd} color={LAWN} y={0.03} wz={p.z} />
       {/* gravel paths: in from the gates, and across the park north to south */}
-      <Strip w={hw + 2.5} d={1.6} color={GRAVEL} x={(-hw + 2.5) / 2} y={0.06} wz={p.z} />
-      <Strip w={1.6} d={2 * hd - 0.6} color={GRAVEL} x={2.5} y={0.05} wz={p.z} />
+      {!south && <Strip w={hw + 2.5} d={1.6} color={GRAVEL} x={(-hw + 2.5) / 2} y={0.06} wz={p.z} />}
+      <Strip w={1.6} d={2 * hd - 0.6} color={GRAVEL} x={2.5 + ox} z={south ? 0.3 : 0} y={0.05} wz={p.z} />
       <Many geometry={geo.box(0.12, 1.1, 0.12)} color={RAIL_GREEN} list={posts} />
       <Many geometry={geo.box(1, 0.08, 0.08)} color={RAIL_GREEN} list={rails} />
       {/* stone gate piers with the name on an iron arch between them */}
-      {[-1, 1].map((s) => (
-        <Part key={s} geometry={geo.box(0.7, 2.4, 0.7)} color={STONE} outline={0.04} position={[-hw, y(s * GATE) + 1.1, s * (GATE + 0.2)]} />
-      ))}
-      <Part geometry={geo.box(0.14, 0.14, 2 * GATE + 0.8)} color={RAIL_GREEN} outline={0.02} position={[-hw, y(0) + 2.9, 0]} />
-      <Sign map={sign} w={3} h={0.75} position={[-hw - 0.09, y(0) + 2.45, 0]} rotation-y={-Math.PI / 2} />
+      {south ? (
+        <>
+          {[-1, 1].map((s) => (
+            <Part key={s} geometry={geo.box(0.7, 2.4, 0.7)} color={STONE} outline={0.04} position={[s * (GATE + 0.2), y(hd) + 1.1, hd]} />
+          ))}
+          <Part geometry={geo.box(2 * GATE + 0.8, 0.14, 0.14)} color={RAIL_GREEN} outline={0.02} position={[0, y(hd) + 2.9, hd]} />
+          <Sign map={sign} w={3} h={0.75} position={[0, y(hd) + 2.45, hd + 0.09]} />
+        </>
+      ) : (
+        <>
+          {[-1, 1].map((s) => (
+            <Part key={s} geometry={geo.box(0.7, 2.4, 0.7)} color={STONE} outline={0.04} position={[-hw, y(s * GATE) + 1.1, s * (GATE + 0.2)]} />
+          ))}
+          <Part geometry={geo.box(0.14, 0.14, 2 * GATE + 0.8)} color={RAIL_GREEN} outline={0.02} position={[-hw, y(0) + 2.9, 0]} />
+          <Sign map={sign} w={3} h={0.75} position={[-hw - 0.09, y(0) + 2.45, 0]} rotation-y={-Math.PI / 2} />
+        </>
+      )}
       {/* the octagonal bandstand */}
       <group position={[band.x, y(band.z), band.z]}>
         <Part geometry={geo.cyl(2.2, 2.35, 1, 8)} color={STONE} outline={0.05} position-y={0.1} />
@@ -214,7 +228,7 @@ export function Park({ p, font }: Props) {
         <Part geometry={geo.sphere(0.2, 8, 6)} color={0xc8973a} outline={0.03} position-y={4.35} />
       </group>
       {/* the stone lion on his plinth, looking out towards the gates */}
-      <group position={[lion.x, y(lion.z), lion.z]} rotation-y={-Math.PI / 2}>
+      <group position={[lion.x, y(lion.z), lion.z]} rotation-y={south ? 0 : -Math.PI / 2}>
         <Part geometry={geo.box(1.3, 1.3, 2.3)} color={STONE_DARK} outline={0.04} position-y={0.45} />
         <group position-y={1.1}>
           <Part geometry={geo.box(0.8, 0.55, 1.6)} color={STONE} outline={0.04} position={[0, 0.3, -0.1]} />
