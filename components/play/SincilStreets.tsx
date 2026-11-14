@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { geo, toon, outlineMat, WINDOW, LAMP } from "./toon";
 import { CANWICK, DYKE, DYKE_CULVERTS, DYKE_RUNS, SIDE, SIDE_STREETS, SINCIL, STADIUM_ROAD, TERRACE, TERRACES } from "./colliders";
 import { Sign, useRoof, useSign } from "./MoreLandmarks";
+import { groundY } from "./terrain";
 
 // The terraced streets down to Sincil Bank (laid out in colliders.ts): Canwick Road on south from the foot of Pelham
 // Bridge, Tentercroft, Portland, Monson and Scorer Streets east off the south road to it, and Sincil Bank past the ground.
@@ -55,26 +56,27 @@ export function Instances({ geometry, color, list, outline = 0 }: { geometry: TH
   );
 }
 
-// A point on a house, from its own coordinates (front at +z) into the town's.
-const onHouse = (h: (typeof TERRACES)[number], lx: number, y: number, lz: number): Item => ({
-  at: [h.x + lx * Math.cos(h.rot) + lz * Math.sin(h.rot), y, h.z - lx * Math.sin(h.rot) + lz * Math.cos(h.rot)],
+// A point on a house, from its own coordinates (front at +z) into the town's, standing on the ground there.
+type House = (typeof TERRACES)[number];
+const onHouse = (h: House, lx: number, y: number, lz: number): Item => ({
+  at: [h.x + lx * Math.cos(h.rot) + lz * Math.sin(h.rot), groundY(h.z) + y, h.z - lx * Math.sin(h.rot) + lz * Math.cos(h.rot)],
   rot: h.rot,
 });
 
 const { w: W, d: D, h: H } = TERRACE;
 const front = D / 2 + 0.03;
 // The houses' parts, sorted by colour so each colour is one draw.
-const PARTS = (() => {
-  const bodies = BRICKS.map(() => [] as Item[]);
+function terraceParts(list: House[], walls: number) {
+  const bodies = Array.from({ length: walls }, () => [] as Item[]);
   const doors = DOORS.map(() => [] as Item[]);
   const roofs: Item[] = [],
     chimneys: Item[] = [],
     big: Item[] = [],
     small: Item[] = [],
     sills: Item[] = [];
-  TERRACES.forEach((h) => {
+  list.forEach((h) => {
     const flip = h.k % 2 ? -1 : 1; // neighbours are mirror images, doors side by side
-    bodies[(h.k * 7) % BRICKS.length].push(onHouse(h, 0, H / 2, 0));
+    bodies[(h.k * 7) % walls].push(onHouse(h, 0, H / 2, 0));
     roofs.push(onHouse(h, 0, H, 0));
     chimneys.push(onHouse(h, flip * (W / 2 - 0.35), H + 1.1, -0.4));
     doors[(h.k * 3) % DOORS.length].push(onHouse(h, flip * (W / 2 - 0.85), 0.95, front));
@@ -83,7 +85,28 @@ const PARTS = (() => {
     sills.push(onHouse(h, -flip * 0.75, 0.72, front + 0.05));
   });
   return { bodies, doors, roofs, chimneys, big, small, sills };
-})();
+}
+
+// A run of terraced houses, generic two-up two-downs in the given wall colours (red brick unless told otherwise).
+export function TerraceHouses({ list, walls = BRICKS, chimney = 0x8f3f2c }: { list: House[]; walls?: number[]; chimney?: number }) {
+  const roof = useRoof(D + 0.5, 1.5, W + 0.12);
+  const P = useMemo(() => terraceParts(list, walls.length), [list, walls]);
+  return (
+    <>
+      {P.bodies.map((l, i) => (
+        <Instances key={i} geometry={geo.box(W, H, D)} color={walls[i]} list={l} outline={0.07} />
+      ))}
+      <Instances geometry={roof} color={SLATE} list={P.roofs} outline={0.05} />
+      <Instances geometry={geo.box(0.5, 1, 0.6)} color={chimney} list={P.chimneys} outline={0.04} />
+      {P.doors.map((l, i) => (
+        <Instances key={i} geometry={geo.box(0.85, 1.8, 0.1)} color={DOORS[i]} list={l} outline={0.03} />
+      ))}
+      <Instances geometry={geo.box(1.4, 1.2, 0.1)} color={WINDOW} list={P.big} outline={0.03} />
+      <Instances geometry={geo.box(0.9, 0.9, 0.1)} color={WINDOW} list={P.small} outline={0.03} />
+      <Instances geometry={geo.box(1.6, 0.12, 0.2)} color={0xe8dcc2} list={P.sills} />
+    </>
+  );
+}
 
 // Lamps down the streets, every so often on alternate sides, and the posts for the name signs.
 const LAMP_GAP = 13;
@@ -144,10 +167,10 @@ function Flat({ w, d, color, x, z, y }: { w: number; d: number; color: number; x
 }
 
 // A street name on a post at a corner, readable from both sides.
-function NameSign({ text, font, x, z, rot }: { text: string; font: string; x: number; z: number; rot: number }) {
+export function NameSign({ text, font, x, z, rot }: { text: string; font: string; x: number; z: number; rot: number }) {
   const map = useSign(text, "#2b2633", font);
   return (
-    <group position={[x, 0, z]} rotation-y={rot}>
+    <group position={[x, groundY(z), z]} rotation-y={rot}>
       <mesh geometry={geo.box(0.1, 2, 0.1)} material={toon(POLE)} position-y={1} />
       <Sign map={map} w={2.6} h={0.55} position={[0, 2.2, 0.03]} />
       <Sign map={map} w={2.6} h={0.55} position={[0, 2.2, -0.03]} rotation-y={Math.PI} />
@@ -156,8 +179,6 @@ function NameSign({ text, font, x, z, rot }: { text: string; font: string; x: nu
 }
 
 export default function SincilStreets({ font }: { font: string }) {
-  const roof = useRoof(D + 0.5, 1.5, W + 0.12);
-  const P = PARTS;
   const sideLen = useMemo(() => SIDE_STREETS.map((st) => st.x1 - st.x0), []);
   return (
     <group raycast={() => null}>
@@ -179,17 +200,7 @@ export default function SincilStreets({ font }: { font: string }) {
       <Dyke />
 
       {/* the terraced houses */}
-      {P.bodies.map((list, i) => (
-        <Instances key={i} geometry={geo.box(W, H, D)} color={BRICKS[i]} list={list} outline={0.07} />
-      ))}
-      <Instances geometry={roof} color={SLATE} list={P.roofs} outline={0.05} />
-      <Instances geometry={geo.box(0.5, 1, 0.6)} color={0x8f3f2c} list={P.chimneys} outline={0.04} />
-      {P.doors.map((list, i) => (
-        <Instances key={i} geometry={geo.box(0.85, 1.8, 0.1)} color={DOORS[i]} list={list} outline={0.03} />
-      ))}
-      <Instances geometry={geo.box(1.4, 1.2, 0.1)} color={WINDOW} list={P.big} outline={0.03} />
-      <Instances geometry={geo.box(0.9, 0.9, 0.1)} color={WINDOW} list={P.small} outline={0.03} />
-      <Instances geometry={geo.box(1.6, 0.12, 0.2)} color={0xe8dcc2} list={P.sills} />
+      <TerraceHouses list={TERRACES} />
 
       {/* street lamps */}
       <Instances geometry={geo.cyl(0.1, 0.12, 3.2, 8)} color={POLE} list={POLES} outline={0.04} />

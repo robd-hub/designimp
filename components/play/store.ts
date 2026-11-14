@@ -3,7 +3,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PLACES, inSeason, currentSeason, type Place, type Season } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
-import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH } from "./colliders";
+import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH, clearLine } from "./colliders";
 import { cleanName, cleanType, cleanColour, type ShopType } from "./shop";
 
 type PlayState = {
@@ -231,19 +231,31 @@ export function doorOf(p: Place) {
 
 export const DOORS = new Map(PLACES.map((p) => [p.id, doorOf(p)]));
 
-// If the Imp is out on a landmark's own path (Mill Road, Monks Road, the market's way across Castle Square),
+// If the Imp is out on a landmark's own path (Union Road and Westgate, Monks Road, the market's way across Castle Square),
 // the points that lead back along it to where it leaves the road, nearest first.
+// Only as far back as needed, though: to where this path and the one to the next place part (The Lawn's and Ellis
+// Mill's share the way up to the foot of Union Road), or, for a place without a path of its own, to the first point
+// with a clear straight walk to its door.
 function leaveApproach(to: string): [number, number][] {
   const at = game.pos;
+  const target = APPROACH[to],
+    goal = DOORS.get(to)!;
   for (const [id, way] of Object.entries(APPROACH)) {
     if (id === to) continue;
     const d = DOORS.get(id)!;
     const pts: [number, number][] = [...way, [d.x, d.z]];
+    let shared = 0;
+    while (target && shared < way.length && shared < target.length && way[shared][0] === target[shared][0] && way[shared][1] === target[shared][1]) shared++;
+    const stop = (j: number) => j < shared || (!target && clearLine(pts[j], [goal.x, goal.z]));
     for (let i = pts.length - 2; i > 0; i--) {
       const [[ax, az], [bx, bz]] = [pts[i], pts[i + 1]];
       const len = Math.hypot(bx - ax, bz - az) || 1;
       const t = Math.max(0, Math.min(1, ((at.x - ax) * (bx - ax) + (at.z - az) * (bz - az)) / (len * len)));
-      if (Math.hypot(at.x - (ax + t * (bx - ax)), at.z - (az + t * (bz - az))) < 2.5) return pts.slice(0, i + 1).reverse();
+      if (Math.hypot(at.x - (ax + t * (bx - ax)), at.z - (az + t * (bz - az))) < 2.5) {
+        let j = i;
+        while (j > 0 && !stop(j)) j--;
+        return pts.slice(j, i + 1).reverse();
+      }
     }
   }
   return [];
