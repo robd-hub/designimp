@@ -839,7 +839,7 @@ export function crossings(from: [number, number], to: [number, number]): [number
   if (a && b) return aroundStand([from, to]).slice(1, -1);
   if (a) return [...aroundStand([from, AF_IN]).slice(1), AF_OUT, ...outside(AF_OUT, to)];
   if (b) return [...outside(from, AF_OUT), AF_OUT, ...aroundStand([AF_IN, to]).slice(0, -1)];
-  return outside(from, to);
+  return throughCastle([from, ...outside(from, to), to]).slice(1, -1);
 }
 function townCrossings(from: [number, number], to: [number, number]): [number, number][] {
   const off = leaveDyke(from, to),
@@ -876,8 +876,84 @@ function townCrossings(from: [number, number], to: [number, number]): [number, n
 const tank = PLACES.find((p) => p.kind === "tank")!;
 export const ROUNDABOUT = { x: tank.x, z: tank.z, island: 4.3, ring: 6.8, edge: 8.2 };
 
-// Two cannons guarding the castle gate, on the right as you face it (in the castle's own coordinates).
+// Two cannons guarding the castle gate, on the right as you face it, clear of the footpath coming up from the south (in
+// the castle's own coordinates).
 export const CANNONS = [4.8, 7.6].map((x) => ({ x, z: castlePlace.d / 2 + 2.6 }));
+
+// Lincoln Castle's bailey, in the castle's own coordinates: x along the East Gate's wall (+x north), z from the back
+// wall to the front (+z east, the East Gate on Castle Square). The walls and their towers, the two mottes on the south
+// side (Lucy Tower's at the west end, the Observatory Tower's at the east end, as in real Lincoln), and the buildings
+// inside are solid; the rest of the bailey is open lawn, reached through the East Gate or the West Gate. The bailey
+// is drawn square-cornered: the real one is an irregular four-sided shape.
+const CHW = castlePlace.w / 2,
+  CHD = castlePlace.d / 2;
+export const CASTLE = {
+  hw: CHW,
+  hd: CHD,
+  wall: 5,
+  thick: 1.2,
+  westGate: 7, // where the West Gate sits along the back wall
+  lucy: { x: -CHW + 5.5, z: -CHD + 5.5, r: 6.2, h: 3 },
+  observatory: { x: -CHW + 5, z: CHD - 5, r: 4.6, h: 2.5 },
+  // the Victorian prison along the north wall, the Magna Carta Vault beside it, the Crown Court by the West Gate
+  prison: { x0: CHW - 6.5, x1: CHW - 0.6, z0: -3, z1: 7 },
+  vault: { x0: CHW - 5, x1: CHW - 0.6, z0: -10, z1: -4 },
+  court: { x0: -3, x1: 4.5, z0: -CHD + 2, z1: -CHD + 7 },
+};
+const sq = (x: number, z: number, r: number) => ({ x0: x - r, x1: x + r, z0: z - r, z1: z + r });
+const padded = (b: { x0: number; x1: number; z0: number; z1: number }, pad = 0.3) => ({ x0: b.x0 - pad, x1: b.x1 + pad, z0: b.z0 - pad, z1: b.z1 + pad });
+const WG = CASTLE.westGate;
+const CASTLE_BOXES = [
+  // north and south walls
+  { x0: CHW - 0.6, x1: CHW + 0.6, z0: -CHD, z1: CHD },
+  { x0: -CHW - 0.6, x1: -CHW + 0.6, z0: -CHD, z1: CHD },
+  // back wall either side of the West Gate, its gatehouse a little deeper
+  { x0: -CHW, x1: WG - 1.2, z0: -CHD - 0.6, z1: -CHD + 0.6 },
+  { x0: WG + 1.2, x1: CHW, z0: -CHD - 0.6, z1: -CHD + 0.6 },
+  { x0: WG - 2.2, x1: WG - 1.2, z0: -CHD - 1.2, z1: -CHD + 1.2 },
+  { x0: WG + 1.2, x1: WG + 2.2, z0: -CHD - 1.2, z1: -CHD + 1.2 },
+  // front wall either side of the East Gate, the gatehouse deeper but set back inside the wall line, so the footpath up
+  // alongside the wall stays clear
+  { x0: -CHW, x1: -1.2, z0: CHD - 0.6, z1: CHD + 0.6 },
+  { x0: 1.2, x1: CHW, z0: CHD - 0.6, z1: CHD + 0.6 },
+  { x0: -3.2, x1: -1.2, z0: CHD - 2.4, z1: CHD + 0.6 },
+  { x0: 1.2, x1: 3.2, z0: CHD - 2.4, z1: CHD + 0.6 },
+  // round towers at the north corners, Cobb Hall the big one at the north-east (the south corners are the mottes')
+  sq(CHW, CHD, 2.3),
+  sq(CHW, -CHD, 1.9),
+  // the mottes, too steep to walk up
+  sq(CASTLE.lucy.x, CASTLE.lucy.z, CASTLE.lucy.r * 0.85),
+  sq(CASTLE.observatory.x, CASTLE.observatory.z, CASTLE.observatory.r * 0.85),
+  CASTLE.prison,
+  CASTLE.vault,
+  CASTLE.court,
+  ...CANNONS.map((c) => ({ x0: c.x - 0.4, x1: c.x + 0.4, z0: c.z - 1, z1: c.z + 1 })),
+].map((b) => padded(b));
+// Just outside and just inside each gate, in world coordinates, for walks into and out of the bailey.
+const castleAt = (x: number, z: number): [number, number] => {
+  const b = toWorld(castlePlace, { x0: x, x1: x, z0: z, z1: z });
+  return [b.x0, b.z0];
+};
+const CASTLE_GATES = [
+  { out: castleAt(0, CHD + 2.4), in: castleAt(0, CHD - 3.4) },
+  { out: castleAt(WG, -CHD - 2.4), in: castleAt(WG, -CHD + 7.5) }, // in past the Crown Court's front
+];
+const inBailey = ([x, z]: [number, number]) => x > castle.x0 + 1.5 && x < castle.x1 - 1.5 && z > castle.z0 + 1.5 && z < castle.z1 - 1.5;
+// A walk into or out of the bailey goes through whichever gate is nearer the end that's outside.
+function throughCastle(route: [number, number][]) {
+  const out: [number, number][] = [route[0]];
+  for (const b of route.slice(1)) {
+    const a = out.at(-1)!;
+    if (inBailey(a) !== inBailey(b)) {
+      const far = inBailey(a) ? b : a;
+      const d = (g: (typeof CASTLE_GATES)[number]) => Math.hypot(g.out[0] - far[0], g.out[1] - far[1]);
+      const g = CASTLE_GATES.reduce((m, g) => (d(g) < d(m) ? g : m));
+      out.push(...(inBailey(a) ? [g.in, g.out] : [g.out, g.in]));
+    }
+    out.push(b);
+  }
+  return out;
+}
 
 // The terraced streets east of the south road, down towards the football ground, as in real Lincoln. Canwick Road
 // carries on south from the foot of Pelham Bridge. Tentercroft Street (nearest the railway, at the foot of the bridge),
@@ -1063,10 +1139,7 @@ const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehous
   if (p.kind === "water") {
     return Object.values(BRAYFORD).map((b) => ({ x0: p.x + b.x0, x1: p.x + b.x1, z0: p.z + b.z0, z1: p.z + b.z1 }));
   }
-  if (p.kind === "castle") {
-    const walls = { x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 };
-    return [walls, ...CANNONS.map((c) => toWorld(p, { x0: c.x - 0.7, x1: c.x + 0.7, z0: c.z - 1.3, z1: c.z + 1.3 }))];
-  }
+  if (p.kind === "castle") return CASTLE_BOXES.map((b) => toWorld(p, b)); // the bailey's open, its walls and buildings solid
   if (p.kind === "oldhouse") return [f]; // fills its plot in the row exactly, like the houses either side
   if (p.kind === "airfield") {
     // the runway and apron are walkable; the buildings, the cars and the fence are solid (the parked jet only while it's

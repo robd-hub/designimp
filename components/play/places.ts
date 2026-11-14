@@ -734,11 +734,12 @@ export const PLACES: Place[] = [
     name: "Lincoln Castle",
     kicker: "Next door to the cathedral",
     nav: "Castle",
-    // at the west end of Castle Square, its gate opening east onto the square
-    x: -39,
-    z: -125,
-    w: 22,
-    d: 18,
+    // at the west end of Castle Square, its East Gate opening onto the square, the West Gate out the back towards The
+    // Lawn. A walkable bailey closer to the real one's size: w runs north to south along its walls, d west to east.
+    x: -41.5,
+    z: -126.5,
+    w: 33,
+    d: 23,
     h: 7,
     wall: 0xb8a98a,
     roof: 0x8a7b5e,
@@ -747,6 +748,7 @@ export const PLACES: Place[] = [
     intro: [
       "William the Conqueror started building Lincoln Castle in 1068, right next to where the cathedral now stands.",
       "Today it's home to an original 1215 Magna Carta, and you can walk right round the medieval walls.",
+      "Step through the East Gate into the bailey: the Victorian prison and the Magna Carta Vault are inside, with Lucy Tower up on its mound in the corner.",
     ],
     link: { href: "https://www.lincolncastle.com/", label: "Visit lincolncastle.com", external: true },
   },
