@@ -4,12 +4,13 @@ export default function CTA() {
   return (
     <section
       id="contact"
-      className="w-full px-6 py-28 text-center"
-      style={{
-        background: "radial-gradient(ellipse 80% 60% at 50% 50%, #1a1a2e 0%, #111113 70%)",
-      }}
+      className="relative w-full overflow-hidden px-6 py-24 text-center"
+      style={{ background: "#111113" }}
     >
-      <div className="mx-auto max-w-3xl">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="glow-b absolute left-1/2 top-1/2 h-[28rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#C8973A]/15 blur-[120px]" />
+      </div>
+      <div className="relative mx-auto max-w-3xl">
         <h2
           className="font-semibold text-foreground"
           style={{ fontSize: "clamp(2.2rem, 4vw, 3.5rem)", lineHeight: 1.15 }}
@@ -23,7 +24,7 @@ export default function CTA() {
 
       <Link
         href="/get-started"
-        className="mt-10 inline-flex items-center gap-3 rounded-full bg-foreground px-6 py-3.5 text-base font-medium text-background transition-opacity hover:opacity-80"
+        className="btn-shine mt-10 inline-flex items-center gap-3 rounded-full bg-foreground px-6 py-3.5 text-base font-medium text-background transition-transform hover:-translate-y-0.5"
       >
         Get your free mockup
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-background text-foreground text-xs">

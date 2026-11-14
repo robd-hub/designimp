@@ -6,7 +6,7 @@ interface AboutProps {
 
 export default function About({ full = false }: AboutProps) {
   return (
-    <section id="story" className="mx-auto max-w-7xl px-6 py-28">
+    <section id="story" className="mx-auto max-w-7xl px-6 py-20">
       <div className="grid gap-16 md:grid-cols-2 md:items-center">
         {/* Text column */}
         <div>

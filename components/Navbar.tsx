@@ -57,7 +57,7 @@ export default function Navbar() {
         {/* Desktop CTA */}
         <Link
           href="/get-started"
-          className="hidden md:flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-base font-medium text-background transition-opacity hover:opacity-80"
+          className="btn-shine hidden md:flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-base font-medium text-background transition-opacity hover:opacity-90"
         >
           Get a free mockup
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-background/20 text-sm">

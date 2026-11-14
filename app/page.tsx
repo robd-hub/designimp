@@ -16,6 +16,10 @@ import Process from "@/components/Process";
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 import AnimateIn from "@/components/AnimateIn";
+import PlayTeaser from "@/components/PlayTeaser";
+
+// A thin gold rule between sections.
+const Rule = () => <div aria-hidden="true" className="mx-auto h-px max-w-5xl bg-gradient-to-r from-transparent via-accent/40 to-transparent" />;
 
 export default function Home() {
   return (
@@ -25,11 +29,13 @@ export default function Home() {
       <LogoBar />
       <AnimateIn><Work /></AnimateIn>
       <AnimateIn><Labs /></AnimateIn>
+      <AnimateIn><PlayTeaser /></AnimateIn>
       <AnimateIn><About /></AnimateIn>
       <AnimateIn><Team /></AnimateIn>
       <Services />
+      <Rule />
       <Process />
-      <CTA />
+      <AnimateIn><CTA /></AnimateIn>
       <Footer />
     </main>
   );

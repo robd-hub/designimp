@@ -116,7 +116,7 @@ export const NPCS: Npc[] = [
     path: [[8, 3.7], [64, 3.7], [64, -3.7], [8, -3.7]],
     speed: 2.6,
     lines: [
-      "I run a shop out of town. Did you know 75% of people judge a business by its website alone?",
+      "I run a shop out of town. A Stanford study found the look of a website came up more than anything else when people judged whether to trust it.",
       "I'm thinking of grabbing that empty plot down the road. Free mockup, apparently.",
     ],
   },
@@ -144,7 +144,7 @@ export const NPCS: Npc[] = [
     path: [[-3.7, 8], [-3.7, 124], [3.7, 124], [3.7, 8]],
     speed: 2.4,
     lines: [
-      "88% of people won't come back after a bad experience on a website. Harsh, but fair.",
+      "Google found over half of mobile visits are given up if a page takes more than three seconds to load. Harsh, but fair.",
       "The Workshop's where all the websites get built. You can hear the hammering from here.",
     ],
   },
@@ -178,7 +178,7 @@ export const NPCS: Npc[] = [
     speed: 1.2,
     lines: [
       "Lovely, isn't she? Building started on this cathedral over 900 years ago.",
-      "Good-looking websites stop people leaving. 38% of people stop engaging with an unattractive layout.",
+      "Good design pays, you know. McKinsey found the most design-led companies grew their revenue much faster than the rest.",
     ],
   },
   {

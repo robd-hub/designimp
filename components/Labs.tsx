@@ -17,7 +17,7 @@ const PROJECTS = [
 
 export default function Labs() {
   return (
-    <section id="labs" className="mx-auto max-w-7xl px-6 py-28">
+    <section id="labs" className="mx-auto max-w-7xl px-6 py-20">
       <div className="mb-12">
         <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-accent">
           Labs
@@ -37,7 +37,7 @@ export default function Labs() {
             href={project.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="group block overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-foreground/30"
+            className="group block overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_24px_60px_-24px_rgba(200,151,58,0.45)]"
           >
             <div className="relative aspect-[16/10] w-full overflow-hidden">
               <Image
