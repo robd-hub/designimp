@@ -31,6 +31,7 @@ import { Venue } from "./EngineShed";
 import { Architecture } from "./Architecture";
 import { GloryBoat } from "./GloryHole";
 import SincilStreets from "./SincilStreets";
+import CastleStreets from "./CastleStreets";
 import { TrittonPark, TrittonShell } from "./TrittonPark";
 import { Lawn } from "./Lawn";
 import { Gatehouse, Yard, MinsterGrounds, SETTS } from "./MinsterYard";
@@ -1062,6 +1063,7 @@ export default function Town({ font }: { font: string }) {
       <River />
       <GloryBoat reduce={reduce} />
       <SincilStreets font={font} />
+      <CastleStreets font={font} />
       {signsReady &&
         PLACES.map((p) => {
           if (p.kind === "tank" || !inSeason(p, season)) return null;

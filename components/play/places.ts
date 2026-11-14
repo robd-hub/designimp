@@ -1165,9 +1165,9 @@ export const PLACES: Place[] = [
     name: "Ellis Mill",
     kicker: "Up on Mill Road",
     nav: "Ellis Mill",
-    // up on the ridge north-west of the castle, reached along a lane from Castle Square
+    // up on the ridge north-west of the castle, on the corner of Westgate and Burton Road
     x: -62,
-    z: -152,
+    z: -157,
     w: 6,
     d: 6,
     h: 8,
