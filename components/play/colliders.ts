@@ -179,6 +179,15 @@ function aroundBox(route: [number, number][], box: { x0: number; x1: number; z0:
   }
   return out;
 }
+// Up on the hill: walks that would cut through the cathedral go round it along the path round the precinct, and ones up
+// the slope south of it go round the Bishop's Old Palace (up the Greestone Stairs or the open ground west of it) and
+// the row of houses on the yard's south side, and round the Usher Gallery further down, rather than into their walls.
+function aroundClose(route: [number, number][]) {
+  const palace = footprint(PLACES.find((p) => p.kind === "ruins")!);
+  const south = MINSTER.south.map(yardBox),
+    row = { x0: south[0].x0, x1: south.at(-1)!.x1, z0: south[0].z0, z1: south[0].z1 };
+  return aroundBox(aroundBox(aroundBox(aroundBox(route, cathedral, P.w / 2 + 0.6), gallery, 2), palace, 2.5), row, 1.5);
+}
 // Round the airfield's fence from outside it, and round the jet on its stand inside.
 const aroundAirfield = (route: [number, number][]) => aroundBox(route, airfield, 2.5, (a, b) => inAirfield(a) || inAirfield(b));
 const aroundStand = (route: [number, number][]) => aroundBox(route, STAND_BOX, 0.8);
@@ -465,8 +474,17 @@ export const MINSTER = {
   forecourt: { x0: E.x + E.d / 2, x1: P.x0, z0: E.z - 7, z1: E.z + 7 },
   lawn: { x0: P.x0, x1: P.x1, z0: footprint(yardPlace).z1, z1: P.z0 },
   south: Array.from({ length: 5 }, (_, i) => ({ x: 63.2 + i * 6.4, z: P.z1 + 4.3, w: 6.4, d: 3.6 })),
+  // More of the close (MinsterYard.tsx, scenery without cards): three more houses on the north side, west of the row;
+  // the Deanery at the row's east end; the Chancery, its brick front facing the cathedral's east end across the road,
+  // with a short row of houses north of it; and the Bishop's Old Palace's grounds on the slope below its vineyard
+  // terrace, walled, with more vines and a gate onto the Greestone path. (w is always the x extent, d the z extent.)
+  closeWest: [39, 44, 49].map((x) => ({ x, z: yardPlace.z, w: 5, d: yardPlace.d })),
+  deanery: { x: 96, z: -156, w: 12, d: 7 },
+  chancery: { x: 111.6, z: -120, w: 5.2, d: 11 },
+  east: [-139.4, -135.2, -131].map((z) => ({ x: 110.8, z, w: 3.6, d: 4.2 })),
+  grounds: { x0: P.x0 + 1.5, x1: gallery.x0 - 3.5, z0: -95.5, z1: -83 },
 };
-const yardBox = (h: { x: number; z: number; w: number; d: number }) => ({ x0: h.x - h.w / 2, x1: h.x + h.w / 2, z0: h.z - h.d / 2, z1: h.z + h.d / 2 });
+export const yardBox = (h: { x: number; z: number; w: number; d: number }) => ({ x0: h.x - h.w / 2, x1: h.x + h.w / 2, z0: h.z - h.d / 2, z1: h.z + h.d / 2 });
 // A few trees on the lawn, clear of the walk from the path to the spur.
 export const YARD_TREES: [number, number, number][] = [
   [40, -149.4, 1],
@@ -854,7 +872,7 @@ export function crossings(from: [number, number], to: [number, number]): [number
   if (a && b) return aroundStand([from, to]).slice(1, -1);
   if (a) return [...aroundStand([from, AF_IN]).slice(1), AF_OUT, ...outside(AF_OUT, to)];
   if (b) return [...outside(from, AF_OUT), AF_OUT, ...aroundStand([AF_IN, to]).slice(0, -1)];
-  return throughCastle([from, ...outside(from, to), to]).slice(1, -1);
+  return throughCastle(aroundClose([from, ...outside(from, to), to])).slice(1, -1);
 }
 function townCrossings(from: [number, number], to: [number, number]): [number, number][] {
   const off = leaveDyke(from, to),
@@ -1176,7 +1194,7 @@ const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehous
     return [AIRFIELD.hangar, AIRFIELD.tower, AIRFIELD.heritage, AIRFIELD.guard, ...cars, ...AIRFIELD_FENCE].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), CASTLE_TERRACES.map(terraceBox), TRITTON_BOXES, STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES, DYKE_BOXES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), CASTLE_TERRACES.map(terraceBox), TRITTON_BOXES, STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), [...MINSTER.closeWest, MINSTER.deanery, MINSTER.chancery, ...MINSTER.east].map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES, DYKE_BOXES);
 
 const HIGH_STREET = { x0: -HIGH_ST, x1: HIGH_ST, z0: hill.z1, z1: -4.3 };
 const onRoad = (x: number, z: number) =>
@@ -1212,6 +1230,8 @@ const OLD_MILL_PATHS = [
   { x0: -63, x1: PATH_X + 4, z0: -148.2, z1: -146.2 },
 ];
 const OLD_BAILGATE_WEST = { x0: -8.3, x1: -4.3, z0: -151.8, z1: -130 };
+const nearMinsterMore = (x: number, z: number, pad: number) =>
+  [...MINSTER.closeWest, MINSTER.deanery, MINSTER.chancery, ...MINSTER.east].map(yardBox).concat(MINSTER.grounds).some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
 const nearCastleStreets = (x: number, z: number, pad: number) =>
   [...CASTLE_ROADS, ...CASTLE_TERRACES.map(terraceBox), ...LANDMARK_PATHS, millBox].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
 export const TREES: [number, number, number][] = (() => {
@@ -1234,7 +1254,7 @@ export const TREES: [number, number, number][] = (() => {
     }
   }
   // the streets down to Sincil Bank came later: the trees already there stay put, bar any in their way
-  return [...out.filter(([x, z]) => !nearSincil(x, z, 2) && !nearTritton(x, z, 2) && !nearAirfield(x, z, 3.5) && !nearEmergency(x, z, 2) && !nearCastleStreets(x, z, 2)), ...YARD_TREES];
+  return [...out.filter(([x, z]) => !nearSincil(x, z, 2) && !nearTritton(x, z, 2) && !nearAirfield(x, z, 3.5) && !nearEmergency(x, z, 2) && !nearCastleStreets(x, z, 2) && !nearMinsterMore(x, z, 2)), ...YARD_TREES];
 })();
 
 const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));

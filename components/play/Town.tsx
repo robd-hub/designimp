@@ -34,7 +34,7 @@ import SincilStreets from "./SincilStreets";
 import CastleStreets from "./CastleStreets";
 import { TrittonPark, TrittonShell } from "./TrittonPark";
 import { Lawn } from "./Lawn";
-import { Gatehouse, Yard, MinsterGrounds, SETTS } from "./MinsterYard";
+import { Gatehouse, Yard, MinsterGrounds, MoreClose, SETTS } from "./MinsterYard";
 import { LindumHill, PelhamBridge } from "./LindumHill";
 import { Crowd, Chant } from "./Matchday";
 import { TaxiRank } from "./Taxi";
@@ -1083,6 +1083,7 @@ export default function Town({ font }: { font: string }) {
       <Lamps />
       <Footpaths />
       <MinsterGrounds />
+      <MoreClose font={font} />
       {signsReady && <Wharf font={font} reduce={reduce} />}
       {signsReady && <Witham font={font} />}
       {signsReady && <Bailgate font={font} />}

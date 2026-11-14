@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import type { Place } from "./places";
 import { Part, geo, toon, WINDOW, LAMP, STONE_DARK } from "./toon";
 import { placeEvents } from "./store";
@@ -117,6 +117,116 @@ export const SETTS = 0xcdbf9f;
 const SOUTH_WALLS = [0xd8c3a0, 0xe8e0cf, 0xc98f6e, 0xe0d2b4, 0xb8735a];
 const SOUTH_ROOFS = [0x6e4a3a, 0x5b6b7a, 0x6e4a3a, 0x8a5a33, 0x5b6b7a];
 export const YARD_LAMPS: [number, number][] = [45, 60, 82].map((x) => [x, MINSTER.lawn.z1 - 0.6]);
+// ---------------------------------------------------------------------------------------------
+// More of the close (laid out in MINSTER, colliders.ts): scenery without cards, drawn without photos to go on, so the
+// shapes are generic: old houses, the stone Deanery with its porch, the Chancery's red-brick front with its stone
+// doorway and an oriel window, and the Old Palace's walled grounds below its vineyard terrace.
+type Box = { x: number; z: number; w: number; d: number };
+// A house facing one way ("s", "w" or "n"), in world coordinates; local x runs along its front.
+function CloseHouse({ b, face, h, wall, roof, door, children }: { b: Box; face: "s" | "w" | "n"; h: number; wall: number; roof: number; door: number; children?: ReactNode }) {
+  const side = face === "w";
+  const w = side ? b.d : b.w,
+    d = side ? b.w : b.d;
+  const r = useRoof(d + 0.4, 1.7, w + 0.1);
+  const rot = face === "s" ? 0 : face === "n" ? Math.PI : -Math.PI / 2;
+  const front = d / 2 + 0.03;
+  const across = Math.max(1, Math.round(w / 2.4));
+  return (
+    <group position={[b.x, groundY(b.z), b.z]} rotation-y={rot}>
+      <Part geometry={geo.box(w, h + 0.6, d)} color={wall} outline={0.04} position-y={h / 2 - 0.3} />
+      <Part geometry={r} color={roof} outline={0.04} position-y={h} />
+      <Part geometry={geo.box(0.6, 1.3, 0.6)} color={0x8a5a44} outline={0.03} position={[w / 2 - 0.7, h + 1.1, -0.5]} />
+      <Part geometry={geo.box(0.9, 1.8, 0.1)} color={door} outline={0.03} position={[0, 0.9, front]} />
+      {Array.from({ length: across }, (_, i) => -w / 2 + (w / across) * (i + 0.5)).flatMap((x) => [
+        <mesh key={`u${x}`} geometry={geo.box(0.8, 1, 0.06)} material={toon(WINDOW)} position={[x, h - 1.4, front]} />,
+        ...(Math.abs(x) > 0.8 ? [<mesh key={`l${x}`} geometry={geo.box(0.8, 1, 0.06)} material={toon(WINDOW)} position={[x, 1.5, front]} />] : []),
+      ])}
+      {children}
+    </group>
+  );
+}
+
+function NamePlate({ text, font, y, z }: { text: string; font: string; y: number; z: number }) {
+  const map = useSign(text, "#2b2633", font);
+  return (
+    <>
+      <Part geometry={geo.box(2.8, 0.6, 0.08)} color={0xfff8e7} outline={0.03} position={[0, y, z]} />
+      <Sign map={map} w={2.6} h={0.5} position={[0, y, z + 0.05]} />
+    </>
+  );
+}
+
+const CLOSE_WALLS = [0xd8c3a0, 0xe8e0cf, 0xc98f6e];
+const CLOSE_ROOFS = [0x5b6b7a, 0x6e4a3a, 0x8a5a33];
+const BRICK_FRONT = 0xa4472f;
+const GROUND_WALL = 0xb8a67f;
+
+function PalaceGrounds() {
+  const g = MINSTER.grounds;
+  const vines = useMemo(() => {
+    const out: Inst[] = [];
+    for (let z = g.z0 + 2; z < g.z1 - 1.5; z += 2.4) for (let x = g.x0 + 2.5; x < g.x1 - 2; x += 1.6) out.push({ at: [x, groundY(z) + 0.85, z], scale: [1.4, 0.8, 0.6] });
+    return out;
+  }, [g]);
+  const posts = useMemo(() => vines.map((v) => ({ at: [v.at[0], v.at[1] - 0.35, v.at[2]] as V3 })), [vines]);
+  // a low wall round the west, south and east sides in short lengths down the slope, a gate in the east side
+  const gate = (g.z0 + g.z1) / 2;
+  const walls = useMemo(() => {
+    const out: Inst[] = [];
+    for (let x = g.x0 + 0.5; x < g.x1; x += 1) out.push({ at: [x, groundY(g.z1) + 0.35, g.z1] });
+    for (let z = g.z0 + 0.5; z < g.z1; z += 1) {
+      out.push({ at: [g.x0, groundY(z) + 0.35, z], rot: [0, Math.PI / 2, 0] });
+      if (Math.abs(z - gate) > 1.2) out.push({ at: [g.x1, groundY(z) + 0.35, z], rot: [0, Math.PI / 2, 0] });
+    }
+    return out;
+  }, [g, gate]);
+  return (
+    <group raycast={() => null}>
+      <Strip w={g.x1 - g.x0} d={g.z1 - g.z0} color={0x7cc46a} x={(g.x0 + g.x1) / 2} z={(g.z0 + g.z1) / 2} y={0.03} />
+      <Strip w={g.x1 - g.x0 - 1} d={1.2} color={0xe8dcc2} x={(g.x0 + g.x1) / 2 + 0.5} z={gate} y={0.05} />
+      <Many geometry={geo.box(1.02, 0.7, 0.4)} color={GROUND_WALL} list={walls} />
+      <Many geometry={geo.cyl(0.05, 0.05, 1, 6)} color={0x6b4a2e} list={posts} />
+      <Many geometry={geo.sphere(0.4, 10, 8)} color={0x4f9a3a} list={vines} />
+      {[g.x0 + 3, g.x0 + 9].map((x) => (
+        <group key={x} position={[x, groundY(gate), gate - 1.1]}>
+          <Part geometry={geo.box(1.6, 0.12, 0.5)} color={0x8a5a33} outline={0.02} position-y={0.45} />
+          <Part geometry={geo.box(1.6, 0.5, 0.1)} color={0x8a5a33} outline={0.02} position={[0, 0.75, -0.22]} />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+export function MoreClose({ font }: { font: string }) {
+  const dn = MINSTER.deanery,
+    ch = MINSTER.chancery;
+  return (
+    <group raycast={() => null}>
+      {MINSTER.closeWest.map((b, i) => (
+        <CloseHouse key={b.x} b={b} face="s" h={[4.8, 5.6, 4.4][i]} wall={CLOSE_WALLS[i]} roof={CLOSE_ROOFS[i]} door={YARD_DOORS[i]} />
+      ))}
+      {MINSTER.east.map((b, i) => (
+        <CloseHouse key={b.z} b={b} face="w" h={[5, 4.4, 5.4][i]} wall={CLOSE_WALLS[(i + 1) % 3]} roof={CLOSE_ROOFS[(i + 2) % 3]} door={YARD_DOORS[i + 1]} />
+      ))}
+      {/* the Deanery: a bigger stone house with a porch, looking south across the lawn */}
+      <CloseHouse b={dn} face="s" h={6.4} wall={0xd8c9a8} roof={0x5b6470} door={0x2f4a3a}>
+        <Part geometry={geo.box(2.6, 2.8, 1.4)} color={STONE_DARK} outline={0.04} position={[0, 1.4, dn.d / 2 + 0.7]} />
+        <Part geometry={geo.box(1, 1.9, 0.1)} color={0x2f4a3a} outline={0.03} position={[0, 0.95, dn.d / 2 + 1.42]} />
+        <NamePlate text="The Deanery" font={font} y={2.35} z={dn.d / 2 + 1.45} />
+      </CloseHouse>
+      {/* the Chancery: a red-brick front with a stone doorway and an oriel window above it, facing the east end */}
+      <CloseHouse b={ch} face="w" h={5.6} wall={BRICK_FRONT} roof={0x8a5a33} door={0x5a3a22}>
+        <Part geometry={geo.box(1.6, 2.4, 0.2)} color={STONE_DARK} outline={0.03} position={[0, 1.2, ch.w / 2 + 0.06]} />
+        <Part geometry={geo.box(1, 1.8, 0.1)} color={0x5a3a22} outline={0.03} position={[0, 0.9, ch.w / 2 + 0.18]} />
+        <Part geometry={geo.box(2.2, 1.6, 0.8)} color={STONE_DARK} outline={0.04} position={[2.8, 3.6, ch.w / 2 + 0.4]} />
+        <mesh geometry={geo.box(1.8, 1.1, 0.06)} material={toon(WINDOW)} position={[2.8, 3.6, ch.w / 2 + 0.82]} />
+        <NamePlate text="The Chancery" font={font} y={2.9} z={ch.w / 2 + 0.1} />
+      </CloseHouse>
+      <PalaceGrounds />
+    </group>
+  );
+}
+
 export function MinsterGrounds() {
   const f = MINSTER.forecourt,
     l = MINSTER.lawn;
