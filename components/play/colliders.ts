@@ -578,7 +578,8 @@ export const CORNHILL_WAY = (CORNHILL[1].x0 + CORNHILL[1].x1) / 2;
 
 export const STALLS = [
   // (the east pair a little in from the Exchequer Gate, to leave its doorway and the way through its arch clear)
-  ...[-16, -10, 8, 13.5].map((x) => ({ x, z: CLOSE.z0 + 2.5 })),
+  // (the west pair clear of the door of the To Let plot on the corner of Bailgate)
+  ...[-20.5, -15.5, 8, 13.5].map((x) => ({ x, z: CLOSE.z0 + 2.5 })),
   // and two more on Cornhill, west of the Corn Exchange
   ...[22.2, 26.6].map((x) => ({ x, z: exchange.z0 + 3.4 })),
 ];
@@ -588,6 +589,7 @@ export const STALLS = [
 // far its frontage stands from the centre line, and the run is split into shops of equal length.
 // A run can also have its own centre line, cx, for the row along the west side of Cornhill.
 export const SHOPFRONT = { deep: 5, bailgate: 4 };
+const BAILGATE_LOT = footprint(PLACES.find((p) => p.id === "tolet-bailgate")!);
 const SHOP_RUNS: [number, number, number, number, number, number?][] = [
   ...[-1, 1].flatMap((side) => [
     // from the side streets by the river up to the Stonebow
@@ -597,14 +599,31 @@ const SHOP_RUNS: [number, number, number, number, number, number?][] = [
     side < 0 ? [side, HIGH_ST, WEST_PARADE.z + WEST_PARADE.half, -64.4, 2] : [side, HIGH_ST, -76, -64.4, 3], // West Parade takes the top plot on the west side
   ] as [number, number, number, number, number][]),
   [-1, BAILGATE.x1, WESTGATE.z + WESTGATE.half, CLOSE.z0, 4], // the west side stops at the corner of Westgate
-  [1, BAILGATE.x1, NEWPORT.z + NEWPORT.d / 2 + 0.6, CLOSE.z0, 5],
+  [1, BAILGATE.x1, NEWPORT.z + NEWPORT.d / 2 + 0.6, BAILGATE_LOT.z0, 2], // the east side, north of its To Let plot
   [-1, 5, CORNHILL[0].z0, CORNHILL[0].z1, 3, CORNHILL[0].x0 + 5], // backing onto the Town Hall, fronts onto the square
+  [1, BAILGATE.x1, BAILGATE_LOT.z1, CLOSE.z0, 2], // and south of it (last, so the runs before keep their colours)
 ];
 export const SHOPFRONTS = SHOP_RUNS.flatMap(([side, front, z0, z1, n, cx = 0], r) => {
   const len = (z1 - z0) / n,
     deep = front === HIGH_ST ? SHOPFRONT.deep : SHOPFRONT.bailgate;
   return Array.from({ length: n }, (_, i) => ({ side, x: cx + side * (front + deep / 2), z: z0 + len * (i + 0.5), len, deep, k: r * 2 + i, i, bailgate: front === BAILGATE.x1 }));
 });
+
+// The buildings along Castle Square's north side, either side of Bailgate (west of it two shops and the To Let plot on
+// the corner, keeping clear the footpath north to Westgate; east of it the big timber-framed house on the corner and a
+// little shop up to the Exchequer Gate), and the two houses on Minster Yard's north side just past the gate. All face
+// south, onto the square or the yard: each runs x0 to x1 along the row, d deep back from its front at z = front.
+const SQ_FRONT = CLOSE.z0 - 0.3,
+  YARD_FRONT = -136;
+export const SQUARE_FRONTS = [
+  { id: "sq-west-1", x0: -22.4, x1: -18.1, front: SQ_FRONT, d: 5 },
+  { id: "sq-west-2", x0: -17.9, x1: -13.8, front: SQ_FRONT, d: 5 },
+  { id: "timber-house", x0: 8.7, x1: 15.9, front: SQ_FRONT, d: 5.4 },
+  { id: "sq-east", x0: 16.1, x1: 19.4, front: SQ_FRONT, d: 5 },
+  { id: "yard-stone", x0: 24.8, x1: 29, front: YARD_FRONT, d: 4.5 },
+  { id: "yard-white", x0: 29.2, x1: 32.6, front: YARD_FRONT, d: 4 },
+];
+export const frontBox = (f: (typeof SQUARE_FRONTS)[number]) => ({ x0: f.x0, x1: f.x1, z0: f.front - f.d, z1: f.front });
 
 // The Stonebow: the old city gate with the Guildhall above it, spanning the pedestrianised
 // High Street just north of the Post and the Town Hall, partway up to Steep Hill. As on the real
@@ -1386,7 +1405,7 @@ const boxes = PLACES.filter((p) => !["tank", "gate", "arch", "market", "gatehous
     return [AIRFIELD.hangar, AIRFIELD.tower, AIRFIELD.heritage, AIRFIELD.guard, ...cars, ...AIRFIELD_FENCE].map((b) => toWorld(p, b));
   }
   return [{ x0: f.x0 - 0.4, x1: f.x1 + 0.4, z0: f.z0 - 0.4, z1: f.z1 + 0.4 }];
-}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), CASTLE_TERRACES.map(terraceBox), WEST_PARADE_TERRACES.map(terraceBox), EAST_TERRACES.map(terraceBox), TRITTON_BOXES, STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), [...MINSTER.closeWest, MINSTER.deanery, MINSTER.chancery, ...MINSTER.east].map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES, DYKE_BOXES);
+}).concat(HOUSES.map((h) => ({ x0: h.x - HOUSE.d / 2, x1: h.x + HOUSE.d / 2, z0: h.z - HOUSE.w / 2, z1: h.z + HOUSE.w / 2 })), SHOPFRONTS.map((h) => ({ x0: h.x - h.deep / 2, x1: h.x + h.deep / 2, z0: h.z - h.len / 2, z1: h.z + h.len / 2 })), STALLS.map((s) => ({ x0: s.x - STALL.w / 2, x1: s.x + STALL.w / 2, z0: s.z - STALL.d / 2, z1: s.z + STALL.d / 2 })), WHARF_BARS.map(barBox), ST_MARKS.units.map(barBox), TERRACES.map(terraceBox), CASTLE_TERRACES.map(terraceBox), WEST_PARADE_TERRACES.map(terraceBox), EAST_TERRACES.map(terraceBox), SQUARE_FRONTS.map(frontBox), TRITTON_BOXES, STONEBOW_PIERS, NEWPORT_PIERS, EXCHEQUER_BOXES, MINSTER.south.map(yardBox), [...MINSTER.closeWest, MINSTER.deanery, MINSTER.chancery, ...MINSTER.east].map(yardBox), RIVER_BOXES, WITHAM_BOXES, RAIL_FENCES, STATION_BOXES, DYKE_BOXES);
 
 const HIGH_STREET = { x0: -HIGH_ST, x1: HIGH_ST, z0: hill.z1, z1: -4.3 };
 const onRoad = (x: number, z: number) =>
@@ -1399,6 +1418,7 @@ const onRoad = (x: number, z: number) =>
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
   SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
+  SQUARE_FRONTS.map(frontBox).some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   [...[...WHARF_BARS, ...ST_MARKS.units].map(barBox), ...MINSTER.south.map(yardBox), ...LINDUM.houses.map(lindumBox), OLD_BAILGATE_WEST, OLD_HIGH_ST_TOP, OLD_CLASKET_SHOP].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   PLACES.some((p) => {
     if (p.id.startsWith("tritton-") || EMERGENCY_IDS.includes(p.id)) return false; // added later, and cleared of trees afterwards instead
