@@ -3,7 +3,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PLACES, inSeason, currentSeason, type Place, type Season } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
-import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH, clearLine } from "./colliders";
+import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH, clearLine, upOnWalls, WALL_WALK } from "./colliders";
 import { cleanName, cleanType, cleanColour, type ShopType } from "./shop";
 
 type PlayState = {
@@ -270,7 +270,7 @@ export function walkTo(p: Place) {
   s.close();
   s.endTalk();
   // Setting off from out along one of those paths: walk back down it to the road before going anywhere else.
-  const out = leaveApproach(p.id);
+  const out = upOnWalls() ? [] : leaveApproach(p.id); // up on the castle walls, the walk comes down the steps first
   const start: [number, number] = out.at(-1) ?? [game.pos.x, game.pos.z];
   const back = out.map(([x, z]) => new THREE.Vector3(x, 0, z));
   // Landmarks out beyond the streets have a path of their own: join it at its nearest point and follow it in.
@@ -333,6 +333,7 @@ export function taxiTo(p: Place) {
   setTimeout(() => {
     const door = DOORS.get(p.id)!;
     game.pos.copy(door);
+    WALL_WALK.level = "ground";
     game.face = Math.atan2(p.x - door.x, p.z - door.z);
     game.target = null;
     game.via = [];

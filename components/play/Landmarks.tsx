@@ -4,7 +4,7 @@ import { useFrame, type ThreeElements } from "@react-three/fiber";
 import type { Place } from "./places";
 import { Part, geo, toon, signTexture, INK, WINDOW, LAMP, STONE, STONE_DARK } from "./toon";
 import { placeEvents } from "./store";
-import { BRAYFORD, CANNONS, CASTLE, NEWPORT, RIVER, RIVER_RUNS, STONEBOW, STREET_ROW, seeded, streetHouses } from "./colliders";
+import { BRAYFORD, CANNONS, CASTLE, NEWPORT, walkwayY, RIVER, RIVER_RUNS, STONEBOW, STREET_ROW, seeded, streetHouses } from "./colliders";
 import { Strip, groundY, groundTilt, humpY, FOOT_HUMP } from "./terrain";
 import { useRoof } from "./MoreLandmarks";
 
@@ -146,58 +146,194 @@ function Cannon(g: { position: [number, number, number] }) {
 const PRISON_BRICK = 0xa9553f,
   SLATE = 0x5b6b7a,
   GRAVEL = 0xd8c9a6,
-  GRASS = 0x5fbf5b;
-function CastleWall({ len, along, ...g }: { len: number; along: "x" | "z"; position: [number, number, number] }) {
+  GRASS = 0x5fbf5b,
+  WALKWAY = 0xcfc2a2;
+function CastleWall({ len, along, out, ...g }: { len: number; along: "x" | "z"; out: 1 | -1; position: [number, number, number] }) {
   const { wall, thick } = CASTLE;
+  // turned to run along z, the wall's own +z faces the castle's +x
   return (
     <group {...g} rotation-y={along === "z" ? Math.PI / 2 : 0}>
       <Part geometry={geo.box(len, wall, thick)} color={CASTLE_STONE} outline={0.08} position-y={wall / 2} />
-      <Crenels len={len} y={wall + 0.35} />
+      {/* the walkway along the top, the battlements along its outer edge */}
+      <mesh geometry={geo.box(len, 0.04, thick - 0.6)} material={toon(WALKWAY)} position={[0, wall + 0.02, (-out * 0.6) / 2]} receiveShadow />
+      <Crenels len={len} y={wall + 0.35} position={[0, 0, out * (thick / 2 - 0.45)]} />
     </group>
   );
 }
-function RoundTower({ r, h, ...g }: { r: number; h: number; position: [number, number, number] }) {
+// A round tower whose roof is on the wall walk, ringed with battlements, and the steps up to it along each wall
+// (dirs: the way along each wall away from the tower, in castle coordinates).
+function RoundTower({ r, dirs, ...g }: { r: number; dirs: [number, number][]; position: [number, number, number] }) {
+  const h = CASTLE.towerTop;
+  const n = Math.round(r * 4.5);
   return (
     <group {...g}>
-      <Part geometry={geo.cyl(r, r + 0.2, h, 14)} color={CASTLE_DARK} outline={0.08} position-y={h / 2} />
-      <Part geometry={geo.cyl(r + 0.3, r + 0.3, 0.6, 14)} color={CASTLE_STONE} outline={0.06} position-y={h + 0.3} />
+      <Part geometry={geo.cyl(r, r + 0.2, h, 16)} color={CASTLE_DARK} outline={0.08} position-y={h / 2} />
+      <mesh geometry={geo.cyl(r - 0.05, r - 0.05, 0.04, 16)} material={toon(WALKWAY)} position-y={h + 0.02} receiveShadow />
+      {Array.from({ length: n }, (_, i) => {
+        const a = (i / n) * Math.PI * 2;
+        return <Part key={i} geometry={geo.box(0.6, 0.7, 0.4)} color={CASTLE_STONE} outline={0.04} position={[Math.cos(a) * (r - 0.1), h + 0.35, Math.sin(a) * (r - 0.1)]} rotation-y={-a + Math.PI / 2} />;
+      })}
+      {dirs.flatMap(([dx, dz], j) =>
+        [0.85, 0.5, 0.15].map((k) => {
+          // each step's top where the Imp's feet are on the walkway (walkwayY), set in to the walkway's middle
+          const d = r + k;
+          const cx = (g.position[0] + dx * d) as number,
+            cz = (g.position[2] + dz * d) as number;
+          const top = walkwayY(cx, cz) - CASTLE.wall;
+          const inX = -Math.sign(g.position[0]) * 0.5,
+            inZ = -Math.sign(g.position[2]) * 0.5;
+          return (
+            <Part
+              key={`${j}${k}`}
+              geometry={geo.box(dx ? 0.36 : 0.85, top, dz ? 0.36 : 0.85)}
+              color={CASTLE_STONE}
+              outline={0.03}
+              position={[dx * d + (dx ? 0 : inX), CASTLE.wall + top / 2, dz * d + (dz ? 0 : inZ)]}
+            />
+          );
+        }),
+      )}
+    </group>
+  );
+}
+// A dark doorway at the wall walk's height in a gatehouse's side, where the walk goes through.
+function WalkDoor({ x, z, side }: { x: number; z: number; side: 1 | -1 }) {
+  return (
+    <mesh position={[x + side * 0.02, CASTLE.wall + 1, z]} rotation-y={(side * Math.PI) / 2}>
+      <planeGeometry args={[0.9, 2]} />
+      <meshBasicMaterial color={0x2a2018} />
+    </mesh>
+  );
+}
+// The steps up to the wall walk against the front wall's inside: solid stone blocks rising to a landing.
+function WallStair() {
+  const { stair: s, wall, thick, hd } = CASTLE;
+  const run = s.x1 - s.landing - s.x0,
+    n = 12;
+  const z0 = s.z0,
+    z1 = hd - thick / 2;
+  return (
+    <group position-z={(z0 + z1) / 2}>
+      {Array.from({ length: n }, (_, i) => {
+        const top = ((i + 0.5) / n) * wall;
+        return <Part key={i} geometry={geo.box(run / n + 0.01, top, z1 - z0)} color={CASTLE_STONE} outline={0.03} position={[s.x0 + ((i + 0.5) * run) / n, top / 2, 0]} />;
+      })}
+      <Part geometry={geo.box(s.landing, wall, z1 - z0)} color={CASTLE_STONE} outline={0.05} position={[s.x1 - s.landing / 2, wall / 2, 0]} />
+    </group>
+  );
+}
+// The Crown Court, from its front onto the bailey: a castellated Gothic Revival front of pale stone, the ground floor an
+// arcade of arches, the middle bay standing forward and taller with three tall windows and the royal arms over them,
+// slim octagonal turrets with battlemented tops, and ivy up the front. Its own coordinates: front at +z.
+const COURT_STONE = 0xdcccaa,
+  COURT_SHADE = 0x6e5c45,
+  IVY = 0x3f7a35;
+function Turret({ r, h, position }: { r: number; h: number; position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <Part geometry={geo.cyl(r, r, h, 8)} color={COURT_STONE} outline={0.04} position-y={h / 2} />
+      <Part geometry={geo.cyl(r + 0.14, r + 0.1, 0.45, 8)} color={COURT_STONE} outline={0.04} position-y={h + 0.2} />
+    </group>
+  );
+}
+function CrownCourt({ w, d }: { w: number; d: number }) {
+  const f = d / 2,
+    wing = (w - 3) / 2;
+  const upper = { d: d - 1.6, z: -0.8 };
+  const upperFront = upper.z + upper.d / 2;
+  return (
+    <group>
+      <Part geometry={geo.box(w, 3, d)} color={COURT_STONE} outline={0.08} position-y={1.5} />
+      {[-1, 1].map((s) => (
+        <group key={s} position-x={s * (1.5 + wing / 2)}>
+          {/* the arcade along the front, shade behind its arches */}
+          <mesh geometry={geo.box(wing, 2.1, 0.05)} material={toon(COURT_SHADE)} position={[0, 1.05, f + 0.03]} />
+          <mesh geometry={geo.arches(wing, 3, 0.6, [-1.2, 0, 1.2].map((x) => [x, 0.8, 1.45] as const))} material={toon(COURT_STONE)} position={[0, 0, f + 0.3]} castShadow />
+          <Crenels len={wing} y={3.3} position={[0, 0, f + 0.3]} />
+          {/* upstairs windows, and ivy over the arcade */}
+          {[-1, 1].map((k) => (
+            <Part key={k} geometry={geo.box(0.5, 1.3, 0.06)} color={WINDOW} outline={0.03} position={[k * 0.8, 4.4, upperFront + 0.03]} />
+          ))}
+          <mesh geometry={geo.box(wing * 0.55, 0.7, 0.08)} material={toon(IVY)} position={[s * -0.4, 2.85, f + 0.62]} />
+        </group>
+      ))}
+      <Part geometry={geo.box(w - 1, 2.8, upper.d)} color={COURT_STONE} outline={0.08} position={[0, 4.4, upper.z]} />
+      <Crenels len={w - 1} y={6.15} position={[0, 0, upperFront - 0.35]} />
+      {/* the middle bay: three tall windows, the royal arms above, the door below */}
+      <group position-z={0.5}>
+        <Part geometry={geo.box(3, 6.6, d + 0.6)} color={COURT_STONE} outline={0.08} position-y={3.3} />
+        <Crenels len={3} y={6.95} position={[0, 0, f - 0.15]} />
+        {[-0.8, 0, 0.8].map((x) => (
+          <group key={x} position={[x, 0, f + 0.31]}>
+            <Part geometry={geo.box(0.55, 1.7, 0.06)} color={WINDOW} outline={0.03} position-y={4.5} />
+            <Part geometry={geo.cone(0.28, 0.4, 4)} color={WINDOW} outline={0.02} position-y={5.55} rotation-y={Math.PI / 4} scale={[1, 1, 0.12]} />
+          </group>
+        ))}
+        <Part geometry={geo.box(1, 0.75, 0.08)} color={0xece2c8} outline={0.03} position={[0, 6.15, f + 0.32]} />
+        <Part geometry={geo.box(0.45, 0.45, 0.04)} color={0x8a6a3a} outline={0} position={[0, 6.15, f + 0.37]} />
+        <mesh geometry={geo.arches(1.6, 2.4, 0.2, [[0, 1, 1.4]])} material={toon(COURT_STONE)} position={[0, 0, f + 0.35]} />
+        <Part geometry={geo.box(1, 1.9, 0.06)} color={0x3a2a1a} outline={0.03} position={[0, 0.95, f + 0.31]} />
+        {/* ivy up both sides of the bay */}
+        {[-1, 1].map((s) => (
+          <mesh key={s} geometry={geo.box(0.7, 5.4, 0.08)} material={toon(IVY)} position={[s * 1.15, 2.7, f + 0.33]} />
+        ))}
+      </group>
+      {/* the turrets: a tall pair either side of the middle bay, one at each end of the upper floor, small ones at the
+          ends of the arcade */}
+      {[-1, 1].map((s) => (
+        <group key={s}>
+          <Turret r={0.36} h={8} position={[s * 1.6, 0, f + 0.6]} />
+          <Turret r={0.36} h={7.1} position={[s * (w / 2 - 0.7), 0, upperFront - 0.3]} />
+          <Turret r={0.28} h={3.9} position={[s * (w / 2 - 0.1), 0, f + 0.3]} />
+        </group>
+      ))}
     </group>
   );
 }
 export function Castle({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, "#5b6b7a", font), [p, font]);
-  const { hw, hd, westGate: wg, lucy, observatory: obs, prison, vault, court } = CASTLE;
+  const { hw, hd, westGate: wg, lucy, observatory: obs, prison, vault, court, towers } = CASTLE;
   const mid = (a: number, b: number) => (a + b) / 2;
+  const walkZ = hd - 0.5; // the wall walk's middle line along the front wall, through the East Gate
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <mesh geometry={geo.box(2 * hw - 1, 0.06, 2 * hd - 1)} material={toon(GRASS)} position-y={0.04} receiveShadow />
-      {/* gravel paths: in from the East Gate, across, and out to the West Gate */}
-      <Part geometry={geo.box(2, 0.04, hd + 1)} color={GRAVEL} position={[0, 0.08, (hd - 1) / 2]} />
+      {/* gravel paths: in from the East Gate straight across to the Crown Court's door, with a drive in front of it,
+          and out to the West Gate */}
+      <Part geometry={geo.box(2, 0.04, hd - court.z1)} color={GRAVEL} position={[0, 0.08, (hd + court.z1) / 2]} />
+      <Part geometry={geo.box(court.x1 - court.x0 - 2, 0.04, 2)} color={GRAVEL} position={[mid(court.x0, court.x1), 0.08, court.z1 + 1]} />
       <Part geometry={geo.box(wg + 2, 0.04, 2)} color={GRAVEL} position={[wg / 2, 0.08, -1]} />
       <Part geometry={geo.box(2, 0.04, hd - 1)} color={GRAVEL} position={[wg, 0.08, (-hd - 1) / 2]} />
       {/* curtain walls: north and south full length, the back and front either side of their gates */}
-      <CastleWall len={2 * hd} along="z" position={[hw, 0, 0]} />
-      <CastleWall len={2 * hd} along="z" position={[-hw, 0, 0]} />
-      <CastleWall len={wg - 2.2 + hw} along="x" position={[mid(-hw, wg - 2.2), 0, -hd]} />
-      <CastleWall len={hw - wg - 2.2} along="x" position={[mid(wg + 2.2, hw), 0, -hd]} />
-      <CastleWall len={hw - 3.2} along="x" position={[mid(-hw, -3.2), 0, hd]} />
-      <CastleWall len={hw - 3.2} along="x" position={[mid(3.2, hw), 0, hd]} />
+      <CastleWall len={2 * hd} along="z" out={1} position={[hw, 0, 0]} />
+      <CastleWall len={2 * hd} along="z" out={-1} position={[-hw, 0, 0]} />
+      <CastleWall len={wg - 2.2 + hw} along="x" out={-1} position={[mid(-hw, wg - 2.2), 0, -hd]} />
+      <CastleWall len={hw - wg - 2.2} along="x" out={-1} position={[mid(wg + 2.2, hw), 0, -hd]} />
+      <CastleWall len={hw - 3.2} along="x" out={1} position={[mid(-hw, -3.2), 0, hd]} />
+      <CastleWall len={hw - 3.2} along="x" out={1} position={[mid(3.2, hw), 0, hd]} />
+      <WallStair />
       {/* round towers at the north corners, Cobb Hall the big one at the north-east; the south corners are the mottes' */}
-      <RoundTower r={2.2} h={7.5} position={[hw, 0, hd]} />
-      <RoundTower r={1.7} h={7} position={[hw, 0, -hd]} />
-      {/* the East Gate, open through its arch, its front flush with the wall's and the name over it */}
-      <mesh geometry={geo.arches(6.4, 8, 3, [[0, 2.4, 2.4]])} material={toon(CASTLE_DARK)} position={[0, 0, hd - 0.9]} castShadow />
-      <Crenels len={6.4} y={8.35} position={[0, 0, hd + 0.1]} />
-      <mesh position={[0, 6.2, hd + 0.63]}>
+      {towers.map((t) => (
+        <RoundTower key={t.z} r={t.r} position={[t.x, 0, t.z]} dirs={[[0, -Math.sign(t.z)], [-1, 0]]} />
+      ))}
+      {/* the East Gate, open through its arch, its front flush with the wall's and the name over it; the wall walk goes
+          through it at the walls' height */}
+      <mesh geometry={geo.arches(6.4, 8, 3, [[0, 2.4, 2.4]])} material={toon(CASTLE_DARK)} position={[0, 0, hd - 0.5]} castShadow />
+      <Crenels len={6.4} y={8.35} position={[0, 0, hd + 0.55]} />
+      <mesh position={[0, 6.2, hd + 1.03]}>
         <planeGeometry args={[5.6, 1.4]} />
         <meshBasicMaterial map={sign} toneMapped={false} />
       </mesh>
+      <WalkDoor x={3.2} z={walkZ} side={1} />
+      <WalkDoor x={-3.2} z={walkZ} side={-1} />
       {CANNONS.map((c) => (
         <Cannon key={c.x} position={[c.x, 0, c.z]} />
       ))}
-      {/* the West Gate, smaller, out the back */}
-      <mesh geometry={geo.arches(4.4, 6.5, 2.4, [[0, 2.2, 2.2]])} material={toon(CASTLE_DARK)} position={[wg, 0, -hd]} castShadow />
-      <Crenels len={4.4} y={6.85} position={[wg, 0, -hd - 0.8]} />
+      {/* the West Gate, smaller, out the back, tall enough for the wall walk through it */}
+      <mesh geometry={geo.arches(4.4, 7.6, 2.4, [[0, 2.2, 2.2]])} material={toon(CASTLE_DARK)} position={[wg, 0, -hd]} castShadow />
+      <Crenels len={4.4} y={7.95} position={[wg, 0, -hd - 0.8]} />
+      <WalkDoor x={wg + 2.2} z={-walkZ} side={1} />
+      <WalkDoor x={wg - 2.2} z={-walkZ} side={-1} />
       {/* Lucy Tower: the shell keep on the west motte, grassed inside */}
       <group position={[lucy.x, 0, lucy.z]}>
         <Part geometry={geo.cyl(lucy.r - 1.6, lucy.r, lucy.h, 24)} color={GRASS} outline={0.06} position-y={lucy.h / 2} />
@@ -233,14 +369,9 @@ export function Castle({ p, font }: { p: Place; font: string }) {
         <Part geometry={geo.box(vault.x1 - vault.x0, 3, vault.z1 - vault.z0)} color={0xd9cbb0} outline={0.07} position-y={1.5} />
         <Part geometry={geo.box(0.1, 1.2, vault.z1 - vault.z0 - 1)} color={WINDOW} outline={0.03} position={[-(vault.x1 - vault.x0) / 2 - 0.05, 1.8, 0]} />
       </group>
-      {/* the Crown Court by the West Gate, castellated, its front facing into the bailey */}
+      {/* the Crown Court across the bailey from the East Gate, its front facing it */}
       <group position={[mid(court.x0, court.x1), 0, mid(court.z0, court.z1)]}>
-        <Part geometry={geo.box(court.x1 - court.x0, 5, court.z1 - court.z0)} color={0xe8dcc2} outline={0.08} position-y={2.5} />
-        <Crenels len={court.x1 - court.x0} y={5.35} position={[0, 0, (court.z1 - court.z0) / 2 - 0.45]} />
-        {[-2.4, -0.8, 0.8, 2.4].map((x) => (
-          <Part key={x} geometry={geo.box(0.6, 1.6, 0.1)} color={WINDOW} outline={0.03} position={[x, 3, (court.z1 - court.z0) / 2 + 0.05]} />
-        ))}
-        <Part geometry={geo.box(1.1, 1.9, 0.12)} color={0x3a2a1a} outline={0.04} position={[0, 0.95, (court.z1 - court.z0) / 2 + 0.06]} />
+        <CrownCourt w={court.x1 - court.x0} d={court.z1 - court.z0} />
       </group>
     </group>
   );

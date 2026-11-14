@@ -3,7 +3,7 @@ import * as THREE from "three";
 import type { ThreeElements } from "@react-three/fiber";
 import { PLACES, footprint } from "./places";
 import { toon } from "./toon";
-import { PELHAM, RIVER } from "./colliders";
+import { PELHAM, RIVER, WALL_WALK, wallWalkY } from "./colliders";
 
 // Uphill Lincoln: the ground climbs Steep Hill to the cathedral and castle on the hilltop,
 // while the high street, the Brayford and everything south of them stay down by the river.
@@ -47,6 +47,14 @@ export function deckY(x: number, z: number) {
   if (z < P.b) return (P.h * (z - P.a)) / (P.b - P.a);
   if (z > P.c) return (P.h * (P.d - z)) / (P.d - P.c);
   return P.h;
+}
+
+// How high above the ground the Imp stands at a point: on a bridge deck, or up the castle's steps or on its walls
+// (measured from the castle's own ground level, which the castle is drawn on).
+const castleZ = PLACES.find((p) => p.kind === "castle")!.z;
+export function liftY(x: number, z: number) {
+  const up = wallWalkY(x, z, WALL_WALK.level);
+  return up ? groundY(castleZ) + up - groundY(z) : deckY(x, z);
 }
 
 // Rotation about x that lays something flat on the slope at z.

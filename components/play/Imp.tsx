@@ -4,8 +4,8 @@ import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { Part, geo, toon, INK, STONE } from "./toon";
 import { game, usePlay, nearestPlace, nearestNpc, autoWalking, DOORS } from "./store";
 import { npcPos } from "./npcs";
-import { atBarrier, blocked, crossings } from "./colliders";
-import { groundY, groundTilt, deckY } from "./terrain";
+import { atBarrier, blocked, crossings, settleLevel } from "./colliders";
+import { groundY, groundTilt, liftY } from "./terrain";
 import { footstep, squeak } from "./sound";
 
 const SKIN = 0xd9a441; // Design Imp gold, a touch warmer
@@ -141,6 +141,7 @@ export default function Imp({ reduce }: { reduce: boolean }) {
           pos.z += vz * sp;
         }
       }
+      settleLevel(pos.x, pos.z); // onto the castle's steps, up onto its walls, or back down
       if (!steered) {
         let d = Math.atan2(vx, vz) - game.face;
         d = Math.atan2(Math.sin(d), Math.cos(d));
@@ -187,7 +188,7 @@ export default function Imp({ reduce }: { reduce: boolean }) {
     tail.current.rotation.y = reduce ? 0 : Math.sin(t * (moving ? 6 : 3)) * (moving ? 0.25 : 0.35);
     tail.current.rotation.x = moving ? 0.25 : 0;
     // game.pos stays on the flat map; the imp is drawn up on the hill wherever the ground rises
-    const gy = groundY(pos.z) + deckY(pos.x, pos.z); // up on Pelham Bridge's deck too
+    const gy = groundY(pos.z) + liftY(pos.x, pos.z); // up on Pelham Bridge's deck, or the castle walls, too
     body.current.position.set(pos.x, gy + (moving ? Math.abs(Math.sin(walkT.current)) * 0.12 : 0), pos.z);
     // he turns to face the camera to pose for the sit
     const toCam = Math.atan2(Math.sin(-game.face), Math.cos(-game.face));

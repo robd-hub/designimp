@@ -748,7 +748,8 @@ export const PLACES: Place[] = [
     intro: [
       "William the Conqueror started building Lincoln Castle in 1068, right next to where the cathedral now stands.",
       "Today it's home to an original 1215 Magna Carta, and you can walk right round the medieval walls.",
-      "Step through the East Gate into the bailey: the Victorian prison and the Magna Carta Vault are inside, with Lucy Tower up on its mound in the corner.",
+      "Step through the East Gate into the bailey: the Victorian prison, the Magna Carta Vault and the Crown Court are inside, with Lucy Tower up on its mound in the corner.",
+      "Climb the steps just inside the East Gate for the Medieval Wall Walk, right round the top of the walls and over Cobb Hall.",
     ],
     link: { href: "https://www.lincolncastle.com/", label: "Visit lincolncastle.com", external: true },
   },
