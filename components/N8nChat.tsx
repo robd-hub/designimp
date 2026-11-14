@@ -126,9 +126,11 @@ export default function N8nChat({ id, webhookUrl, title, subtitle, initialMessag
         width: 36px;
         height: 36px;
         border-radius: 50%;
+        background-color: #111113;
         background-image: url("/logo-icon.png");
-        background-size: cover;
-        background-position: center;
+        background-size: 74%;
+        background-repeat: no-repeat;
+        background-position: center 55%;
       }
       .chat-header::after {
         content: "";
