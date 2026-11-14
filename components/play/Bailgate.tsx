@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { Place } from "./places";
 import { Part, geo, toon, signTexture, WINDOW, LAMP } from "./toon";
-import { BAILGATE, CLOSE, SHOPFRONTS } from "./colliders";
+import { BAILGATE, CLOSE, SHOPFRONTS, SQUARE_FRONTS } from "./colliders";
 import { groundY, groundTilt } from "./terrain";
 import { placeEvents, usePlay } from "./store";
 import { NamePlate } from "./Wharf";
@@ -21,15 +21,20 @@ const LOOKS: Record<number, Look[]> = {
     { name: "Thimble & Thread", kind: "shop", tudor: true, wall: 0xfaf3e3, front: 0x7a3b8f },
     { name: "Quill & Ink", kind: "shop", tudor: false, wall: 0xf5dfa0, front: 0x2b59c3 },
     { name: "Pennyfeather Teas", kind: "tea", tudor: true, wall: 0xe8c36a, front: 0x9fc7b3 },
-    { name: "The Wandering Imp", kind: "pub", tudor: false, wall: 0xf2e2c4, front: 0x6b1f2a },
   ],
+  // the east side, with its To Let plot between the second and third
   [1]: [
     { name: "The Bishop's Mitre", kind: "pub", tudor: true, wall: 0xfaf3e3, front: 0x1f2f5a },
     { name: "Cobble Cheese Co.", kind: "shop", tudor: false, wall: 0xc9dbe8, front: 0xffb627 },
-    { name: "Honeycomb Sweets", kind: "shop", tudor: true, wall: 0xf2d6c4, front: 0xe03a3e },
     { name: "Bailgate Books", kind: "shop", tudor: false, wall: 0xa9553f, front: 0x2f8f5b },
     { name: "Minster Teacups", kind: "tea", tudor: true, wall: 0xe8f0d8, front: 0xd77a61 },
   ],
+};
+// The shops along Castle Square's north side (SQUARE_FRONTS in colliders.ts), made up like Bailgate's.
+const SQUARE_LOOKS: Record<string, Look> = {
+  "sq-west-1": { name: "Honeycomb Sweets", kind: "shop", tudor: true, wall: 0xf2d6c4, front: 0xe03a3e },
+  "sq-west-2": { name: "The Wandering Imp", kind: "pub", tudor: false, wall: 0xf2e2c4, front: 0x6b1f2a },
+  "sq-east": { name: "Portcullis Coffee", kind: "tea", tudor: false, wall: 0xa9553f, front: 0x1f3f6b },
 };
 
 const SHOPS = SHOPFRONTS.filter((s) => s.bailgate);
@@ -90,20 +95,23 @@ function Lantern({ x, y, z, night }: { x: number; y: number; z: number; night: b
   );
 }
 
-// One of Bailgate's shops, its front onto the street. It is drawn level, on a plinth that takes up the slope.
-function BailgateShop({ o, font }: { o: (typeof SHOPS)[number]; font: string }) {
-  const look = LOOKS[o.side][o.i];
+// One of the old shops, its front (+z here) onto Bailgate or Castle Square, w along the front and d deep, turned by rot.
+// It is drawn level, on a plinth that takes up the slope.
+type Spot = { x: number; z: number; w: number; d: number; rot: number };
+function BailgateShop({ at, look, i, font, night }: { at: Spot; look: Look; i: number; font: string; night: boolean }) {
   const fascia = useSign(look.name, "#1a1320", font);
-  const w = o.len - 0.15,
-    d = o.deep,
+  const hanging = useSign(look.name.replace(/^The /, "").replace(" ", "\n"), "#1a1320", font);
+  const w = at.w - 0.15,
+    d = at.d,
     f = d / 2;
-  const h = look.tudor ? 5.4 : 6.2 + (o.i % 2) * 0.4;
+  const h = look.tudor ? 5.4 : 6.2 + (i % 2) * 0.4;
   const jetty = look.tudor ? JETTY : 0;
   // the ground under the shop falls away to the south, so the floor sits on the higher, north end
-  const low = Math.min(groundY(o.z - o.len / 2), groundY(o.z + o.len / 2));
-  const floor = Math.max(groundY(o.z - o.len / 2), groundY(o.z + o.len / 2));
+  const reach = Math.abs(Math.sin(at.rot)) > 0.5 ? at.w / 2 : at.d / 2;
+  const low = Math.min(groundY(at.z - reach), groundY(at.z + reach));
+  const floor = Math.max(groundY(at.z - reach), groundY(at.z + reach));
   return (
-    <group position={[o.x, floor, o.z]} rotation-y={(-o.side * Math.PI) / 2}>
+    <group position={[at.x, floor, at.z]} rotation-y={at.rot}>
       <Part geometry={geo.box(w, floor - low + 0.4, d)} color={0xb3a68a} outline={0.05} position-y={(low - floor - 0.4) / 2} />
       {look.tudor ? (
         <>
@@ -158,6 +166,18 @@ function BailgateShop({ o, font }: { o: (typeof SHOPS)[number]; font: string }) 
         <planeGeometry args={[Math.min(w - 0.6, 2.9), 0.5]} />
         <meshBasicMaterial map={fascia} toneMapped={false} />
       </mesh>
+      {/* a lantern over the door, and a sign hung out over the street for the pubs and tea rooms */}
+      <Lantern x={w / 2 - 0.12} y={1.95} z={f + 0.05} night={night} />
+      {look.kind !== "shop" && <HangingSign sign={hanging} color={look.front} x={-w / 2 + 0.25} y={3.75} z={f} />}
+      {/* the shops put a tub of flowers out under the window */}
+      {look.kind === "shop" && (
+        <group position={[-w * 0.13, 0, f + 0.45]}>
+          <Part geometry={geo.box(w * 0.42, 0.45, 0.5)} color={0x6b4426} outline={0.03} position-y={0.22} />
+          {Array.from({ length: 4 }, (_, k) => (
+            <Part key={k} geometry={geo.sphere(0.2, 8, 6)} color={[0xe03a3e, 0xffd23f, 0xff7eb6, 0xffffff][(k + i) % 4]} outline={0.02} position={[(k - 1.5) * w * 0.1, 0.55, 0]} />
+          ))}
+        </group>
+      )}
       {/* tea rooms put a table out on the cobbles */}
       {look.kind === "tea" && (
         <group position={[-w * 0.13, 0, f + 1.1]}>
@@ -211,15 +231,164 @@ function SettMesh({ list, color }: { list: [number, number][]; color: number }) 
   return <instancedMesh ref={ref} args={[geo.box(SETT.w, 0.05, SETT.d), toon(color), list.length]} receiveShadow raycast={() => null} />;
 }
 
+// The big timber-framed house on the corner of Castle Square and Bailgate's east side: black-and-white close studding,
+// two jettied upper floors under three gables onto the square, rows of leaded windows, and a shop on the ground floor.
+// Front at +z.
+const PLASTER = 0xf6f1e4;
+function TimberHouse({ w, d, font, night }: { w: number; d: number; font: string; night: boolean }) {
+  const fascia = useSign("Castle Square Gifts", "#1a1320", font);
+  const f = d / 2;
+  const floors = [
+    { y: 0, h: 2.9, out: 0 },
+    { y: 2.9, h: 2.4, out: 0.35 },
+    { y: 5.3, h: 2.3, out: 0.7 },
+  ];
+  const gable = w / 3;
+  const top = 7.6;
+  return (
+    <group>
+      {floors.map(({ y, h, out }, n) => (
+        <group key={n} position-y={y}>
+          <Part geometry={geo.box(w + out * 0.3, h, d + out)} color={PLASTER} outline={0.07} position={[0, h / 2, out / 2]} />
+          {/* the studs, close set, and a rail along the top and bottom of each floor */}
+          {Array.from({ length: Math.floor(w / 0.42) + 1 }, (_, k) => (
+            <Part key={k} geometry={geo.box(0.11, h, 0.05)} color={TIMBER} outline={0} position={[-w / 2 + 0.06 + k * 0.42, h / 2, f + out + 0.03]} />
+          ))}
+          {[0.06, h - 0.06].map((ry) => (
+            <Part key={ry} geometry={geo.box(w + out * 0.3 + 0.04, 0.13, 0.07)} color={TIMBER} outline={0} position={[0, ry, f + out + 0.04]} />
+          ))}
+          {/* upstairs, a long run of leaded windows under each gable */}
+          {n > 0 &&
+            [-1, 0, 1].map((g) => (
+              <group key={g} position={[g * gable, h / 2 + 0.1, f + out + 0.06]}>
+                <Part geometry={geo.box(gable * 0.72, 0.85, 0.06)} color={TIMBER} outline={0.02} />
+                <Part geometry={geo.box(gable * 0.66, 0.72, 0.07)} color={WINDOW} outline={0} />
+                {[-1, 0, 1].map((k) => (
+                  <Part key={k} geometry={geo.box(0.05, 0.72, 0.09)} color={TIMBER} outline={0} position-x={(k * gable) / 5} />
+                ))}
+              </group>
+            ))}
+        </group>
+      ))}
+      {/* three gables onto the square, their bargeboards dark */}
+      {[-1, 0, 1].map((g) => (
+        <group key={g} position={[g * gable, top + gable * 0.3, 0.35]}>
+          <Part geometry={geo.cyl(gable / 1.55, gable / 1.55, d + 0.7, 3)} color={0x4a4038} outline={0.07} rotation-x={-Math.PI / 2} scale={[1, 1, 0.62]} />
+          <Part geometry={geo.box(gable * 0.6, gable * 0.36, 0.06)} color={PLASTER} outline={0.02} position={[0, -gable * 0.12, f + 0.36]} />
+          <Part geometry={geo.box(0.1, gable * 0.36, 0.08)} color={TIMBER} outline={0} position={[0, -gable * 0.12, f + 0.4]} />
+        </group>
+      ))}
+      <Part geometry={geo.box(0.5, 1.6, 0.6)} color={0x9a5a44} outline={0.04} position={[w / 2 - 0.6, top + 1.6, -0.8]} />
+      {/* the shop on the ground floor: two windows either side of the door, the name over them */}
+      {[-1, 1].map((sx) => (
+        <Part key={sx} geometry={geo.box(w * 0.3, 1.4, 0.1)} color={WINDOW} outline={0.03} position={[sx * w * 0.24, 1.25, f + 0.08]} />
+      ))}
+      <Part geometry={geo.box(0.95, 2, 0.12)} color={0x3a2a20} outline={0.04} position={[0, 1, f + 0.08]} />
+      <Part geometry={geo.box(3.4, 0.5, 0.08)} color={0x1a1320} outline={0.03} position={[0, 2.45, f + 0.1]} />
+      <mesh position={[0, 2.45, f + 0.15]}>
+        <planeGeometry args={[3.2, 0.44]} />
+        <meshBasicMaterial map={fascia} toneMapped={false} />
+      </mesh>
+      {[-1, 1].map((sx) => (
+        <Lantern key={sx} x={sx * 0.75} y={1.9} z={f + 0.05} night={night} />
+      ))}
+      {/* a bench out on the square */}
+      <group position={[-w * 0.3, 0, f + 1]}>
+        <Part geometry={geo.box(1.6, 0.1, 0.5)} color={0x8a5a33} outline={0.03} position-y={0.45} />
+        <Part geometry={geo.box(1.6, 0.45, 0.08)} color={0x8a5a33} outline={0.03} position={[0, 0.75, -0.22]} />
+        {[-0.65, 0.65].map((x) => (
+          <Part key={x} geometry={geo.box(0.08, 0.45, 0.5)} color={IRON} outline={0.02} position={[x, 0.22, 0]} />
+        ))}
+      </group>
+    </group>
+  );
+}
+
+// On Minster Yard's north side, just past the Exchequer Gate: a Tudor house of pale stone with stone-mullioned windows,
+// steps up to its door and tall brick chimneys, and beside it a white-rendered Georgian house with a blue door.
+const LIMESTONE = 0xcdb98e;
+function StoneHouse({ w, d }: { w: number; d: number }) {
+  const f = d / 2,
+    h = 5.6;
+  return (
+    <group>
+      <Part geometry={geo.box(w, h, d)} color={LIMESTONE} outline={0.08} position-y={h / 2} />
+      <group position-y={h + (d / 1.7) * 0.29} rotation-y={Math.PI / 2}>
+        <Part geometry={geo.cyl(d / 1.7, d / 1.7, w + 0.2, 3)} color={0x6b6258} outline={0.07} rotation-x={-Math.PI / 2} scale={[1, 1, 0.58]} />
+      </group>
+      {[-1, 1].map((s) => (
+        <Part key={s} geometry={geo.box(0.6, 2.6, 0.7)} color={0x9a4a34} outline={0.05} position={[s * (w / 2 - 0.35), h + 1.6, -0.4]} />
+      ))}
+      {/* mullioned windows, two on each floor */}
+      {[1.6, 4].flatMap((y) =>
+        [-1, 1].map((s) => (
+          <group key={`${y}${s}`} position={[s * w * 0.27, y, f + 0.04]}>
+            <Part geometry={geo.box(1.4, 1.05, 0.08)} color={0xe2d4b0} outline={0.03} />
+            <Part geometry={geo.box(1.2, 0.85, 0.09)} color={WINDOW} outline={0} />
+            {[-0.3, 0, 0.3].map((x) => (
+              <Part key={x} geometry={geo.box(0.07, 0.85, 0.11)} color={0xe2d4b0} outline={0} position-x={x} />
+            ))}
+            <Part geometry={geo.box(1.2, 0.07, 0.11)} color={0xe2d4b0} outline={0} />
+          </group>
+        )),
+      )}
+      {/* the door in its arch, up two steps */}
+      <mesh geometry={geo.arches(1.5, 2.6, 0.2, [[0, 0.9, 1.6]])} material={toon(0xe2d4b0)} position={[0, 0, f + 0.1]} />
+      <Part geometry={geo.box(0.9, 2.05, 0.06)} color={0x3a2a20} outline={0.03} position={[0, 1.02, f + 0.03]} />
+      {[0, 1].map((k) => (
+        <Part key={k} geometry={geo.box(1.8 - k * 0.4, 0.18, 0.9 - k * 0.35)} color={0xb8a98a} outline={0.03} position={[0, 0.09 + k * 0.18, f + 0.45 - k * 0.17]} />
+      ))}
+    </group>
+  );
+}
+function WhiteHouse({ w, d }: { w: number; d: number }) {
+  const f = d / 2,
+    h = 6.4;
+  return (
+    <group>
+      <Part geometry={geo.box(w, h, d)} color={0xf4f1ea} outline={0.08} position-y={h / 2} />
+      <Part geometry={geo.box(w + 0.1, 0.18, d + 0.2)} color={SASH} outline={0.03} position-y={h - 0.3} />
+      <group position-y={h + (d / 1.8) * 0.275 - 0.05} rotation-y={Math.PI / 2}>
+        <Part geometry={geo.cyl(d / 1.8, d / 1.8, w, 3)} color={0x5b6b7a} outline={0.06} rotation-x={-Math.PI / 2} scale={[1, 1, 0.55]} />
+      </group>
+      <Part geometry={geo.box(0.5, 1.4, 0.6)} color={0x9a5a44} outline={0.04} position={[w / 2 - 0.4, h + 1.1, 0]} />
+      {[1.5, 3.4, 5.2].flatMap((y) =>
+        [-1, 1].map((s) => (y === 1.5 && s > 0 ? null : <Sash key={`${y}${s}`} x={s * w * 0.24} y={y} z={f + 0.04} w={0.6} h={y > 5 ? 0.75 : 0.95} />)),
+      )}
+      {/* the blue front door with a fanlight over it */}
+      <Part geometry={geo.box(0.85, 1.9, 0.08)} color={0x2b59c3} outline={0.03} position={[w * 0.24, 0.95, f + 0.05]} />
+      <Part geometry={geo.box(0.85, 0.3, 0.08)} color={WINDOW} outline={0.02} position={[w * 0.24, 2.08, f + 0.05]} />
+      <Part geometry={geo.box(1.15, 0.12, 0.25)} color={SASH} outline={0.02} position={[w * 0.24, 2.3, f + 0.12]} />
+    </group>
+  );
+}
+
 // Bailgate: the old street running north from Castle Square between the castle and the cathedral, climbing
-// gently to Newport Arch. Cobbled, lined with Georgian and Tudor fronts, pubs, tea rooms and little shops.
+// gently to Newport Arch. Cobbled, lined with Georgian and Tudor fronts, pubs, tea rooms and little shops; and the
+// buildings along Castle Square's north side and by the Exchequer Gate on Minster Yard.
 export default function Bailgate({ font }: { font: string }) {
+  const night = usePlay((s) => s.night);
   return (
     <group>
       <Setts />
-      {SHOPS.map((o) => (
-        <BailgateShop key={`${o.x},${o.z}`} o={o} font={font} />
-      ))}
+      {[-1, 1].flatMap((side) =>
+        SHOPS.filter((o) => o.side === side).map((o, i) => (
+          <BailgateShop key={`${o.x},${o.z}`} at={{ x: o.x, z: o.z, w: o.len, d: o.deep, rot: (-side * Math.PI) / 2 }} look={LOOKS[side][i]} i={i} font={font} night={night} />
+        )),
+      )}
+      {SQUARE_FRONTS.map((b, i) => {
+        const w = b.x1 - b.x0,
+          z = b.front - b.d / 2,
+          x = (b.x0 + b.x1) / 2;
+        const look = SQUARE_LOOKS[b.id];
+        if (look) return <BailgateShop key={b.id} at={{ x, z, w, d: b.d, rot: 0 }} look={look} i={i} font={font} night={night} />;
+        const C = { "timber-house": TimberHouse, "yard-stone": StoneHouse, "yard-white": WhiteHouse }[b.id]!;
+        return (
+          <group key={b.id} position={[x, groundY(b.front - b.d), z]}>
+            <C w={w} d={b.d} font={font} night={night} />
+          </group>
+        );
+      })}
       <NamePlate text="Bailgate" font={font} position={[-5.9, groundY(CLOSE.z0 + 1.6), CLOSE.z0 + 1.6]} />
     </group>
   );
