@@ -1,19 +1,19 @@
 import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
-import { Part, geo, toon, INK, STONE } from "./toon";
+import { Part, geo, INK, STONE } from "./toon";
 import { game, usePlay, nearestPlace, nearestNpc, autoWalking, DOORS } from "./store";
 import { npcPos } from "./npcs";
 import { atBarrier, blocked, crossings, settleLevel } from "./colliders";
 import { groundY, groundTilt, liftY } from "./terrain";
 import { footstep, squeak } from "./sound";
 
-const SKIN = 0xd9a441; // Design Imp gold, a touch warmer
-const BELLY = 0xf3d48e;
-const HORN = 0x4a2f22;
-const EAR = 0xf0be62;
-const EYE = 0x3b2a1e;
-const MOUTH = 0x2a1410;
+// Drawn after the Design Imp logo (public/logo.svg): the brand gold, two gold horns sweeping up and out from the top
+// of the head, sly slanted eyes and a curved grin in the logo's near-black.
+const SKIN = 0xc8973a; // the brand gold
+const BELLY = 0xe6c482;
+const HORN = 0x241c1a; // feet and the tail's spade
+const FACE = 0x111113; // eyes and grin, as on the logo
 const SIT_AFTER = 8; // seconds standing still before he perches like the cathedral carving
 const WAVE_FOR = 1.6;
 
@@ -22,8 +22,8 @@ const look = new THREE.Vector3();
 const TURN = 2.4; // street view turn speed, radians a second
 const STEER = [0.5, -0.5, 1, -1, 1.5, -1.5];
 
-// The town guide: an original little imp nodding to the Lincoln Imp carving: big ears, horns, a wide grin,
-// and when left alone he sits on a stone with one leg crossed over the other, like the carving does.
+// The town guide: the Design Imp logo come to life, with a nod to the Lincoln Imp carving: horns, a grin, and when
+// left alone he sits on a stone with one leg crossed over the other, like the carving does.
 export default function Imp({ reduce }: { reduce: boolean }) {
   const body = useRef<THREE.Group>(null!);
   const legL = useRef<THREE.Group>(null!);
@@ -263,48 +263,24 @@ export default function Imp({ reduce }: { reduce: boolean }) {
             <Part geometry={geo.sphere(0.78)} color={SKIN} outline={0.06} scale={[1.06, 0.95, 1]} />
             {[-1, 1].map((s) => (
               <group key={s}>
-                {/* big leaf ears swept up like the carving's */}
-                <group position={[s * 0.72, 0.28, -0.05]} rotation={[0.15, -s * 0.35, -s * 0.75]}>
-                  <Part geometry={geo.cone(0.25, 0.8, 10)} color={SKIN} outline={0.04} position={[0, 0.34, 0]} scale={[1, 1, 0.4]} />
-                  <mesh geometry={geo.cone(0.15, 0.5, 10)} material={toon(EAR)} position={[0, 0.3, 0.07]} scale={[1, 1, 0.25]} />
+                {/* the logo's horns: big, gold, rising from the top of the head and leaning out, a little flat */}
+                <group position={[s * 0.5, 0.5, -0.02]} rotation={[0, 0, -s * 0.32]}>
+                  <Part geometry={geo.cone(0.3, 0.95, 12)} color={SKIN} outline={0.05} position={[0, 0.4, 0]} scale={[1, 1, 0.62]} />
                 </group>
-                {/* tall horns with a little curl inwards at the tip */}
-                <group position={[s * 0.36, 0.62, -0.05]} rotation={[0, 0, -s * 0.3]}>
-                  <Part geometry={geo.cone(0.15, 0.42, 10)} color={HORN} outline={0.04} position={[0, 0.2, 0]} />
-                  <Part geometry={geo.cone(0.09, 0.32, 10)} color={HORN} outline={0.03} position={[s * 0.06, 0.5, 0]} rotation={[0, 0, s * 0.55]} />
+                {/* sly slanted eyes, lower at the inner end; the ref'd groups squash for a blink */}
+                <group ref={s < 0 ? eyeL : eyeR} position={[s * 0.3, 0.18, 0.64]} rotation={[-0.2, s * 0.38, s * 0.32]}>
+                  <mesh geometry={geo.sphere(0.17)} scale={[1.6, 0.78, 0.5]}>
+                    <meshBasicMaterial color={FACE} />
+                  </mesh>
+                  <mesh geometry={geo.sphere(0.035)} position={[-s * 0.08, 0.03, 0.08]}>
+                    <meshBasicMaterial color={0xffffff} />
+                  </mesh>
                 </group>
-                {/* mischievous brows */}
-                <mesh geometry={geo.box(0.22, 0.05, 0.05)} position={[s * 0.28, 0.4, 0.65]} rotation={[0, 0, s * 0.22]}>
-                  <meshBasicMaterial color={INK} />
-                </mesh>
-                {/* big eyes with a shine; the ref'd groups squash for a blink */}
-                <group ref={s < 0 ? eyeL : eyeR} position={[s * 0.27, 0.16, 0.62]}>
-                  <Part geometry={geo.sphere(0.19)} color={0xffffff} outline={0.035} scale={[1, 1.15, 0.8]}>
-                    <mesh geometry={geo.sphere(0.1)} position={[-s * 0.02, -0.02, 0.14]}>
-                      <meshBasicMaterial color={EYE} />
-                    </mesh>
-                    <mesh geometry={geo.sphere(0.05)} position={[-s * 0.02, -0.02, 0.21]}>
-                      <meshBasicMaterial color={INK} />
-                    </mesh>
-                    <mesh geometry={geo.sphere(0.03)} position={[0.03, 0.03, 0.24]}>
-                      <meshBasicMaterial color={0xffffff} />
-                    </mesh>
-                  </Part>
-                </group>
-                {/* rosy cheeks */}
-                <mesh geometry={geo.sphere(0.1)} position={[s * 0.5, -0.08, 0.55]} scale={[1.3, 0.7, 0.3]}>
-                  <meshBasicMaterial color={0xff8f6b} />
-                </mesh>
-                {/* two little fangs */}
-                <mesh geometry={geo.cone(0.035, 0.09, 6)} position={[s * 0.11, -0.17, 0.765]} rotation={[Math.PI, 0, 0]}>
-                  <meshBasicMaterial color={0xffffff} />
-                </mesh>
               </group>
             ))}
-            {/* the wide Lincoln grin */}
-            <mesh position={[0, -0.13, 0.75]} rotation={[0.2, 0, 0]} scale={[1.15, 0.7, 1]}>
-              <circleGeometry args={[0.3, 16, Math.PI, Math.PI]} />
-              <meshBasicMaterial color={MOUTH} side={THREE.DoubleSide} />
+            {/* the grin: a curved line, as on the logo */}
+            <mesh geometry={geo.smile(0.3, 0.065)} position={[0, -0.14, 0.73]} rotation={[0.3, 0, 0]}>
+              <meshBasicMaterial color={FACE} />
             </mesh>
           </group>
         </group>
