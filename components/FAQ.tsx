@@ -9,7 +9,7 @@ const FAQS = [
   },
   {
     q: "Who owns the website when it's done?",
-    a: "You do — completely. All code, design files, and assets are yours. There are no ongoing platform fees or vendor lock-in.",
+    a: "You do, completely. All code, design files and assets are yours, with no platform fees or lock-in. Monthly add-ons are optional and you can stop them any time.",
   },
   {
     q: "How many revisions do I get?",
@@ -17,15 +17,19 @@ const FAQS = [
   },
   {
     q: "Do you handle hosting?",
-    a: "We recommend and set up hosting as part of the project. We use fast, reliable providers (typically Vercel or similar) and hand you full control of the account at launch.",
+    a: "We set up hosting as part of the project, on fast, reliable providers (typically Vercel or similar), and hand you full control of the account at launch. If you'd rather not deal with it, the £20 a month care plan looks after hosting, updates and small edits for you.",
   },
   {
     q: "How does payment work?",
-    a: "Fixed price, split into two parts: 50% to start, 50% on launch. No hourly billing, no surprise invoices.",
+    a: "Websites are a fixed price, split into two parts: 50% to start, 50% on launch. Monthly add-ons are billed each month, roll month to month and can be cancelled any time, with no set-up fee. No hourly billing, no surprise invoices.",
   },
   {
     q: "What if I need changes after launch?",
-    a: "Small tweaks in the first 30 days are included. For ongoing changes or new features, we can agree a small retainer or quote per update — whatever suits you.",
+    a: "Small tweaks in the first 30 days are included. After that, the care plan covers small edits each month, and anything bigger is quoted per update.",
+  },
+  {
+    q: "Can I add AI features later?",
+    a: "Yes. Pick any of the monthly add-ons, such as review replies or the FAQ chat bot, whenever you like, on their own or as the £39 bundle, and drop them again if they're not earning their keep.",
   },
 ];
 
