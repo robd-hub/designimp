@@ -3,8 +3,9 @@
 type Quote = { text: string; name: string; business: string; rating?: number };
 
 export const QUOTES = {
+  // Approved by Crissy, November 2026.
   ayuri: {
-    text: "Working with DesignImp was a game-changer for our website build at Ayuri Beauty. … a clean, luxury finish that our clients love.",
+    text: "Before DesignImp, we had no website and relied completely on word of mouth. Rob built us a beautiful site where clients can book online without having to call, and he sorted out our Google listing so people nearby can actually find us. He listened to all my ideas and made the whole thing easy. Within three months we were fully booked most days, and now I'm planning a second salon.",
     name: "Crissy",
     business: "Ayurinails Beauty Lounge",
     rating: 5,
