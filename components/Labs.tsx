@@ -1,16 +1,17 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const PROJECTS = [
   {
     name: "Agent Report Card",
     outcome: "Independent A to F grades for AI agents, judged on Reppo's evaluation network",
-    href: "https://grader.designimp.com",
+    href: "/labs/agent-report-card",
     image: "/labs/agent-report-card.jpg",
   },
   {
     name: "Cheap First",
     outcome: "Answers with a cheap AI model and only pays for a premium one when a check fails, 80% cheaper in testing",
-    href: "https://cheapfirst.designimp.com",
+    href: "/labs/cheap-first",
     image: "/labs/cheap-first.jpg",
   },
 ];
@@ -32,11 +33,9 @@ export default function Labs() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         {PROJECTS.map((project) => (
-          <a
+          <Link
             key={project.name}
             href={project.href}
-            target="_blank"
-            rel="noopener noreferrer"
             className="group block overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_24px_60px_-24px_rgba(200,151,58,0.45)]"
           >
             <div className="relative aspect-[16/10] w-full overflow-hidden">
@@ -52,10 +51,10 @@ export default function Labs() {
               <p className="font-semibold text-foreground text-lg">{project.name}</p>
               <p className="mt-1 text-base text-muted leading-loose">{project.outcome}</p>
               <p className="mt-3 text-base text-accent group-hover:text-foreground transition-colors">
-                Visit site →
+                How it works →
               </p>
             </div>
-          </a>
+          </Link>
         ))}
       </div>
     </section>

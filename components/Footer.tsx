@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 const FOUNDER_LINKS = [
-  { label: "X / Twitter", href: "https://x.com/designimp_com" },
   { label: "rob@designimp.com", href: "mailto:rob@designimp.com" },
 ];
 
