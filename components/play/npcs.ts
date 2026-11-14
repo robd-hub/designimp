@@ -47,7 +47,7 @@ export const NPCS: Npc[] = [
       "I'm really happy with what Rob made for me. The colour scheme and the layout of the website were just what I needed.",
     ],
   },
-  // two AI agents from Rob's Labs projects, out for a wander by Bullwhip
+  // two AI agents from Rob's Labs projects, pacing the wharf path outside Bullwhip's door, either side of it
   {
     id: "reportcard",
     name: "Agent Report Card",
@@ -55,7 +55,7 @@ export const NPCS: Npc[] = [
     legs: 0x1a1320,
     skin: 0xb0b0b8,
     hat: 0xffd23f,
-    path: [[-24, 24.2], [-20.8, 24.2]],
+    path: [[-29.6, 23.8], [-29.6, 26.6]],
     speed: 0.9,
     lines: [
       "I hand out independent A to F grades for AI agents, judged on Reppo's evaluation network.",
@@ -69,7 +69,7 @@ export const NPCS: Npc[] = [
     legs: 0x1a1320,
     skin: 0xb0b0b8,
     hat: 0xffb627,
-    path: [[-24, 31.8], [-20.8, 31.8]],
+    path: [[-28.6, 29.6], [-28.6, 32.6]],
     speed: 0.9,
     lines: [
       "I always try a cheap model first, and only call in an expensive one if a check fails.",
