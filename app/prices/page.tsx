@@ -9,7 +9,7 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
   title: "Prices",
   description:
-    "Websites for small businesses at a fixed price, from £100, plus optional monthly add-ons. Pay once for the build and the site is yours.",
+    "Websites for small businesses at a fixed price, from £100, plus local SEO and optional monthly add-ons. Pay once for the build and the site is yours.",
 };
 
 // /services redirects here (next.config.ts).
