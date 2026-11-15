@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CountUp } from "./HeroLive";
 import { QUOTES } from "./Testimonial";
 import { SITES } from "./Pricing";
+export { HOME_FAQS } from "./faqs";
 
 // The home page's middle sections, in page order: the Ayuri Beauty feature, the stats, recent work, how it works,
 // prices, and Rob. Quotes come from Testimonial.tsx (approved by each client); prices from Pricing.tsx.
@@ -54,43 +55,22 @@ export function AyuriFeature() {
   );
 }
 
-// Each figure with the study it comes from. Only figures traced to their original source go here, worded as the
-// source words them.
-const STATS = [
-  {
-    num: "46%",
-    label: "of people's comments on a site's credibility were about its look",
-    source: { name: "Stanford, 2002", href: "https://advocacy.consumerreports.org/research/how-do-people-evaluate-a-web-sites-credibility" },
-  },
-  {
-    num: "53%",
-    label: "of mobile visits are abandoned if a page takes over 3 seconds to load",
-    source: { name: "Google, 2016", href: "https://blog.google/products/admanager/the-need-for-mobile-speed/" },
-  },
-  {
-    num: "32 pts",
-    label: "faster revenue growth at the most design-led companies",
-    source: { name: "McKinsey, 2018", href: "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/the-business-value-of-design" },
-  },
+// Three plain facts about how Rob works (the industry statistics that were here were old and about big companies).
+const FACTS = [
+  { num: "48 hrs", label: "from your details to a free mockup in your inbox" },
+  { num: "£100", label: "for a one-page site, at a fixed price, and you own it" },
+  { num: "1", label: "person you deal with, from the first mockup to launch" },
 ];
 
 export function Stats() {
   return (
     <section className="mx-auto grid max-w-7xl gap-10 px-6 py-20 sm:grid-cols-3">
-      {STATS.map((s) => (
+      {FACTS.map((s) => (
         <div key={s.label}>
           <div className="text-4xl font-semibold text-accent">
             <CountUp value={s.num} />
           </div>
           <p className="mt-2 max-w-xs text-base text-muted">{s.label}</p>
-          <a
-            href={s.source.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 inline-block text-xs text-muted/70 underline-offset-2 hover:text-accent hover:underline"
-          >
-            Source: {s.source.name}
-          </a>
         </div>
       ))}
     </section>
@@ -214,7 +194,7 @@ export function PricingSummary() {
           simple with the care plan at £20 a month: hosting, updates and small edits.
         </p>
       </div>
-      <Link href="/services#pricing" className={`mt-8 inline-block ${textLink}`}>
+      <Link href="/prices" className={`mt-8 inline-block ${textLink}`}>
         See all prices and add-ons →
       </Link>
     </section>
@@ -242,19 +222,3 @@ export function HiRob() {
     </section>
   );
 }
-
-export const HOME_FAQS = [
-  { q: "Is the mockup really free?", a: "Yes. If you don't like it, you owe nothing." },
-  {
-    q: "How long does it take?",
-    a: "Your mockup arrives within 48 hours. Most websites are live within 4 weeks, and you'll have a clear timeline before any work starts.",
-  },
-  {
-    q: "Who owns the website?",
-    a: "You do, outright. All the code, design and content are yours, with no platform fees or lock-in.",
-  },
-  {
-    q: "What if I don't want to pay monthly?",
-    a: "You don't have to. Pay once for the build and you get all of your site's files at launch to host wherever you like. Or the £20 a month care plan looks after hosting, updates and small edits for you.",
-  },
-];

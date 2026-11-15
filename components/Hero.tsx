@@ -51,6 +51,14 @@ export default function Hero() {
             >
               Sites from £100
             </Link>
+            <a
+              href="https://cal.com/rob-doughty/30min"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-base text-muted underline underline-offset-4 transition-colors hover:text-accent"
+            >
+              or book a quick call
+            </a>
           </div>
 
           <p className="animate-fade-in-up mt-6 text-sm text-muted" style={{ animationDelay: "320ms" }}>

@@ -9,13 +9,13 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
   title: "Automated Lead Generation",
   description:
-    "A steady supply of new prospects without the legwork. Every weekday we find businesses that fit your ideal customer, score them and draft a personal first message for you to review.",
+    "A steady supply of new prospects without the legwork. Every weekday it finds businesses that fit your ideal customer, scores them and drafts a personal first message for you to review.",
 };
 
 const LEAD_GEN_FAQS = [
   {
     q: "How does it work?",
-    a: "You tell us who your ideal customer is and where they are, for example cafés in Lincoln or builders within 20 miles of Nottingham. Every weekday it searches Google Maps for businesses that match, visits each one's website, and pulls together what it needs to judge whether they're worth contacting.",
+    a: "You tell me who your ideal customer is and where they are, for example cafés in Lincoln or builders within 20 miles of Nottingham. Every weekday it searches Google Maps for businesses that match, visits each one's website, and pulls together what it needs to judge whether they're worth contacting.",
   },
   {
     q: "What happens to each business it finds?",
@@ -31,7 +31,7 @@ const LEAD_GEN_FAQS = [
   },
   {
     q: "Will it send messages without me knowing?",
-    a: "No. Nothing goes out without your say. You review the leads, pick the ones you like and send the messages yourself, or tell us to send the ones you've approved.",
+    a: "No. Nothing goes out without your say. You review the leads, pick the ones you like and send the messages yourself, or tell me to send the ones you've approved.",
   },
   {
     q: "Is it GDPR friendly?",
@@ -39,11 +39,11 @@ const LEAD_GEN_FAQS = [
   },
   {
     q: "How many leads will I get?",
-    a: "That depends on your area and how specific your ideal customer is. We agree a daily number with you, then tune the search with you in the first couple of weeks so you get fewer, better leads rather than a long list of poor ones.",
+    a: "That depends on your area and how specific your ideal customer is. I agree a daily number with you, then tune the search with you in the first couple of weeks so you get fewer, better leads rather than a long list of poor ones.",
   },
   {
     q: "How much does it cost?",
-    a: "It depends on how many leads you want and whether we send the messages for you, so we agree the price together, no call required. Tell us about your business through our quick form and we'll follow up with pricing.",
+    a: "It depends on how many leads you want and whether I send the messages for you, so I price it for your business. Email me who your ideal customer is and where they are, and I'll come back with a price. No call required.",
   },
 ];
 
@@ -54,11 +54,16 @@ export default function LeadGenerationPage() {
       <PageHero
         eyebrow="Lead generation"
         title="Fresh prospects every weekday"
-        subtitle="We find businesses that fit your ideal customer, check them out and draft a personal first message for each one. You review them in a shared sheet and decide who to contact."
+        subtitle="It finds businesses that fit your ideal customer, checks them out and drafts a personal first message for each one. You review them in a shared sheet and decide who to contact."
       />
       <LeadGenExample />
       <FAQ items={LEAD_GEN_FAQS} heading="Your questions, answered." />
-      <CTA />
+      <CTA
+        title="Want fresh prospects every weekday?"
+        body="Tell me who your ideal customer is and where they are, and I'll come back with a price. No call needed."
+        label="Email me about lead generation"
+        href="mailto:rob@designimp.com?subject=Lead%20generation"
+      />
       <Footer />
     </main>
   );

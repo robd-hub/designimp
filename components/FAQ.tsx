@@ -2,36 +2,7 @@
 
 import { useState } from "react";
 
-const FAQS = [
-  {
-    q: "How long does a project take?",
-    a: "Most websites are delivered within 4 weeks from the kick-off call. Larger or more complex builds may take 6–8 weeks. You'll always have a clear timeline before work begins.",
-  },
-  {
-    q: "Who owns the website when it's done?",
-    a: "You do, completely. All code, design files and assets are yours, with no platform fees or lock-in. Monthly add-ons are optional and you can stop them any time.",
-  },
-  {
-    q: "How many revisions do I get?",
-    a: "We work in rounds of feedback, and most projects are finalised within two. Because we start from a detailed brief, large changes are rare. We'd rather get it right than limit revisions.",
-  },
-  {
-    q: "Do you handle hosting?",
-    a: "Hosting comes with the £20 a month care plan, along with updates and small edits, on fast, reliable providers (typically Vercel or similar). If you'd rather not have the care plan, you get all of your site's files at launch to host wherever you like.",
-  },
-  {
-    q: "How does payment work?",
-    a: "Websites are a fixed price, split into two parts: 50% to start, 50% on launch. Monthly add-ons are billed each month, roll month to month and can be cancelled any time, with no set-up fee. No hourly billing, no surprise invoices.",
-  },
-  {
-    q: "What if I need changes after launch?",
-    a: "Small tweaks in the first 30 days are included. After that, the care plan covers small edits each month, and anything bigger is quoted per update.",
-  },
-  {
-    q: "Can I add AI features later?",
-    a: "Yes. Pick any of the monthly add-ons, such as review replies or the FAQ chat bot, whenever you like, on their own or as the £39 bundle, and drop them again if they're not earning their keep.",
-  },
-];
+import { FAQS } from "./faqs";
 
 type FAQProps = {
   items?: { q: string; a: string }[];

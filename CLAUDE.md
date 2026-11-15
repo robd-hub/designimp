@@ -31,7 +31,7 @@ npm run lint
 ## Repo layout
 
 ```
-app/                      # routes: page.tsx (home), about, services, get-started, work/*, demo,
+app/                      # routes: page.tsx (home), about, prices (/services redirects to it), get-started, work/*, demo,
                           # lead-generation, privacy, terms, play, api/lead
 components/*.tsx          # marketing site sections
 components/play/          # the whole game (below)

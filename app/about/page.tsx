@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "The story behind Design Imp — a small, craft-led studio helping small and medium businesses get websites they can be proud of.",
+  description: "Rob Doughty builds websites for small businesses from Lincoln: one person from the first mockup to launch, fixed prices, and you own the site.",
 };
 import AboutHero from "@/components/AboutHero";
 import About from "@/components/About";

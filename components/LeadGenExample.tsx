@@ -9,7 +9,7 @@ export default function LeadGenExample() {
           What lands in your sheet.
         </h2>
         <p className="mt-4 max-w-2xl text-lg text-muted leading-loose">
-          One row for every business we find, with everything you need to decide who to contact.
+          One row for every business it finds, with everything you need to decide who to contact.
         </p>
       </div>
 
@@ -40,7 +40,7 @@ export default function LeadGenExample() {
         </div>
 
         <p className="mt-6 text-sm text-muted/60">
-          Illustrative example. Not a real business or a real message we&apos;ve sent.
+          Illustrative example. Not a real business or a real message I&apos;ve sent.
         </p>
       </div>
     </section>

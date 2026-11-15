@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     default: "Design Imp",
     template: "%s — Design Imp",
   },
-  description: "Custom websites for small and medium businesses. Craft-led studio, fixed price, one point of contact.",
+  description: "Websites for salons, studios and local businesses at a fixed price. One person from the first mockup to launch, and you own the site.",
   openGraph: {
     type: "website",
     siteName: "Design Imp",
