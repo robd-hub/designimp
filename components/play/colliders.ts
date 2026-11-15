@@ -610,11 +610,17 @@ const SHOP_RUNS: [number, number, number, number, number, number?][] = [
   [-1, 5, CORNHILL[0].z0, CORNHILL[0].z1, 3, CORNHILL[0].x0 + 5], // backing onto the Town Hall, fronts onto the square
   [1, BAILGATE.x1, BAILGATE_LOT.z1, CLOSE.z0, 2], // and south of it (last, so the runs before keep their colours)
 ];
-export const SHOPFRONTS = SHOP_RUNS.flatMap(([side, front, z0, z1, n, cx = 0], r) => {
+const ALL_SHOPFRONTS = SHOP_RUNS.flatMap(([side, front, z0, z1, n, cx = 0], r) => {
   const len = (z1 - z0) / n,
     deep = front === HIGH_ST ? SHOPFRONT.deep : SHOPFRONT.bailgate;
   return Array.from({ length: n }, (_, i) => ({ side, x: cx + side * (front + deep / 2), z: z0 + len * (i + 0.5), len, deep, k: r * 2 + i, i, bailgate: front === BAILGATE.x1 }));
 });
+// The way in to Waterside off the High Street, as in real Lincoln: the middle of the three shops on the east side
+// between the river and the Stonebow makes way for a paved passage through to the centre's west entrance.
+const watersidePlace = footprint(PLACES.find((p) => p.id === "waterside")!);
+const WAY_Z = -50.2 + ((-36.6 + 50.2) / 3) * 1.5;
+export const WATERSIDE_WAY = { x0: HIGH_ST, x1: watersidePlace.x0, z0: WAY_Z - 1.7, z1: WAY_Z + 1.7 };
+export const SHOPFRONTS = ALL_SHOPFRONTS.filter((s) => !(s.side === 1 && !s.bailgate && Math.abs(s.z - WAY_Z) < 0.1));
 
 // The buildings along Castle Square's north side, either side of Bailgate (west of it two shops and the To Let plot on
 // the corner, keeping clear the footpath north to Westgate; east of it the big timber-framed house on the corner and a
@@ -695,6 +701,7 @@ const sideZ = { z0: -36.2, z1: RIVER.z - RIVER.half - 1.2 };
 export const STONEBOW_STREETS = [
   { x0: brayford.x + BRAYFORD.water.x1 + 0.4, x1: -HIGH_ST, ...sideZ },
   { x0: HIGH_ST, x1: EAST_PATH_X + 1, ...sideZ },
+  WATERSIDE_WAY,
 ];
 
 // The railway: two tracks running east to west across the town, south of the Workshop and HQ,
@@ -964,7 +971,24 @@ export function overRailway([fx, fz]: [number, number], [tx, tz]: [number, numbe
 export function crossings(from: [number, number], to: [number, number]): [number, number][] {
   const down = offWalls(from);
   if (down.length) return [...down, ...groundCrossings(down.at(-1)!, to)];
+  const out = outOfPassage(from, to);
+  if (out.length) return [...out, ...groundCrossings(out.at(-1)!, to)];
   return groundCrossings(from, to);
+}
+// Setting off from the passage in to Waterside, or the gap south of it between the last shop and the centre down to the
+// riverside street: out onto the High Street or down to the riverside street first, whichever leaves nearer where the
+// walk is going, rather than straight through the centre or the shops.
+function outOfPassage([x, z]: [number, number], to: [number, number]): [number, number][] {
+  const w = WATERSIDE_WAY,
+    gapX = (HIGH_ST + SHOPFRONT.deep + w.x1) / 2,
+    midZ = (w.z0 + w.z1) / 2;
+  const inWay = (px: number, pz: number) => px > HIGH_ST && px < w.x1 && pz > w.z0 && pz < w.z1;
+  const inGap = (px: number, pz: number) => px > HIGH_ST + SHOPFRONT.deep && px < w.x1 && pz >= w.z1 && pz < STONEBOW_STREETS[1].z0;
+  if (!(inWay(x, z) || inGap(x, z)) || inWay(...to) || inGap(...to)) return [];
+  const street: [number, number][] = inGap(x, z) ? [[gapX, STONEBOW_STREETS[1].z0 + 0.6]] : [[gapX, midZ], [gapX, STONEBOW_STREETS[1].z0 + 0.6]];
+  const high: [number, number][] = inGap(x, z) ? [[gapX, midZ], [HIGH_ST - 1, midZ]] : [[HIGH_ST - 1, midZ]];
+  const far = (r: [number, number][]) => Math.hypot(r.at(-1)![0] - to[0], r.at(-1)![1] - to[1]);
+  return far(street) < far(high) ? street : high;
 }
 function groundCrossings(from: [number, number], to: [number, number]): [number, number][] {
   const a = inAirfield(from),
@@ -1474,7 +1498,7 @@ const onRoad = (x: number, z: number) =>
   [CLOSE, BAILGATE, HIGH_STREET, ...CORNHILL, ...STONEBOW_STREETS, WHARF, WHARF_EAST, BUS_STATION.kerb, ...BUS_STATION.tarmac, ...STONEBOW_PIERS, ...NEWPORT_PIERS, ...EXCHEQUER_BOXES, MINSTER.forecourt, MINSTER.lawn, ...LINDUM_ROADBOXES, LINDUM.broadgate, LINDUM.link, flyover, ...RIVER_BOXES, ...WITHAM_RUNS, WHARF_EAST_SOUTH, ST_MARKS.street, WEST_BANK, ...ST_MARKS.units.map(barBox), ...FOOTPATHS.filter((f) => f !== LANDMARK_PATHS[0]), ...OLD_MILL_PATHS, OLD_MONKS_PATH, ...STATION.platforms.map((pl) => ({ ...pl, x0: STATION.x0, x1: STATION.x1 }))].some((f) => x > f.x0 - 2 && x < f.x1 + 2 && z > f.z0 - 2 && z < f.z1 + 2);
 const nearBuilding = (x: number, z: number, pad: number) =>
   HOUSES.some((h) => Math.abs(x - h.x) < HOUSE.d / 2 + pad && Math.abs(z - h.z) < HOUSE.w / 2 + pad) ||
-  SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) ||
+  ALL_SHOPFRONTS.some((h) => Math.abs(x - h.x) < h.deep / 2 + pad && Math.abs(z - h.z) < h.len / 2 + pad) || // (with the one that made way for the passage to Waterside, so the trees stay put)
   SQUARE_FRONTS.map(frontBox).some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   [DANES_ROAD, ...DANES_FRONTS.map(danesBox)].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   [...[...WHARF_BARS, ...ST_MARKS.units].map(barBox), ...MINSTER.south.map(yardBox), ...LINDUM.houses.map(lindumBox), OLD_BAILGATE_WEST, OLD_HIGH_ST_TOP, OLD_CLASKET_SHOP].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
