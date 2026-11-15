@@ -5,7 +5,7 @@ export type PlaceItem = { title: string; detail: string; href?: string; image?: 
 export type Place = {
   id: string;
   // defaults to shop; tank is drawn on its roundabout; lots open the mockup form
-  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "venue" | "architecture" | "lawn" | "retailpark" | "firestation" | "ambulance";
+  kind?: "shop" | "cathedral" | "lot" | "stadium" | "tank" | "castle" | "street" | "water" | "campus" | "airfield" | "gate" | "station" | "bridge" | "arch" | "oldhouse" | "gallery" | "ruins" | "busstation" | "exchange" | "mall" | "pub" | "mill" | "park" | "market" | "retail" | "gatehouse" | "yard" | "hill" | "flyover" | "venue" | "architecture" | "lawn" | "retailpark" | "firestation" | "ambulance" | "theatre" | "romanwall";
   name: string; // shown on the building sign
   kicker: string;
   nav?: string; // label in the "Go to" list, when the kicker is too long
@@ -1377,6 +1377,90 @@ export const PLACES: Place[] = [
       "An empty unit at Tritton Retail Park, ready for a new business. Tell me a little about yours and I'll design a free mockup of your new website before you spend a penny.",
     ],
     link: { href: "/get-started", label: "Open the full form" },
+  },
+  {
+    id: "theatre-royal",
+    kind: "theatre",
+    name: "Theatre Royal",
+    kicker: "Theatre on Clasketgate",
+    nav: "Theatre Royal",
+    // on Clasketgate's north side at the corner of Danesgate, in place of three of the old houses
+    x: 26.2,
+    z: -60.6,
+    w: 13.4,
+    d: 4.4,
+    h: 7.5,
+    wall: 0xa9553f,
+    roof: 0x4a4f5c,
+    roofType: "pitch",
+    rot: 0,
+    intro: [
+      "The Theatre Royal has stood on Clasketgate, a short walk east of the High Street, since 1893: a Victorian theatre with plays, musicals and comedy through the year and the pantomime every Christmas.",
+      "Here it takes the corner of Clasketgate and Danesgate, in place of a few of the old houses.",
+    ],
+  },
+  {
+    id: "mint-wall",
+    kind: "romanwall",
+    name: "Mint Wall",
+    kicker: "Roman remains",
+    nav: "Mint Wall",
+    // on Westgate's north side at its east end, beside Newport Arch, in place of two of the terrace's houses
+    x: -15,
+    z: -153.2,
+    w: 10,
+    d: 1.4,
+    h: 3.4,
+    wall: 0xd9cfb6,
+    roof: 0xd9cfb6,
+    roofType: "flat",
+    rot: 0,
+    intro: [
+      "The Mint Wall is the biggest piece of Roman building still standing in Lincoln: the north wall of the basilica, the great hall on the forum of Lindum Colonia, built in the 3rd century. It's about 22 metres long and 7 metres high, coursed limestone with courses of red tile running through it.",
+      "The real wall hides behind the houses off West Bight, just west of Bailgate. Here it stands lower, out in the open beside Newport Arch at the end of Westgate.",
+    ],
+  },
+  {
+    id: "drill-hall",
+    kind: "exchange",
+    name: "Drill Hall",
+    kicker: "Venue · Free School Lane",
+    nav: "Drill Hall",
+    // on Clasketgate's south side just east of the footpath down from the Usher Gallery, which stands in for Free School Lane
+    x: 58,
+    z: -49.9,
+    w: 16,
+    d: 7,
+    h: 6,
+    wall: 0xa9553f,
+    roof: 0x4a4f5c,
+    roofType: "pitch",
+    rot: Math.PI,
+    intro: [
+      "The Drill Hall was built in 1890 as a home for Lincoln's volunteer soldiers, a big red-brick hall with a tower on the front. These days it's one of the city's main venues, for gigs, comedy, theatre and events.",
+      "In real Lincoln it's on Free School Lane with the library next door. Here it fronts Clasketgate, with the library round the corner on the path, which stands in for the lane.",
+    ],
+  },
+  {
+    id: "central-library",
+    kind: "gallery",
+    name: "Central Library",
+    kicker: "Library · Free School Lane",
+    nav: "Central Library",
+    // facing west onto the footpath below the Drill Hall, its steps coming down to the path
+    x: 53.9,
+    z: -39.9,
+    w: 10,
+    d: 9,
+    h: 5.5,
+    wall: 0xe6dcc6,
+    roof: 0x5f9a86,
+    roofType: "flat",
+    rot: -Math.PI / 2,
+    intro: [
+      "Lincoln Central Library opened in 1914 on Free School Lane, one of the libraries paid for by Andrew Carnegie, behind a classical stone front with columns and a flight of steps.",
+      "Here the footpath down from the Usher Gallery stands in for Free School Lane, with the library facing onto it and the Drill Hall next door on Clasketgate.",
+    ],
   },
 ];
 

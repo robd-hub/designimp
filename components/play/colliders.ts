@@ -208,6 +208,12 @@ function eastRows() {
   const first = (z: number) => rows.filter((r) => Math.abs(r.z0 + r.z1 - 2 * z) < 0.1).sort((p, q) => p.x0 - q.x0)[0];
   const south = first(CLASKET.z + CLASKET.half + UP_SET);
   if (south) Object.assign(south, { x0: HIGH_ST, z1: -36.6 });
+  // the Theatre Royal and the Drill Hall stand in the rows too, deeper than the houses: one run with the houses beside them
+  for (const b of [theatreBox, drillBox]) {
+    const next = rows.find((r) => Math.abs(r.x0 - b.x1) < 1 && r.z0 < b.z1 && r.z1 > b.z0);
+    if (next) Object.assign(next, { x0: b.x0, z0: Math.min(next.z0, b.z0), z1: Math.max(next.z1, b.z1) });
+    else rows.push({ ...b });
+  }
   return (EAST_ROWS = rows);
 }
 // Round the airfield's fence from outside it, and round the jet on its stand inside.
@@ -340,6 +346,10 @@ export const lindumBox = (h: (typeof LINDUM.houses)[number]) => ({
 });
 // Going to one of them (or the Christmas market) from Go to: join its path at the nearest of these points and follow it in.
 export const APPROACH: Record<string, [number, number][]> = {
+  // up Bailgate to the corner of Westgate, then west along it to the wall
+  "mint-wall": [[0, WESTGATE.z]],
+  // over the east footbridge and up the path to the library's steps, rather than straight at it past Waterside
+  "central-library": [[EAST_PATH_X, -34.5]],
   // up the castle footpath, west along the path to The Lawn, up Union Road and along Westgate to the mill
   "ellis-mill": [
     [PATH_X, 0],
@@ -1327,6 +1337,7 @@ export const TERRACES: TerraceHouse[] = SIDE_STREETS.flatMap((st, i) => [
 // castle's north-east corner to Bailgate), and down Burton Road's west side.
 const UP_SET = 0.4 + TERRACE.d / 2;
 const millBox = footprint(PLACES.find((p) => p.id === "ellis-mill")!);
+const mintBox = footprint(PLACES.find((p) => p.id === "mint-wall")!); // the Mint Wall takes the east end of Westgate's north row
 const WG_N = WESTGATE.z - WESTGATE.half - UP_SET,
   WG_S = WESTGATE.z + WESTGATE.half + UP_SET;
 // Victorian terraces both sides of West Parade, leaving the castle footpath's crossing clear.
@@ -1341,19 +1352,23 @@ export const WEST_PARADE_TERRACES: TerraceHouse[] = [
 // Terraces along Clasketgate, either side of the path down from the Usher Gallery, and along Monks Road: its south
 // side all the way out, its north side either side of the Arboretum.
 const arbBox = footprint(PLACES.find((p) => p.id === "arboretum")!);
+// The Theatre Royal takes the corner of Danesgate on the north side, and the Drill Hall the run east of the footpath on
+// the south side; the houses carry on from beside them.
+const theatreBox = footprint(PLACES.find((p) => p.id === "theatre-royal")!);
+const drillBox = footprint(PLACES.find((p) => p.id === "drill-hall")!);
 const CG_N = CLASKET.z - CLASKET.half - UP_SET,
   CG_S = CLASKET.z + CLASKET.half + UP_SET;
 export const EAST_TERRACES: TerraceHouse[] = [
-  ...terraceRow(DANESGATE.x + DANESGATE.half + 0.4, EAST_PATH_X - 2, (x) => [x, CG_N], 0, 600), // from the corner of Danesgate
+  ...terraceRow(theatreBox.x1 + 0.6, EAST_PATH_X - 2, (x) => [x, CG_N], 0, 600), // from beside the Theatre Royal, on the corner of Danesgate
   ...terraceRow(EAST_PATH_X + 2, LH.x0 - 3.5, (x) => [x, CG_N], 0, 620),
   ...terraceRow(HIGH_ST + 5.5, EAST_PATH_X - 2, (x) => [x, CG_S], Math.PI, 640),
-  ...terraceRow(EAST_PATH_X + 2, LH.x0 - 0.4, (x) => [x, CG_S], Math.PI, 660),
+  ...terraceRow(drillBox.x1 + 0.6, LH.x0 - 0.4, (x) => [x, CG_S], Math.PI, 660), // from beside the Drill Hall
   ...terraceRow(LH.x1 + 0.4, EAST - 1, (x) => [x, CG_S], Math.PI, 680),
   ...terraceRow(LH.x1 + 3.7, arbBox.x0 - 0.5, (x) => [x, CG_N], 0, 720),
   ...terraceRow(arbBox.x1 + 0.5, EAST - 1, (x) => [x, CG_N], 0, 740),
 ];
 export const CASTLE_TERRACES: TerraceHouse[] = [
-  ...terraceRow(millBox.x1 + 2, WESTGATE.x1 - 5, (x) => [x, WG_N], 0, 300),
+  ...terraceRow(millBox.x1 + 2, mintBox.x0 - 0.6, (x) => [x, WG_N], 0, 300),
   ...terraceRow(BURTON.x - BURTON.half, UNION.x - UNION.half - 0.4, (x) => [x, WG_S], Math.PI, 340),
   ...terraceRow(castle.x1 + 3, WESTGATE.x1 - 4.5, (x) => [x, WG_S], Math.PI, 360),
   ...terraceRow(NORTH + 1, WESTGATE.z + WESTGATE.half, (z) => [BURTON.x - BURTON.half - UP_SET, z], Math.PI / 2, 380),
@@ -1503,7 +1518,7 @@ const nearBuilding = (x: number, z: number, pad: number) =>
   [DANES_ROAD, ...DANES_FRONTS.map(danesBox)].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   [...[...WHARF_BARS, ...ST_MARKS.units].map(barBox), ...MINSTER.south.map(yardBox), ...LINDUM.houses.map(lindumBox), OLD_BAILGATE_WEST, OLD_HIGH_ST_TOP, OLD_CLASKET_SHOP].some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad) ||
   PLACES.some((p) => {
-    if (p.id.startsWith("tritton-") || EMERGENCY_IDS.includes(p.id)) return false; // added later, and cleared of trees afterwards instead
+    if (p.id.startsWith("tritton-") || EMERGENCY_IDS.includes(p.id) || LATER_IDS.includes(p.id)) return false; // added later, and cleared of trees afterwards instead
     const f = p.kind === "airfield" ? OLD_AIRFIELD : p.id === "ellis-mill" ? OLD_MILL : p.id === "arboretum" ? OLD_ARBORETUM : footprint(p); // the airfield grew later, the mill moved; as for Tritton
     const door = p.kind === "lot" ? 0 : 4; // keep the approach to each entrance clear
     const side = p.id === "arboretum" || Math.abs(Math.sin(p.rot)) > 0.5; // entrance on an east or west face (the Arboretum's was, before it moved)
@@ -1516,6 +1531,9 @@ const nearBuilding = (x: number, z: number, pad: number) =>
 // map was widened west (so they haven't moved), then a second lot fill the new strip.
 const OLD_BOUND = 76;
 const EMERGENCY_IDS = ["fire-station", "ambulance-station"];
+// The Theatre Royal, the Mint Wall, the Drill Hall and the Central Library came later still.
+const LATER_IDS = ["theatre-royal", "mint-wall", "drill-hall", "central-library"];
+const nearLater = (x: number, z: number, pad: number) => LATER_IDS.map((id) => footprint(PLACES.find((p) => p.id === id)!)).some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
 const OLD_AIRFIELD = { x0: -59, x1: -29, z0: 126, z1: 154 };
 // Ellis Mill stood a little further south, and Bailgate's west shops ran on north past where Westgate now comes in.
 const OLD_MILL = { x0: -65, x1: -59, z0: -155, z1: -149 };
@@ -1562,7 +1580,7 @@ export const TREES: [number, number, number][] = (() => {
     }
   }
   // the streets down to Sincil Bank came later: the trees already there stay put, bar any in their way
-  return [...out.filter(([x, z]) => !nearSincil(x, z, 2) && !nearTritton(x, z, 2) && !nearAirfield(x, z, 3.5) && !nearEmergency(x, z, 2) && !nearCastleStreets(x, z, 2) && !nearMinsterMore(x, z, 2) && !nearWestParade(x, z, 2) && !nearEastStreets(x, z, 2)), ...YARD_TREES];
+  return [...out.filter(([x, z]) => !nearSincil(x, z, 2) && !nearTritton(x, z, 2) && !nearAirfield(x, z, 3.5) && !nearEmergency(x, z, 2) && !nearCastleStreets(x, z, 2) && !nearMinsterMore(x, z, 2) && !nearWestParade(x, z, 2) && !nearEastStreets(x, z, 2) && !nearLater(x, z, 3.5)), ...YARD_TREES];
 })();
 
 const circles = TREES.map(([cx, cz, s]) => ({ cx, cz, r: 0.7 * s + 0.5 }));

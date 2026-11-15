@@ -1076,11 +1076,11 @@ export function Gallery({ p, font }: { p: Place; font: string }) {
         <Part geometry={geo.box(p.w, p.h, face - back)} color={p.wall} outline={0.08} position={[0, p.h / 2, (face + back) / 2]} />
         <Part geometry={geo.box(p.w + 0.4, 0.4, face - back + 0.4)} color={0xd2c6aa} outline={0.04} position={[0, p.h + 0.2, (face + back) / 2]} />
         {/* pilasters along the front */}
-        {[-8.4, -3.6, 3.6, 8.4].map((x) => (
+        {[-0.467, -0.2, 0.2, 0.467].map((f) => f * p.w).map((x) => (
           <Part key={x} geometry={geo.box(0.5, p.h - 0.4, 0.2)} color={0xd2c6aa} outline={0.03} position={[x, (p.h - 0.4) / 2, face + 0.1]} />
         ))}
         {banners.map((b, i) => (
-          <Banner key={b.title} src={b.image!} w={3.8} h={2.375} position={[(i ? 1 : -1) * 6, 3.4, face + 0.08]} />
+          <Banner key={b.title} src={b.image!} w={3.8} h={2.375} position={[((i ? 1 : -1) * p.w) / 3, 3.4, face + 0.08]} />
         ))}
         {/* the portico: four columns under a pediment */}
         {[-2.4, -0.8, 0.8, 2.4].map((x) => (
