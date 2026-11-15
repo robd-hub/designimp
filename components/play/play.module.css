@@ -346,6 +346,16 @@
   padding: 4px 9px;
   cursor: pointer;
 }
+.status .home {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 7px;
+  text-decoration: none;
+}
+.status .home:hover {
+  background: var(--sun);
+}
 .spotter {
   background: var(--sun) !important;
 }
@@ -524,6 +534,15 @@
 @media (max-width: 600px) {
   .status {
     top: calc(84px + env(safe-area-inset-top, 0px));
+    gap: 5px;
+  }
+  /* five items now, with the Home tile: keep them clear of the minimap */
+  .status > * {
+    padding: 5px 7px;
+  }
+  .status button,
+  .status .home {
+    padding: 4px 6px;
   }
   .minimap {
     top: calc(84px + env(safe-area-inset-top, 0px));
