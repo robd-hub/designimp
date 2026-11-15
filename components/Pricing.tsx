@@ -28,7 +28,7 @@ export const SITES = [
 const EXTRAS = [
   ["Extra page", "£40"],
   ["Writing the words for you", "£30 a page"],
-  ["Google Business Profile set-up", "£50"],
+  ["Local SEO set-up", "£150"],
   ["Domain and email set-up", "£30"],
 ];
 
@@ -37,6 +37,7 @@ const ADDONS = [
   ["Care plan", "Hosting, updates and small edits each month", "£20"],
   ["Review replies", "Replies to your Google reviews drafted in your voice, bad ones flagged the same day", "£15"],
   ["Social posts", "Your photos and notes turned into a week of Facebook and Instagram posts", "£20"],
+  ["Local SEO", "Weekly Google posts and offers, review requests, page tweaks from what people search for, and a one-page report of your calls, direction requests and searches", "£40"],
   ["FAQ chat bot", "Answers visitors' questions from your own site, and passes anything else to you", SOON],
   ["Booking assistant", "The chat bot that also books visits into your calendar", SOON],
 ];
@@ -74,6 +75,11 @@ export default function Pricing() {
           </span>
         ))}
       </div>
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+        Local SEO set-up gets you found on Google Maps and in &ldquo;near me&rdquo; searches: your Google Business Profile done
+        properly, Search Console, page titles and local business details on the site, and listings on Apple Maps, Bing,
+        Yell and Facebook.
+      </p>
 
       <h2 className="mb-2 mt-16 text-xl font-semibold text-foreground">Monthly add-ons</h2>
       <p className="mb-6 max-w-2xl text-base leading-relaxed text-muted">Optional, month to month: no contract, no set-up fee, cancel any time.</p>

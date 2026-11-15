@@ -34,6 +34,10 @@ export const FAQS = [
     a: "Small tweaks in the first 30 days are included. After that the care plan covers small edits each month, and anything bigger is quoted before I start.",
   },
   {
+    q: "Can you help me show up on Google?",
+    a: "Yes. Every site is built to be found, and the £150 local SEO set-up gets your Google Business Profile, directory listings and the site's local details right. After that, the £40 a month local SEO add-on keeps your listing active and shows you the calls, direction requests and searches it brings in. No one can honestly promise a place on page one, so I won't. Expect to see it working within two to three months.",
+  },
+  {
     q: "Can I add a chat bot later?",
     a: "Soon. A chat bot that answers visitors' questions from your own site, and one that also books visits into your calendar, are coming as monthly add-ons. Review replies and social posts are available now, and you can add or drop any add-on month to month.",
   },
