@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
-import SiteChat from "@/components/SiteChat";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -39,7 +38,6 @@ export default function RootLayout({
           Skip to main content
         </a>
         {children}
-        <SiteChat />
       </body>
     </html>
   );

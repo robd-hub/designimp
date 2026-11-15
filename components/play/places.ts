@@ -124,14 +124,13 @@ export const PLACES: Place[] = [
     },
     intro: [
       "A chat assistant on your website that answers questions, takes enquiry details and books visits straight into your calendar. Every lead is saved, even out of hours.",
-      "The picture is an example for a made-up plumber. The Design Imp assistant on the demo page is the real thing, so go and ask it anything.",
+      "The picture is an example for a made-up plumber.",
     ],
     items: [
       { title: "Books appointments for you", detail: "It checks your Google Calendar for free slots and books the customer straight in." },
       { title: "Nothing gets lost", detail: "Every enquiry is saved with the customer's name, contact details and what they need, even at 2am." },
       { title: "It won't make things up", detail: "It only answers from what you give it. If it doesn't know, it takes their details for you to follow up." },
     ],
-    link: { href: "/demo", label: "Try the demo" },
   },
   {
     id: "leadexchange",
