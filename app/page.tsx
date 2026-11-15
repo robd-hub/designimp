@@ -6,6 +6,7 @@ import FAQ from "@/components/FAQ";
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 import AnimateIn from "@/components/AnimateIn";
+import PlayTeaser from "@/components/PlayTeaser";
 
 export const metadata: Metadata = {
   title: "Design Imp",
@@ -21,6 +22,7 @@ export default function Home() {
       <AyuriFeature />
       <AnimateIn><Stats /></AnimateIn>
       <AnimateIn><RecentWork /></AnimateIn>
+      <AnimateIn><PlayTeaser /></AnimateIn>
       <HowItWorks />
       <AnimateIn><PricingSummary /></AnimateIn>
       <HiRob />
