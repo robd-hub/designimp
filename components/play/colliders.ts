@@ -191,7 +191,30 @@ function aroundClose(route: [number, number][]) {
   // middle of the lane or the road (a few times over, as the way round one run can cut across another)
   const pass = (r: [number, number][]) =>
     eastRows().reduce((acc, b) => aroundBox(acc, b, CLASKET.half + 0.4), DANES_ROWS.reduce((acc, b) => aroundBox(acc, b, DANESGATE.half), r));
-  return pass(pass(pass(closed)));
+  return untangle(pass(pass(pass(closed))));
+}
+// The passes can stack detours on one another, leaving a walk that goes up a lane and back down it again. Cut out any
+// loop back to a point already passed, and any turn that doubles straight back along the same line (the shortened
+// walk only retraces ground the longer one already covered, so it stays clear).
+function untangle(route: [number, number][]) {
+  const same = (a: [number, number], b: [number, number]) => Math.abs(a[0] - b[0]) < 0.05 && Math.abs(a[1] - b[1]) < 0.05;
+  const r = route.slice();
+  for (let i = 0; i < r.length; i++)
+    for (let j = r.length - 1; j > i; j--)
+      if (same(r[i], r[j])) {
+        r.splice(i + 1, j - i);
+        break;
+      }
+  for (let i = 1; i < r.length - 1; ) {
+    const [a, b, c] = [r[i - 1], r[i], r[i + 1]];
+    const cross = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]),
+      dot = (b[0] - a[0]) * (c[0] - b[0]) + (b[1] - a[1]) * (c[1] - b[1]);
+    if (Math.abs(cross) < 0.01 && dot < 0) {
+      r.splice(i, 1);
+      i = Math.max(1, i - 1);
+    } else i++;
+  }
+  return r;
 }
 // The runs of houses along Clasketgate and Monks Road as single boxes, a new run wherever there's a gap between houses.
 let EAST_ROWS: { x0: number; x1: number; z0: number; z1: number }[] | null = null;
