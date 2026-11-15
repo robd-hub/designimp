@@ -139,6 +139,15 @@ export default function Hud() {
         </p>
       </div>
       <div className={s.status}>
+        <Link className={`${s.card} ${s.home}`} href="/" aria-label="Back to the Design Imp home page" title="Back to designimp.com">
+          <svg viewBox="0 0 64 64" width="20" height="20" aria-hidden="true">
+            <path fill="#C8973A" stroke="#1a1320" strokeWidth="3" strokeLinejoin="round" d="M8 30C8 22 10 12 13 4C16 11 20 16 26 18H38C44 16 48 11 51 4C54 12 56 22 56 30V46C56 53 51 58 44 58H20C13 58 8 53 8 46Z" />
+            <path fill="#111113" d="M17 32L28 35.5L27 40C23.5 41 19.5 39.5 17 36Z" />
+            <path fill="#111113" d="M47 32L36 35.5L37 40C40.5 41 44.5 39.5 47 36Z" />
+            <path fill="none" stroke="#111113" strokeWidth="3.6" strokeLinecap="round" d="M24 47Q32 52.5 40 47" />
+          </svg>
+          {!narrow && "Home"}
+        </Link>
         <button className={s.card} onClick={toggleNight} aria-label={night ? "Switch to day" : "Switch to night"} title={night ? "Day" : "Night"}>
           {night ? "☾" : "☀"}
         </button>
