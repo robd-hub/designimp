@@ -12,7 +12,7 @@ export default function PlayTeaser() {
           <h2 className="text-3xl font-semibold text-foreground md:text-4xl">Take a walk round Lincoln.</h2>
           <p className="mt-4 max-w-md text-base leading-loose text-muted">
             A little 3D Lincoln I built, where every building is a project, a service or a landmark. Walk the Imp up Steep
-            Hill, step inside the castle walls and look out for the imps hiding round town.
+            Hill, walk along the top of the castle walls and look out for the imps hiding round town.
           </p>
           <Link
             href="/play"

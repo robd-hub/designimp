@@ -48,7 +48,7 @@ function Sidebar() {
         </div>
         <div className="px-5 py-4">
           <p className="font-semibold text-foreground">Ayuri Beauty</p>
-          <p className="mt-1 text-sm text-muted">Full capacity on most days within three months of launch.</p>
+          <p className="mt-1 text-sm text-muted">Fully booked most days within three months of launch.</p>
           <p className="mt-2 text-sm text-accent transition-colors group-hover:text-foreground">Read the case study →</p>
         </div>
       </Link>

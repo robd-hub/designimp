@@ -46,8 +46,8 @@ export default function Navbar() {
           <Link href="/#work" className="hover:text-foreground transition-colors">
             Work
           </Link>
-          <Link href="/#pricing" className="hover:text-foreground transition-colors">
-            Pricing
+          <Link href="/prices" className="hover:text-foreground transition-colors">
+            Prices
           </Link>
           <Link href="/about" className="hover:text-foreground transition-colors">
             About
@@ -102,11 +102,11 @@ export default function Navbar() {
             Work
           </Link>
           <Link
-            href="/#pricing"
+            href="/prices"
             className="text-base text-muted hover:text-foreground transition-colors"
             onClick={() => setMenuOpen(false)}
           >
-            Pricing
+            Prices
           </Link>
           <Link
             href="/about"

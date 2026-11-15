@@ -3,8 +3,8 @@ import Link from "next/link";
 import Testimonial from "./Testimonial";
 
 const STATS = [
-  { value: "3 months", label: "From launch to full capacity" },
-  { value: "Full capacity", label: "Most days of the week" },
+  { value: "3 months", label: "From launch to fully booked" },
+  { value: "Fully booked", label: "Most days of the week" },
   { value: "2nd salon", label: "Already in planning" },
 ];
 
@@ -15,11 +15,7 @@ const DELIVERABLES = [
   },
   {
     title: "Google Maps optimisation",
-    body: "A fully built-out Google Business Profile with photos, services, and regular updates to surface Ayuri Beauty at the top of local search results.",
-  },
-  {
-    title: "High-quality social presence",
-    body: "A consistent social media strategy with professional content that built brand trust and drove a steady stream of new customers through the door.",
+    body: "A fully built-out Google Business Profile with photos, services and opening hours, so people nearby searching for a salon can actually find it.",
   },
 ];
 
@@ -77,11 +73,11 @@ export default function AyuriCaseStudy() {
 
         {/* What we built */}
         <div>
-          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-accent">What we built</p>
+          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-accent">What I built</p>
           <h2 className="mb-10 text-2xl font-semibold text-foreground md:text-3xl leading-snug">
-            A complete digital presence, built to convert.
+            A website people can book on, and a listing they can find.
           </h2>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2">
             {DELIVERABLES.map((item) => (
               <div
                 key={item.title}
@@ -99,15 +95,15 @@ export default function AyuriCaseStudy() {
           <div>
             <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-accent">The results</p>
             <h2 className="text-2xl font-semibold text-foreground md:text-3xl leading-snug">
-              Full capacity in three months.
+              Fully booked in three months.
             </h2>
           </div>
           <div className="space-y-4 text-lg text-muted leading-loose">
             <p>
-              Within three months of launching the new website and marketing strategy, Ayuri Beauty was running at full capacity on most days. The owner went from chasing bookings to managing a waitlist.
+              Within three months of the new website going live, Ayuri Beauty was fully booked on most days, with clients booking themselves in online instead of calling.
             </p>
             <p>
-              The results have been strong enough that she&apos;s now planning to open a second salon — a goal she&apos;d never have considered possible before the rebrand.
+              The results have been strong enough that Crissy is now planning a second salon.
             </p>
           </div>
         </div>

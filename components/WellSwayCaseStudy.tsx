@@ -56,9 +56,9 @@ export default function WellSwayCaseStudy() {
           </div>
         </div>
 
-        {/* What we built */}
+        {/* What I built */}
         <div>
-          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-accent">What we built</p>
+          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-accent">What I built</p>
           <h2 className="mb-10 text-2xl font-semibold text-foreground md:text-3xl leading-snug">
             A complete online home for the studio.
           </h2>

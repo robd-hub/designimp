@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 
 export const metadata = {
   title: "Ayuri Beauty",
-  description: "How a custom website, Google Maps presence, and strong socials took Ayuri Beauty from empty chairs to full capacity in three months.",
+  description: "How a website with online booking and a proper Google listing took Ayuri Beauty from word of mouth to fully booked in three months.",
 };
 
 export default function AyuriPage() {
