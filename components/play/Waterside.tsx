@@ -2,12 +2,14 @@ import { useEffect, useMemo } from "react";
 import type { Place } from "./places";
 import { Part, geo, signTexture, WINDOW } from "./toon";
 import { placeEvents } from "./store";
+import { WATERSIDE_WAY } from "./colliders";
 
 const TRIM = 0xf2e2c4;
 const FRAME = 0x2b2633;
 
 // Waterside Shopping Centre on the north bank of the Witham: two brick wings under green roofs either side of
-// a tall glazed atrium over the entrance, shop windows along the ground floor, all facing the river.
+// a tall glazed atrium over the entrance, shop windows along the ground floor, all facing the river. A second entrance
+// on the west end opens onto the passage in from the High Street.
 export function Waterside({ p, font }: { p: Place; font: string }) {
   const sign = useMemo(() => signTexture(p.name, "#2f6b5a", font), [p, font]);
   useEffect(() => () => sign.dispose(), [sign]);
@@ -16,6 +18,8 @@ export function Waterside({ p, font }: { p: Place; font: string }) {
     wing = (p.w - atrium) / 2,
     tall = p.h + 2.4;
   const r = p.d / Math.sqrt(3);
+  const westZ = (WATERSIDE_WAY.z0 + WATERSIDE_WAY.z1) / 2 - p.z; // the west entrance, along the end wall
+  const west = -p.w / 2;
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       {[-1, 1].map((side) => {
@@ -55,6 +59,17 @@ export function Waterside({ p, font }: { p: Place; font: string }) {
         <planeGeometry args={[4.4, 1.1]} />
         <meshBasicMaterial map={sign} toneMapped={false} />
       </mesh>
+      {/* the west entrance off the High Street passage: glass doors in a frame, under a canopy, with the sign above */}
+      <group position={[west, 0, westZ]} rotation-y={-Math.PI / 2}>
+        <Part geometry={geo.box(2.8, 2.5, 0.2)} color={FRAME} outline={0.04} position={[0, 1.25, 0.1]} />
+        <Part geometry={geo.box(2.4, 2.2, 0.1)} color={0x9fd8e8} outline={0} position={[0, 1.1, 0.22]} />
+        <Part geometry={geo.box(0.08, 2.2, 0.12)} color={FRAME} outline={0} position={[0, 1.1, 0.26]} />
+        <Part geometry={geo.box(3.4, 0.14, 1.2)} color={p.roof} outline={0.03} position={[0, 2.75, 0.6]} />
+        <mesh position={[0, 3.55, 0.06]}>
+          <planeGeometry args={[3.4, 0.85]} />
+          <meshBasicMaterial map={sign} toneMapped={false} />
+        </mesh>
+      </group>
     </group>
   );
 }

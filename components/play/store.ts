@@ -3,7 +3,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { PLACES, inSeason, currentSeason, type Place, type Season } from "./places";
 import { NPCS, npcPos, type Npc } from "./npcs";
-import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH, clearLine, upOnWalls, WALL_WALK } from "./colliders";
+import { crossings, inCornhill, CORNHILL_WAY, RAIL, APPROACH, clearLine, upOnWalls, WALL_WALK, WATERSIDE_WAY } from "./colliders";
 import { cleanName, cleanType, cleanColour, type ShopType } from "./shop";
 
 type PlayState = {
@@ -230,6 +230,9 @@ export function doorOf(p: Place) {
 }
 
 export const DOORS = new Map(PLACES.map((p) => [p.id, doorOf(p)]));
+// Second entrances that also count as being at the door: Waterside's west one, off the High Street.
+const SIDE_DOORS = new Map([["waterside", new THREE.Vector3(WATERSIDE_WAY.x1 - 1.8, 0, (WATERSIDE_WAY.z0 + WATERSIDE_WAY.z1) / 2)]]);
+const atDoor = (p: Place, at: THREE.Vector3) => DOORS.get(p.id)!.distanceTo(at) < 3.2 || (SIDE_DOORS.get(p.id)?.distanceTo(at) ?? 99) < 3.2;
 
 // If the Imp is out on a landmark's own path (Union Road and Westgate, Monks Road, the market's way across Castle Square),
 // the points that lead back along it to where it leaves the road, nearest first.
@@ -366,7 +369,7 @@ export function nearestNpc(): Npc | null {
 
 export function nearestPlace(): Place | null {
   const { season } = usePlay.getState();
-  for (const p of PLACES) if (inSeason(p, season) && DOORS.get(p.id)!.distanceTo(game.pos) < 3.2) return p;
+  for (const p of PLACES) if (inSeason(p, season) && atDoor(p, game.pos)) return p;
   return null;
 }
 
