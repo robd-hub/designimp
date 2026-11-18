@@ -1554,8 +1554,8 @@ const nearBuilding = (x: number, z: number, pad: number) =>
 // map was widened west (so they haven't moved), then a second lot fill the new strip.
 const OLD_BOUND = 76;
 const EMERGENCY_IDS = ["fire-station", "ambulance-station"];
-// The Theatre Royal, the Mint Wall, the Drill Hall and the Central Library came later still.
-const LATER_IDS = ["theatre-royal", "mint-wall", "drill-hall", "central-library"];
+// The Theatre Royal, the Mint Wall, the Drill Hall, the Central Library and the two Labs shops came later still.
+const LATER_IDS = ["theatre-royal", "mint-wall", "drill-hall", "central-library", "agent-report-card", "cheap-first"];
 const nearLater = (x: number, z: number, pad: number) => LATER_IDS.map((id) => footprint(PLACES.find((p) => p.id === id)!)).some((b) => x > b.x0 - pad && x < b.x1 + pad && z > b.z0 - pad && z < b.z1 + pad);
 const OLD_AIRFIELD = { x0: -59, x1: -29, z0: 126, z1: 154 };
 // Ellis Mill stood a little further south, and Bailgate's west shops ran on north past where Westgate now comes in.
