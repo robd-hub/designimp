@@ -174,7 +174,7 @@ function Building({ p, font }: { p: Place; font: string }) {
   const floors = Math.max(1, Math.floor((p.h - 1.5) / 2.6));
   const windows: [number, number][] = [];
   for (let f = 0; f < floors; f++)
-    for (const sx of [-1, 1]) for (const col of p.w > 8 ? [2.2, 3.6] : [2.4]) windows.push([sx * col, f === 0 ? 1.7 : 3.8 + (f - 1) * 2.4]);
+    for (const sx of [-1, 1]) for (const col of p.w > 8 ? [2.2, 3.6] : [Math.min(2.4, p.w / 2 - 0.55)]) windows.push([sx * col, f === 0 ? 1.7 : 3.8 + (f - 1) * 2.4]); // (in a little on a narrow shop)
   return (
     <group position={[p.x, 0, p.z]} rotation-y={p.rot} {...placeEvents(p)}>
       <Part geometry={geo.box(p.w, p.h, p.d)} color={p.wall} outline={0.09} position-y={p.h / 2} />

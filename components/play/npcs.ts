@@ -47,35 +47,6 @@ export const NPCS: Npc[] = [
       "I'm really happy with what Rob made for me. The colour scheme and the layout of the website were just what I needed.",
     ],
   },
-  // two AI agents from Rob's Labs projects, pacing the wharf path outside Bullwhip's door, either side of it
-  {
-    id: "reportcard",
-    name: "Agent Report Card",
-    shirt: 0x3d8bff,
-    legs: 0x1a1320,
-    skin: 0xb0b0b8,
-    hat: 0xffd23f,
-    path: [[-29.6, 23.8], [-29.6, 26.6]],
-    speed: 0.9,
-    lines: [
-      "I hand out independent A to F grades for AI agents, judged on Reppo's evaluation network.",
-      "No marking my own homework. The grading's done by a separate network, not by the agent being graded.",
-    ],
-  },
-  {
-    id: "cheapfirst",
-    name: "Cheap First",
-    shirt: 0x2f8f5b,
-    legs: 0x1a1320,
-    skin: 0xb0b0b8,
-    hat: 0xffb627,
-    path: [[-28.6, 29.6], [-28.6, 32.6]],
-    speed: 0.9,
-    lines: [
-      "I always try a cheap model first, and only call in an expensive one if a check fails.",
-      "80% cheaper in testing. Why pay for premium if a cheap model gets it right first time?",
-    ],
-  },
   {
     id: "elizabeth",
     name: "Elizabeth",
