@@ -5,6 +5,14 @@ import Link from "next/link";
 // which stays about websites for local businesses.
 const PROJECTS = [
   {
+    name: "Agent Parrot",
+    outcome: "CoinGecko for AI agents: every agent tested and graded",
+    href: "/labs/agent-parrot",
+    image: "/labs/agent-parrot.jpg",
+    cta: "How it works →",
+    external: false,
+  },
+  {
     name: "Agent Report Card",
     outcome: "Independent A to F grades for AI agents, judged on Reppo's evaluation network",
     href: "/labs/agent-report-card",
@@ -37,8 +45,8 @@ export default function Labs() {
         <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-accent">Labs</p>
         <h1 className="text-3xl font-semibold text-foreground md:text-5xl">Things we build for ourselves.</h1>
         <p className="mt-4 max-w-2xl text-lg text-muted leading-loose">
-          Side projects, away from client work: two AI agents built for the OpenServ SERV Hackathon, and a community
-          site for the supply chain world.
+          Side projects, away from client work: Agent Parrot, a directory where every AI agent is tested and graded, two
+          AI agents built for the OpenServ SERV Hackathon, and a community site for the supply chain world.
         </p>
       </div>
 
