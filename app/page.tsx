@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import { AyuriFeature, Stats, RecentWork, HowItWorks, PricingSummary, HiRob, HOME_FAQS } from "@/components/HomeSections";
+import { AyuriFeature, Stats, RecentWork, ClinicCheck, HowItWorks, PricingSummary, HiRob, HOME_FAQS } from "@/components/HomeSections";
 import FAQ from "@/components/FAQ";
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
@@ -22,6 +22,7 @@ export default function Home() {
       <AyuriFeature />
       <AnimateIn><Stats /></AnimateIn>
       <AnimateIn><RecentWork /></AnimateIn>
+      <AnimateIn><ClinicCheck /></AnimateIn>
       <AnimateIn><PlayTeaser /></AnimateIn>
       <HowItWorks />
       <AnimateIn><PricingSummary /></AnimateIn>

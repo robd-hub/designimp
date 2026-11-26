@@ -13,6 +13,7 @@ const COLUMNS = [
   ],
   [
     { label: "Take a walk round Imp's High Street", href: "/play" },
+    { label: "Clinic website check", href: "https://check.designimp.com" },
     { label: "Labs: AI experiments", href: "/labs" },
   ],
   [

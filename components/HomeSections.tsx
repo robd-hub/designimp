@@ -140,6 +140,28 @@ const STEPS = [
   { when: "3 · Launch", title: "Go live", body: "Your site goes live on your own domain. You own it outright." },
 ];
 
+export function ClinicCheck() {
+  return (
+    <section className="mx-auto max-w-7xl px-6 pb-4">
+      <div className="rounded-3xl border border-border bg-card px-6 py-10 md:px-10 md:py-12">
+        <p className={eyebrow}>For clinics</p>
+        <h2 className={h2}>Own a clinic?</h2>
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
+          Paste your website. In about 20 seconds you&apos;ll get a score out of 100 and a plain list of what&apos;s
+          putting patients off.
+        </p>
+        <Link
+          href="https://check.designimp.com"
+          className="btn-shine mt-8 inline-flex items-center gap-3 rounded-full bg-foreground px-6 py-3 text-base font-medium text-background transition-transform hover:-translate-y-0.5"
+        >
+          Check my site
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-background/20 text-sm">→</span>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export function HowItWorks() {
   return (
     <section className="border-y border-border bg-card/40">
